@@ -1,7 +1,3 @@
-{
-	"BuildId": "27405482",
-	"Modules": 
-	{
-		"ProjectLaugh": "UnrealEditor-ProjectLaugh.dll"
-	}
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:05800dc1f0238afaa92ed308f48fb89417b062735a4054058319ed19f8026451
+size 102
