@@ -13,6 +13,8 @@ class AProjectLaughGameMode : public AGameModeBase
 
 public:
 	AProjectLaughGameMode();
+
+	virtual void BeginPlay() override;
 };
 
 

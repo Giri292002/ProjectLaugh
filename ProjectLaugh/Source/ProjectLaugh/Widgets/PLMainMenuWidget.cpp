@@ -55,18 +55,9 @@ void UPLMainMenuWidget::OnBackToMainButtonClicked()
 
 void UPLMainMenuWidget::OnRefreshServerButtonClicked()
 {
-	if (ScrollBox->HasAnyChildren())
-	{
-		ScrollBox->ClearChildren();
-	}
+	PLGameInstance->ServerListDelegate.AddDynamic(this, &UPLMainMenuWidget::OnServersRefreshed);
 
 	PLGameInstance->FindSessions();
-	if (!ensureAlwaysMsgf(PLGameInstance, TEXT("Game Instance is invalid")))
-	{
-		return;
-	}
-
-	PLGameInstance->ServerListDelegate.AddDynamic(this, &UPLMainMenuWidget::OnServersRefreshed);
 }
 
 

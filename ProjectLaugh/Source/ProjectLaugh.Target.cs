@@ -10,6 +10,6 @@ public class ProjectLaughTarget : TargetRules
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V4;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_3;
-		ExtraModuleNames.Add("ProjectLaugh");
+        ExtraModuleNames.Add("ProjectLaugh");
 	}
 }

@@ -13,3 +13,8 @@ AProjectLaughGameMode::AProjectLaughGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 }
+
+void AProjectLaughGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+}
