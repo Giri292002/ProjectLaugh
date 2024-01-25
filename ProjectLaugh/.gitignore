@@ -70,3 +70,6 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+#For Packaged Windows Builds
+TestBuilds/*
