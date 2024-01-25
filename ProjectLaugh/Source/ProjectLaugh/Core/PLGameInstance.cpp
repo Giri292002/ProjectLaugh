@@ -9,6 +9,7 @@ DEFINE_LOG_CATEGORY(LogPLGameInstance);
 
 UPLGameInstance::UPLGameInstance()
 {
+	MySessionName = "Project Laugh Session";
 }
 
 void UPLGameInstance::Init()
@@ -44,11 +45,13 @@ void UPLGameInstance::CreateServer(FString ServerName, FString HostName)
 	SessionSettings.Set(FName("HOST_NAME_KEY"), HostName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 
-	SessionInterface->CreateSession(0, FName("Project Laugh Session"), SessionSettings);
+	SessionInterface->CreateSession(0, FName(MySessionName), SessionSettings);
 }
 
 void UPLGameInstance::FindSessions()
 {
+	SearchingForServerDelegate.Broadcast(true);
+
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->bIsLanQuery = (IOnlineSubsystem::Get()->GetSubsystemName() == "NULL");
 	SessionSearch->MaxSearchResults = 100000;
@@ -58,6 +61,8 @@ void UPLGameInstance::FindSessions()
 	
 	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
+
+
 
 void UPLGameInstance::OnCreateSessionComplete(FName SessionName, bool bSucceeded)
 {
@@ -73,12 +78,15 @@ void UPLGameInstance::OnFindSessionComplete(bool bSucceeded)
 {
 	UE_LOG(LogPLGameInstance, Log, TEXT("OnFindSessionComplete, Suceeded: %d"), bSucceeded);
 
+	SearchingForServerDelegate.Broadcast(false);
+
 	if (bSucceeded)
 	{
-		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
-		UE_LOG(LogPLGameInstance, Log, TEXT("SearchResults Server count: %d"), SearchResults.Num());
+		UE_LOG(LogPLGameInstance, Log, TEXT("SearchResults Server count: %d"), SessionSearch->SearchResults.Num());
 
-		for (FOnlineSessionSearchResult Result : SearchResults)
+		int32 ArrayIndex = 0;
+
+		for (FOnlineSessionSearchResult Result : SessionSearch->SearchResults)
 		{
 			if (!Result.IsValid())
 				continue;
@@ -93,15 +101,27 @@ void UPLGameInstance::OnFindSessionComplete(bool bSucceeded)
 			Info.ServerName = ServerName;
 			Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
 			Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
+			Info.ServerArrayIndex = ArrayIndex;
 			Info.SetPlayerCount();
 
 			ServerListDelegate.Broadcast(Info);
+			++ArrayIndex;
 		}
+	}
+}
 
-		/*if (SearchResults.Num())
-		{
-			SessionInterface->JoinSession(0, FName("Project Laugh Session"), SearchResults[0]);
-		}*/
+void UPLGameInstance::JoinSession(int32 ServerArrayIndex)
+{
+	FOnlineSessionSearchResult Result = SessionSearch->SearchResults[ServerArrayIndex];
+
+	if (Result.IsValid())
+	{
+		UE_LOG(LogPLGameInstance, Log, TEXT("Joining Server at index: %d"), ServerArrayIndex);
+		SessionInterface->JoinSession(0, MySessionName, Result);
+	}
+	else
+	{
+		UE_LOG(LogPLGameInstance, Log, TEXT("Failed to join session"));
 	}
 }
 

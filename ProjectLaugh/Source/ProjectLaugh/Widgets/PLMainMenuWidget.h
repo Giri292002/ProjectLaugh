@@ -74,6 +74,9 @@ protected:
 	UFUNCTION()
 	void OnServersRefreshed(FServerInfo ServerListDelegates);
 
+	UFUNCTION()
+	void OnSearchingForServers(bool bIsSearching);
+
 	virtual void NativeConstruct() override;
 
 private:

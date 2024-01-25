@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
 UCLASS()
-class PROJECTLAUGH_API APLPlayerCharacter : public ACharacter
+class PROJECTLAUGH_API APLPlayerCharacter : public AProjectLaughCharacter
 {
 	GENERATED_BODY()
 

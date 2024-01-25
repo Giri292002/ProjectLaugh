@@ -29,6 +29,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FString PlayerCountString;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 ServerArrayIndex;
+
 	void SetPlayerCount()
 	{
 		PlayerCountString = FString(FString::FromInt(CurrentPlayers) + "/" + FString::FromInt(MaxPlayers));
@@ -58,7 +61,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FindSessions();
 
+	UFUNCTION(BlueprintCallable)
+	void JoinSession(int32 ServerArrayIndex);
+
 protected:
+
+	FName MySessionName;
 
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 

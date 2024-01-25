@@ -8,6 +8,8 @@
 #include "PLServerSlotWidget.generated.h"
 
 class UTextBlock;
+class UButton;
+class UPLGameInstance;
 
 UCLASS()
 class PROJECTLAUGH_API UPLServerSlotWidget : public UUserWidget
@@ -23,6 +25,18 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PlayerCountTextBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* JoinServerButton;
+
+	UPROPERTY()
+	int32 ServerArrayIndex;
+
+	UPROPERTY()
+	UPLGameInstance* PLGameInstance;
+
+	UFUNCTION()
+	void OnJoinServer();
 
 	virtual void NativeConstruct() override;
 };

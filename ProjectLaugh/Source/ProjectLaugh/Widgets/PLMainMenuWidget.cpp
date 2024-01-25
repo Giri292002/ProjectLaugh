@@ -26,6 +26,7 @@ void UPLMainMenuWidget::NativeConstruct()
 	{
 		return;
 	}
+	PLGameInstance->SearchingForServerDelegate.AddDynamic(this, &UPLMainMenuWidget::OnSearchingForServers);
 }
 
 void UPLMainMenuWidget::OnOpenCreateServerDialogButtonClicked()
@@ -58,7 +59,6 @@ void UPLMainMenuWidget::OnRefreshServerButtonClicked()
 	{
 		ScrollBox->ClearChildren();
 	}
-	FindServersThrobber->SetVisibility(ESlateVisibility::Visible);
 
 	PLGameInstance->FindSessions();
 	if (!ensureAlwaysMsgf(PLGameInstance, TEXT("Game Instance is invalid")))
@@ -80,6 +80,13 @@ void UPLMainMenuWidget::OnServersRefreshed(FServerInfo ServerListDelegates)
 	FindServersThrobber->SetVisibility(ESlateVisibility::Hidden);
 	UPLServerSlotWidget* ServerSlot = CreateWidget<UPLServerSlotWidget>(GetWorld(), ServerSlotWidgetClass);
 	ServerSlot->ServerInfo = ServerListDelegates;
+	ServerSlot->PLGameInstance = PLGameInstance;
 	ScrollBox->AddChild(ServerSlot);
 	UE_LOG(LogTemp, Log, TEXT("Found Server"));
+}
+
+void UPLMainMenuWidget::OnSearchingForServers(bool bIsSearching)
+{
+	FindServersThrobber->SetVisibility(bIsSearching? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	RefreshServerButton->SetIsEnabled(!bIsSearching);
 }
