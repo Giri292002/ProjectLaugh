@@ -9,6 +9,8 @@ public class ProjectLaugh : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG" });
-		PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemNull" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemNull", "AdvancedSessions", "AdvancedSteamSessions", "OnlineSubsystemUtils" });
+
+       // PublicIncludePaths.AddRange(new string[] { "AdvancedSessions/Public", "AdvancedSessions/Classes", "AdvancedSteamSessions/Public", "AdvancedSteamSessions/Classes" });
     }
 }

@@ -11,6 +11,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPLGameInstance, Log, All);
 
+struct FBlueprintSessionResult;
+
 USTRUCT(BlueprintType)
 struct FServerInfo
 {
@@ -29,8 +31,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FString PlayerCountString;
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 ServerArrayIndex;
+	FOnlineSessionSearchResult OnlineResult;
 
 	void SetPlayerCount()
 	{
@@ -61,19 +62,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FindSessions();
 
-	UFUNCTION(BlueprintCallable)
-	void JoinSession(int32 ServerArrayIndex);
+	//Dont bind it to UFUNCTION()
+	void JoinFoundSession(FOnlineSessionSearchResult& SearchResult);
 
 protected:
 
-	FName MySessionName;
+	FString GameName;
 
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 
 	IOnlineSessionPtr SessionInterface;
 
-	virtual void OnCreateSessionComplete(FName SessionName, bool bSucceeded);
-	virtual void OnFindSessionComplete(bool bSucceeded);
+	//Advanced sessions callback
+	UFUNCTION()
+	virtual void OnCreateSessionComplete();
+	UFUNCTION()
+	virtual void OnCreateSessionFail();
+
+	UFUNCTION()
+	virtual void OnFindAdvancedSessionComplete(const TArray<FBlueprintSessionResult>& Results);
+	UFUNCTION()
+	virtual void OnFindAdvancedSessionFail(const TArray<FBlueprintSessionResult>& Results);
+
 	virtual void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 	virtual void Init() override;	

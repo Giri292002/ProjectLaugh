@@ -30,9 +30,6 @@ public:
 	UButton* JoinServerButton;
 
 	UPROPERTY()
-	int32 ServerArrayIndex;
-
-	UPROPERTY()
 	UPLGameInstance* PLGameInstance;
 
 	UFUNCTION()

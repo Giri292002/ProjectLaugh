@@ -11,7 +11,6 @@ void UPLServerSlotWidget::NativeConstruct()
 {
 	ServerNameTextBox->SetText(FText::FromString(ServerInfo.ServerName));
 	PlayerCountTextBox->SetText(FText::FromString(ServerInfo.PlayerCountString));
-	ServerArrayIndex = ServerInfo.ServerArrayIndex;
 	JoinServerButton->OnClicked.AddDynamic(this, &UPLServerSlotWidget::OnJoinServer);
 
 	if (!ensureAlwaysMsgf(PLGameInstance, TEXT("Please set PL Game instance when constructing this widget")))
@@ -22,5 +21,5 @@ void UPLServerSlotWidget::NativeConstruct()
 
 void UPLServerSlotWidget::OnJoinServer()
 {
-	PLGameInstance->JoinSession(ServerArrayIndex);
+	PLGameInstance->JoinFoundSession(ServerInfo.OnlineResult);
 }

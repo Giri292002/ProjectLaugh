@@ -72,7 +72,7 @@ protected:
 	void OnViewServerButtonClicked();
 
 	UFUNCTION()
-	void OnServersRefreshed(FServerInfo ServerListDelegates);
+	void OnServerAdd(FServerInfo ServerListDelegates);
 
 	UFUNCTION()
 	void OnSearchingForServers(bool bIsSearching);

@@ -55,13 +55,17 @@ void UPLMainMenuWidget::OnBackToMainButtonClicked()
 
 void UPLMainMenuWidget::OnRefreshServerButtonClicked()
 {
-	PLGameInstance->ServerListDelegate.AddDynamic(this, &UPLMainMenuWidget::OnServersRefreshed);
+	if (!PLGameInstance->ServerListDelegate.Contains(this, FName("OnServerAdd")))
+	{
+		UE_LOG(LogTemp, Log, TEXT("BINDING TO PLGameInstance"));
+		PLGameInstance->ServerListDelegate.AddDynamic(this, &UPLMainMenuWidget::OnServerAdd);
+	}
 
 	PLGameInstance->FindSessions();
 }
 
 
-void UPLMainMenuWidget::OnServersRefreshed(FServerInfo ServerListDelegates)
+void UPLMainMenuWidget::OnServerAdd(FServerInfo ServerListDelegates)
 {
 	if (!ensureAlwaysMsgf(ServerSlotWidgetClass, TEXT("Server Slot Widget Class is invalid")))
 	{
