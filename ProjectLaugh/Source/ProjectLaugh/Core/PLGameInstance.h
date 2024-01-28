@@ -57,7 +57,7 @@ public:
 	FServerSearchingSignature SearchingForServerDelegate;
 
 	UFUNCTION(BlueprintCallable)
-	void CreateServer(FString ServerName, FString HostName);
+	void CreateServer(FString ServerName, FString HostName,int32 PlayerCount);
 
 	UFUNCTION(BlueprintCallable)
 	void FindSessions();

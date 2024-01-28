@@ -8,9 +8,14 @@
 #include "Components/ScrollBox.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
+#include "Components/Slider.h"
 #include "ProjectLaugh/Core/PLGameInstance.h"
 #include "ProjectLaugh/Widgets/PLServerSlotWidget.h"
 #include "Kismet/GameplayStatics.h"
+
+void UPLMainMenuWidget::NativePreConstruct()
+{
+}
 
 void UPLMainMenuWidget::NativeConstruct()
 {
@@ -38,7 +43,7 @@ void UPLMainMenuWidget::OnCreateServerButtonClicked()
 {	
 	FString ServerName = ServerNameEditableTextBox->GetText().ToString();
 	FString HostName = HostNameEditableTextBox->GetText().ToString();
-	PLGameInstance->CreateServer(ServerName, HostName);
+	PLGameInstance->CreateServer(ServerName, HostName, FMath::TruncToInt32(PlayerCountSlider->GetValue()));
 }
 
 void UPLMainMenuWidget::OnViewServerButtonClicked()

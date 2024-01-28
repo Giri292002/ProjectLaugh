@@ -36,7 +36,7 @@ void UPLGameInstance::Init()
 	// OLD CODE END
 }
 
-void UPLGameInstance::CreateServer(FString ServerName, FString HostName)
+void UPLGameInstance::CreateServer(FString ServerName, FString HostName, int32 PlayerCount)
 {
 	UE_LOG(LogPLGameInstance, Log, TEXT("Creating Server"));
 
@@ -63,7 +63,7 @@ void UPLGameInstance::CreateServer(FString ServerName, FString HostName)
 	ExtraSettings.Add(UAdvancedSessionsLibrary::MakeLiteralSessionPropertyString(FName("SERVER_NAME"), ServerName));
 	ExtraSettings.Add(UAdvancedSessionsLibrary::MakeLiteralSessionPropertyString(FName("GAME_NAME"), GameName));
 
-	UCreateSessionCallbackProxyAdvanced* Proxy = UCreateSessionCallbackProxyAdvanced::CreateAdvancedSession(GetWorld(), ExtraSettings, UGameplayStatics::GetPlayerController(GetWorld(), 0),3,0,false,true,false, true);
+	UCreateSessionCallbackProxyAdvanced* Proxy = UCreateSessionCallbackProxyAdvanced::CreateAdvancedSession(GetWorld(), ExtraSettings, UGameplayStatics::GetPlayerController(GetWorld(), 0), PlayerCount + 1 ,0,false,true,false, true);
 	Proxy->OnSuccess.AddDynamic(this,& UPLGameInstance::OnCreateSessionComplete);
 	Proxy->OnFailure.AddDynamic(this, &UPLGameInstance::OnCreateSessionFail);
 	Proxy->Activate();
@@ -104,7 +104,7 @@ void UPLGameInstance::OnCreateSessionComplete()
 {
 	UE_LOG(LogPLGameInstance, Log, TEXT("Session Succesfully Created"));
 
-	GetWorld()->ServerTravel("/Game/ProjectLaugh/Maps/GameLevel?listen");	
+	GetWorld()->ServerTravel("/Game/Levels/Art_Test/NewMap?listen");	
 	//UGameplayStatics::OpenLevel(GetWorld(), FName("GameLevel"), true, FString("listen"));
 }
 
