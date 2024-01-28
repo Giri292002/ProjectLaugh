@@ -13,6 +13,7 @@ class UScrollBox;
 class UPLServerSlotWidget;
 class UCircularThrobber;
 class UEditableTextBox;
+class USlider;
 
 UCLASS()
 class PROJECTLAUGH_API UPLMainMenuWidget : public UUserWidget
@@ -53,8 +54,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UEditableTextBox* ServerNameEditableTextBox;
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	USlider* PlayerCountSlider;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UPLServerSlotWidget> ServerSlotWidgetClass;
+
 
 	UFUNCTION()
 	void OnOpenCreateServerDialogButtonClicked();
@@ -77,6 +82,7 @@ protected:
 	UFUNCTION()
 	void OnSearchingForServers(bool bIsSearching);
 
+	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 
 private:
