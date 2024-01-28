@@ -36,7 +36,7 @@ void UPLGameInstance::Init()
 	// OLD CODE END
 }
 
-void UPLGameInstance::CreateServer(FString ServerName, FString HostName, int32 PlayerCount)
+void UPLGameInstance::CreateServer(FString ServerName, FString HostName, int32 InPlayerCount)
 {
 	UE_LOG(LogPLGameInstance, Log, TEXT("Creating Server"));
 
@@ -63,6 +63,7 @@ void UPLGameInstance::CreateServer(FString ServerName, FString HostName, int32 P
 	ExtraSettings.Add(UAdvancedSessionsLibrary::MakeLiteralSessionPropertyString(FName("SERVER_NAME"), ServerName));
 	ExtraSettings.Add(UAdvancedSessionsLibrary::MakeLiteralSessionPropertyString(FName("GAME_NAME"), GameName));
 
+	PlayerCount = InPlayerCount;
 	UCreateSessionCallbackProxyAdvanced* Proxy = UCreateSessionCallbackProxyAdvanced::CreateAdvancedSession(GetWorld(), ExtraSettings, UGameplayStatics::GetPlayerController(GetWorld(), 0), PlayerCount + 1 ,0,false,true,false, true);
 	Proxy->OnSuccess.AddDynamic(this,& UPLGameInstance::OnCreateSessionComplete);
 	Proxy->OnFailure.AddDynamic(this, &UPLGameInstance::OnCreateSessionFail);

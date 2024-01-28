@@ -73,6 +73,9 @@ protected:
 
 	IOnlineSessionPtr SessionInterface;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 PlayerCount;
+
 	//Advanced sessions callback
 	UFUNCTION()
 	virtual void OnCreateSessionComplete();
