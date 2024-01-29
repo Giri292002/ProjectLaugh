@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* RefreshServerButton;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UWidgetSwitcher* MenuWidgetSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
