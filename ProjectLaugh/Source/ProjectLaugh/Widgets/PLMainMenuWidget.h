@@ -7,7 +7,7 @@
 #include "PLMainMenuWidget.generated.h"
 
 class UButton;
-class UPLGameInstance;
+class UPLEOSGameInstance;
 class UWidgetSwitcher;
 class UScrollBox;
 class UPLServerSlotWidget;
@@ -87,6 +87,6 @@ protected:
 
 private:
 	UPROPERTY()
-	UPLGameInstance* PLGameInstance;
+	UPLEOSGameInstance* PLGameInstance;
 	
 };

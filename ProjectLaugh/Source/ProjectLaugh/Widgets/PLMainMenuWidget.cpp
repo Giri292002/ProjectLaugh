@@ -9,7 +9,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
 #include "Components/Slider.h"
-#include "ProjectLaugh/Core/PLGameInstance.h"
+#include "ProjectLaugh/Core/PLEOSGameInstance.h"
 #include "ProjectLaugh/Widgets/PLServerSlotWidget.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -26,12 +26,12 @@ void UPLMainMenuWidget::NativeConstruct()
 	BackToMainFromCreateServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
 	RefreshServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnRefreshServerButtonClicked);
 
-	PLGameInstance = Cast<UPLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	PLGameInstance = Cast<UPLEOSGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (!ensureAlwaysMsgf(PLGameInstance, TEXT("PL Game instance is invalid")))
 	{
 		return;
 	}
-	PLGameInstance->SearchingForServerDelegate.AddDynamic(this, &UPLMainMenuWidget::OnSearchingForServers);
+	//PLGameInstance->SearchingForServerDelegate.AddDynamic(this, &UPLMainMenuWidget::OnSearchingForServers);
 }
 
 void UPLMainMenuWidget::OnOpenCreateServerDialogButtonClicked()
@@ -43,7 +43,7 @@ void UPLMainMenuWidget::OnCreateServerButtonClicked()
 {	
 	FString ServerName = ServerNameEditableTextBox->GetText().ToString();
 	FString HostName = HostNameEditableTextBox->GetText().ToString();
-	PLGameInstance->CreateServer(ServerName, HostName, FMath::TruncToInt32(PlayerCountSlider->GetValue()));
+	PLGameInstance->CreateSession(FMath::TruncToInt32(PlayerCountSlider->GetValue()));
 }
 
 void UPLMainMenuWidget::OnViewServerButtonClicked()
@@ -60,13 +60,13 @@ void UPLMainMenuWidget::OnBackToMainButtonClicked()
 
 void UPLMainMenuWidget::OnRefreshServerButtonClicked()
 {
-	if (!PLGameInstance->ServerListDelegate.Contains(this, FName("OnServerAdd")))
+	/*if (!PLGameInstance->ServerListDelegate.Contains(this, FName("OnServerAdd")))
 	{
 		UE_LOG(LogTemp, Log, TEXT("BINDING TO PLGameInstance"));
 		PLGameInstance->ServerListDelegate.AddDynamic(this, &UPLMainMenuWidget::OnServerAdd);
 	}
 
-	PLGameInstance->FindSessions();
+	PLGameInstance->FindSessions();*/
 }
 
 
@@ -80,7 +80,7 @@ void UPLMainMenuWidget::OnServerAdd(FServerInfo ServerListDelegates)
 	FindServersThrobber->SetVisibility(ESlateVisibility::Hidden);
 	UPLServerSlotWidget* ServerSlot = CreateWidget<UPLServerSlotWidget>(GetWorld(), ServerSlotWidgetClass);
 	ServerSlot->ServerInfo = ServerListDelegates;
-	ServerSlot->PLGameInstance = PLGameInstance;
+	//ServerSlot->PLGameInstance = PLGameInstance;
 	ScrollBox->AddChild(ServerSlot);
 	UE_LOG(LogTemp, Log, TEXT("Found Server"));
 }
