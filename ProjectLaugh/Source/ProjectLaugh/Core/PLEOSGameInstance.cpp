@@ -6,6 +6,7 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystem.h"
+#include "Online/OnlineSessionNames.h"
 #include "OnlineSessionSettings.h"
 
 DEFINE_LOG_CATEGORY(LogPLEOS);
@@ -23,6 +24,11 @@ void UPLEOSGameInstance::Init()
 	Login();
 }
 
+void UPLEOSGameInstance::Shutdown()
+{
+	DestroySession();
+}
+
 void UPLEOSGameInstance::Login()
 {
 	if (OnlineSubsystem)
@@ -35,6 +41,7 @@ void UPLEOSGameInstance::Login()
 			Credentials.Id = FString("127.0.0.1:8081");
 			Credentials.Token = FString("OldWarzGiriCred");
 			Credentials.Type = FString("developer");
+			UE_LOG(LogPLEOS, Log, TEXT("Running in editor, using Dev Auth Credentials"));
 #endif
 
 			//If its a build, tell user to login
@@ -43,6 +50,7 @@ void UPLEOSGameInstance::Login()
 			Credentials.Id = FString();
 			Credentials.Token = FString();
 			Credentials.Type = FString("accountportal");
+			UE_LOG(LogPLEOS, Log, TEXT("Running in build, using Account Portal"));
 #endif
 			Identity->OnLoginCompleteDelegates->AddUObject(this, &UPLEOSGameInstance::OnLoginComplete);
 			Identity->Login(0, Credentials);
@@ -77,28 +85,61 @@ void UPLEOSGameInstance::CreateSession(int32 MaxPlayers)
 	{
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
 		{
-			FOnlineSessionSettings SessionSettings;
-			SessionSettings.bIsDedicated = false;
-			SessionSettings.bShouldAdvertise = true;
-			SessionSettings.bIsLANMatch = true;
-			SessionSettings.NumPublicConnections = MaxPlayers;
-			SessionSettings.bAllowJoinInProgress = true;
-			SessionSettings.bAllowJoinViaPresence = true;
-			SessionSettings.bUsesPresence = true;
+			TSharedRef<FOnlineSessionSettings>SessionSettings = MakeShared<FOnlineSessionSettings>();
+			SessionSettings->bIsDedicated = false;
+			SessionSettings->bShouldAdvertise = true;
+			SessionSettings->bIsLANMatch = false;
+			SessionSettings->NumPublicConnections = MaxPlayers;
+			SessionSettings->bAllowJoinInProgress = true;
+			SessionSettings->bAllowJoinViaPresence = true;
+			SessionSettings->bUsesPresence = true;
+			SessionSettings->bUseLobbiesIfAvailable = true;
+			SessionSettings->Settings.Add(FName(TEXT("SessionSetting")), FOnlineSessionSetting(FString(TEXT("SettingValue")), EOnlineDataAdvertisementType::ViaOnlineService));
+			SessionSettings->Set(SEARCH_KEYWORDS, FString(TEXT("OldWarZListenLobby")), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 			SessionPtr->OnCreateSessionCompleteDelegates.AddUObject(this, &UPLEOSGameInstance::OnCreateSessionComplete);
-			SessionPtr->CreateSession(0, FName("Old War Z Session"), SessionSettings);
+			SessionPtr->CreateSession(0, SessionName, *SessionSettings);
+			UE_LOG(LogPLEOS, Log, TEXT("Requested to create session"));
 		}
 	}
 }
 
-void UPLEOSGameInstance::OnCreateSessionComplete(FName SessionName, bool bIsSuccesful)
+void UPLEOSGameInstance::OnCreateSessionComplete(FName InSessionName, bool bIsSuccesful)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Success: %d"), bIsSuccesful);
 
 	if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
 	{
 		SessionPtr->ClearOnCreateSessionCompleteDelegates(this);
+		GetWorld()->ServerTravel("/Game/Levels/Art_Test/NewMap?listen");
+	}
+}
+
+void UPLEOSGameInstance::DestroySession()
+{
+	if (!bIsLoggedIn)
+	{
+		UE_LOG(LogPLEOS, Error, TEXT("Cannot Create Session. User is not logged in"));
+		return;
+	}
+	if (ensure(OnlineSubsystem))
+	{
+		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
+		{
+			SessionPtr->OnDestroySessionCompleteDelegates.AddUObject(this, &UPLEOSGameInstance::OnDestroySessionComplete);
+			SessionPtr->DestroySession(SessionName);
+		}
+	}
+}
+
+void UPLEOSGameInstance::OnDestroySessionComplete(FName InSessionName, bool bWasSuccessful)
+{
+	if (ensure(OnlineSubsystem))
+	{
+		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
+		{
+			SessionPtr->ClearOnRegisterPlayersCompleteDelegates(this);
+		}
 	}
 }
 

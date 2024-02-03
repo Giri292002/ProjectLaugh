@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* RefreshServerButton;
 
+	UPROPERTY(meta=(BindWidget))
+	UButton* QuitButton;
+
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UWidgetSwitcher* MenuWidgetSwitcher;
 
@@ -75,6 +78,12 @@ protected:
 
 	UFUNCTION()
 	void OnViewServerButtonClicked();
+
+	UFUNCTION()
+	void OnQuitButtonClicked();
+
+	UFUNCTION()
+	void ExecuteQuitGame();
 
 	UFUNCTION()
 	void OnServerAdd(FServerInfo ServerListDelegates);

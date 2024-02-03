@@ -25,6 +25,7 @@ void UPLMainMenuWidget::NativeConstruct()
 	BackToMainFromViewServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
 	BackToMainFromCreateServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
 	RefreshServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnRefreshServerButtonClicked);
+	QuitButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnQuitButtonClicked);
 
 	PLGameInstance = Cast<UPLEOSGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (!ensureAlwaysMsgf(PLGameInstance, TEXT("PL Game instance is invalid")))
@@ -50,6 +51,21 @@ void UPLMainMenuWidget::OnViewServerButtonClicked()
 {
 	MenuWidgetSwitcher->SetActiveWidgetIndex(1);
 	OnRefreshServerButtonClicked();
+}
+
+void UPLMainMenuWidget::OnQuitButtonClicked()
+{
+	if (ensureAlwaysMsgf(PLGameInstance, TEXT("PLGameInstance is invalid")))
+	{
+		PLGameInstance->DestroySession();
+		FTimerHandle QuitGameHandle;
+		GetWorld()->GetTimerManager().SetTimer(QuitGameHandle, this, &UPLMainMenuWidget::ExecuteQuitGame, 0.5f);
+	}
+}
+
+void UPLMainMenuWidget::ExecuteQuitGame()
+{
+	UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(),0), EQuitPreference::Quit, false);
 }
 
 
