@@ -6,6 +6,8 @@
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
+class UPLPlayerAttributesData;
+
 UCLASS()
 class PROJECTLAUGH_API APLPlayerCharacter : public AProjectLaughCharacter
 {
@@ -16,14 +18,30 @@ public:
 	APLPlayerCharacter();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Data")
+	UPLPlayerAttributesData* PLPlayerAttributesData;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	void Server_SetMaxWalkSpeed(const float InMaxWalkSpeed);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void SetMaxWalkSpeed(const float InMaxWalkSpeed);
+
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	void Server_SetPushForce(const float InPushForce);
+
+	UFUNCTION(BlueprintCallable, Client, Unreliable)
+	void SetPushForce(const float InPushForce);
+	
+		// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PostInitializeComponents() override;
 
 };
