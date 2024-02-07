@@ -204,13 +204,13 @@ void UPLGameInstance::JoinFoundSession(FOnlineSessionSearchResult& SearchResult)
 	}
 }
 
-void UPLGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+void UPLGameInstance::OnJoinSessionComplete(FName InSessionName, EOnJoinSessionCompleteResult::Type Result)
 {
 	//UE_LOG(LogPLGameInstance, Log, TEXT("Join Session: %s"), *UEnum::GetValueAsString(Result))
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
 		FString JoinAddress = "";
-		SessionInterface->GetResolvedConnectString(SessionName, JoinAddress);
+		SessionInterface->GetResolvedConnectString(InSessionName, JoinAddress);
 		if (JoinAddress != "")
 		{
 			PC->ClientTravel(JoinAddress, ETravelType::TRAVEL_Absolute);

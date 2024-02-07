@@ -14,6 +14,7 @@ class UPLServerSlotWidget;
 class UCircularThrobber;
 class UEditableTextBox;
 class USlider;
+class UTextBlock;
 
 UCLASS()
 class PROJECTLAUGH_API UPLMainMenuWidget : public UUserWidget
@@ -21,23 +22,30 @@ class PROJECTLAUGH_API UPLMainMenuWidget : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	// --- Create Room Dialog ---
 	UPROPERTY(meta = (BindWidget))
-	UButton* OpenCreateServerDialogButton;
+	UButton* OpenCreateRoomDialogButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* CreateServerButton;
+	UButton* CreateRoomButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* ViewServersButton;
+	UButton* BackToMainFromCreateRoomButton;
+
+	// --- Join Room Dialog ---
+	UPROPERTY(meta = (BindWidget))
+	UButton* OpenJoinRoomDialogButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* BackToMainFromViewServerButton;
+	UButton* JoinRoomButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* BackToMainFromCreateServerButton;
+	UEditableTextBox* RoomCodeInputTextBox;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* RefreshServerButton;
+	UButton* BackToMainFromJoinRoomButton;
+
+	// --- Main Menu Dialog ---
 
 	UPROPERTY(meta=(BindWidget))
 	UButton* QuitButton;
@@ -46,38 +54,26 @@ protected:
 	UWidgetSwitcher* MenuWidgetSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
-	UScrollBox* ScrollBox;
-
-	UPROPERTY(meta = (BindWidget))
 	UCircularThrobber* FindServersThrobber;
-
-	UPROPERTY(meta = (BindWidget))
-	UEditableTextBox* HostNameEditableTextBox;
-
-	UPROPERTY(meta = (BindWidget))
-	UEditableTextBox* ServerNameEditableTextBox;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	USlider* PlayerCountSlider;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UPLServerSlotWidget> ServerSlotWidgetClass;
-
 
 	UFUNCTION()
-	void OnOpenCreateServerDialogButtonClicked();
+	void OnOpenCreateRoomDialogButtonClicked();
 
 	UFUNCTION()
-	void OnCreateServerButtonClicked();
+	void OnCreateRoomButtonClicked();
 
 	UFUNCTION()
-	void OnRefreshServerButtonClicked();
+	void OnJoinRoomButtonClicked();
 
 	UFUNCTION()
 	void OnBackToMainButtonClicked();
 
 	UFUNCTION()
-	void OnViewServerButtonClicked();
+	void OnOpenJoinRoomButtonClicked();
 
 	UFUNCTION()
 	void OnQuitButtonClicked();
@@ -86,16 +82,13 @@ protected:
 	void ExecuteQuitGame();
 
 	UFUNCTION()
-	void OnServerAdd(FServerInfo ServerListDelegates);
-
-	UFUNCTION()
-	void OnSearchingForServers(bool bIsSearching);
+	void OnRoomCodeInputTextBoxChanged(const FText& NewText);
 
 	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 
 private:
 	UPROPERTY()
-	UPLEOSGameInstance* PLGameInstance;
+	UPLEOSGameInstance* PLEOSGameInstance;
 	
 };

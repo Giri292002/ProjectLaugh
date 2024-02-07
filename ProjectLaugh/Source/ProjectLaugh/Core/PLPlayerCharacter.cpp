@@ -26,6 +26,5 @@ void APLPlayerCharacter::Tick(float DeltaTime)
 void APLPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 

@@ -5,13 +5,14 @@
 
 #include "Components/Button.h"
 #include "Components/CircularThrobber.h"
-#include "Components/ScrollBox.h"
-#include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
+#include "Components/ScrollBox.h"
 #include "Components/Slider.h"
+#include "Components/WidgetSwitcher.h"
+#include "Kismet/GameplayStatics.h"
+#include "ProjectLaugh/Alphabets.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
 #include "ProjectLaugh/Widgets/PLServerSlotWidget.h"
-#include "Kismet/GameplayStatics.h"
 
 void UPLMainMenuWidget::NativePreConstruct()
 {
@@ -19,45 +20,43 @@ void UPLMainMenuWidget::NativePreConstruct()
 
 void UPLMainMenuWidget::NativeConstruct()
 {
-	OpenCreateServerDialogButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnOpenCreateServerDialogButtonClicked);
-	CreateServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnCreateServerButtonClicked);
-	ViewServersButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnViewServerButtonClicked);
-	BackToMainFromViewServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
-	BackToMainFromCreateServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
-	RefreshServerButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnRefreshServerButtonClicked);
+	OpenCreateRoomDialogButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnOpenCreateRoomDialogButtonClicked);
+	CreateRoomButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnCreateRoomButtonClicked);
+	OpenJoinRoomDialogButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnOpenJoinRoomButtonClicked);
+	JoinRoomButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnJoinRoomButtonClicked);
+	BackToMainFromJoinRoomButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
+	BackToMainFromCreateRoomButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnBackToMainButtonClicked);
 	QuitButton->OnClicked.AddDynamic(this, &UPLMainMenuWidget::OnQuitButtonClicked);
+	RoomCodeInputTextBox->OnTextChanged.AddDynamic(this, &UPLMainMenuWidget::OnRoomCodeInputTextBoxChanged);
 
-	PLGameInstance = Cast<UPLEOSGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (!ensureAlwaysMsgf(PLGameInstance, TEXT("PL Game instance is invalid")))
+	PLEOSGameInstance = Cast<UPLEOSGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (!ensureAlwaysMsgf(PLEOSGameInstance, TEXT("PL Game instance is invalid")))
 	{
 		return;
 	}
-	//PLGameInstance->SearchingForServerDelegate.AddDynamic(this, &UPLMainMenuWidget::OnSearchingForServers);
 }
 
-void UPLMainMenuWidget::OnOpenCreateServerDialogButtonClicked()
+void UPLMainMenuWidget::OnOpenCreateRoomDialogButtonClicked()
 {
 	MenuWidgetSwitcher->SetActiveWidgetIndex(2);
 }
 
-void UPLMainMenuWidget::OnCreateServerButtonClicked()
-{	
-	FString ServerName = ServerNameEditableTextBox->GetText().ToString();
-	FString HostName = HostNameEditableTextBox->GetText().ToString();
-	PLGameInstance->CreateSession(FMath::TruncToInt32(PlayerCountSlider->GetValue()));
+void UPLMainMenuWidget::OnCreateRoomButtonClicked()
+{
+	PLEOSGameInstance->CreateSession(FMath::TruncToInt32(PlayerCountSlider->GetValue()));
 }
 
-void UPLMainMenuWidget::OnViewServerButtonClicked()
+void UPLMainMenuWidget::OnOpenJoinRoomButtonClicked()
 {
 	MenuWidgetSwitcher->SetActiveWidgetIndex(1);
-	OnRefreshServerButtonClicked();
+	RoomCodeInputTextBox->SetKeyboardFocus();
 }
 
 void UPLMainMenuWidget::OnQuitButtonClicked()
 {
-	if (ensureAlwaysMsgf(PLGameInstance, TEXT("PLGameInstance is invalid")))
+	if (ensureAlwaysMsgf(PLEOSGameInstance, TEXT("PLEOSGameInstance is invalid")))
 	{
-		PLGameInstance->DestroySession();
+		PLEOSGameInstance->DestroySession();
 		FTimerHandle QuitGameHandle;
 		GetWorld()->GetTimerManager().SetTimer(QuitGameHandle, this, &UPLMainMenuWidget::ExecuteQuitGame, 0.5f);
 	}
@@ -68,41 +67,44 @@ void UPLMainMenuWidget::ExecuteQuitGame()
 	UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(),0), EQuitPreference::Quit, false);
 }
 
+void UPLMainMenuWidget::OnRoomCodeInputTextBoxChanged(const FText& NewText)
+{
+	if (!ensureAlwaysMsgf(PLEOSGameInstance, TEXT("Invalid PLEOSGameInstance")))
+	{
+		return;
+	}
+	auto CharacterArray = NewText.ToString().ToUpper().GetCharArray();	
+
+	//If unsupported characters have been inputted, remove them
+	if (!Alphabets::SupportedAlphabets.Contains(CharacterArray.Last(1)))
+	{
+		FString ChoppedString = NewText.ToString().LeftChop(1);
+		RoomCodeInputTextBox->SetText(FText::FromString(ChoppedString).ToUpper());
+	}
+	
+	//Room character has exceeded, remove the last input letters
+	if (NewText.ToString().Len() > 5)
+	{
+		FString ChoppedString = NewText.ToString().LeftChop(1);
+		RoomCodeInputTextBox->SetText(FText::FromString(ChoppedString).ToUpper());
+	}
+
+	RoomCodeInputTextBox->SetText(RoomCodeInputTextBox->GetText().ToUpper());
+}
+
 
 void UPLMainMenuWidget::OnBackToMainButtonClicked()
 {
 	MenuWidgetSwitcher->SetActiveWidgetIndex(0);
 }
 
-void UPLMainMenuWidget::OnRefreshServerButtonClicked()
+void UPLMainMenuWidget::OnJoinRoomButtonClicked()
 {
-	/*if (!PLGameInstance->ServerListDelegate.Contains(this, FName("OnServerAdd")))
+	FString RoomCode = RoomCodeInputTextBox->GetText().ToString();
+	if (RoomCode.Len() < 5)
 	{
-		UE_LOG(LogTemp, Log, TEXT("BINDING TO PLGameInstance"));
-		PLGameInstance->ServerListDelegate.AddDynamic(this, &UPLMainMenuWidget::OnServerAdd);
-	}
-
-	PLGameInstance->FindSessions();*/
-}
-
-
-void UPLMainMenuWidget::OnServerAdd(FServerInfo ServerListDelegates)
-{
-	if (!ensureAlwaysMsgf(ServerSlotWidgetClass, TEXT("Server Slot Widget Class is invalid")))
-	{
+		UE_LOG(LogTemp, Error, TEXT("Too short room code."))
 		return;
 	}
-
-	FindServersThrobber->SetVisibility(ESlateVisibility::Hidden);
-	UPLServerSlotWidget* ServerSlot = CreateWidget<UPLServerSlotWidget>(GetWorld(), ServerSlotWidgetClass);
-	ServerSlot->ServerInfo = ServerListDelegates;
-	//ServerSlot->PLGameInstance = PLGameInstance;
-	ScrollBox->AddChild(ServerSlot);
-	UE_LOG(LogTemp, Log, TEXT("Found Server"));
-}
-
-void UPLMainMenuWidget::OnSearchingForServers(bool bIsSearching)
-{
-	FindServersThrobber->SetVisibility(bIsSearching? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	RefreshServerButton->SetIsEnabled(!bIsSearching);
+	PLEOSGameInstance->FindSession(RoomCode);
 }
