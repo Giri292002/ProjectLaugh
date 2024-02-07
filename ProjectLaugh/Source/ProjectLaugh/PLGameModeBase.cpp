@@ -114,7 +114,7 @@ void APLGameModeBase::PostLogin(APlayerController* NewPlayer)
 	{
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
 		{
-			if (!SessionPtr->RegisterPlayer(SessionName, *UniqueNetId, false))
+			if (!SessionPtr->RegisterPlayer(PLSessionName, *UniqueNetId, false))
 			{
 				UE_LOG(LogTemp, Error, TEXT("Kicking Player LMAO"));
 				GameSession->KickPlayer(NewPlayer,FText::FromString("Could not register"));
@@ -185,7 +185,7 @@ void APLGameModeBase::PreLogout(APlayerController* InPlayerController)
 	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
 	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
 
-	if (!Session->UnregisterPlayer(SessionName, *UniqueNetId))
+	if (!Session->UnregisterPlayer(PLSessionName, *UniqueNetId))
 	{
 		UE_LOG(LogPLGameMode, Error, TEXT("Cannot Register Player"));
 	}

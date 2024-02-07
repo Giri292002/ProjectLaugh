@@ -14,16 +14,6 @@ APLGameMode_Infection::APLGameMode_Infection()
 	bUseSeamlessTravel = true;
 	bPauseable = false;
 	bDelayedStart = true;
-
-	//Dont need to update players needed to start game if in editor, just use the number we provide
-#if !WITH_EDITOR
-	UPLEOSGameInstance* PLEOSGameInstance = Cast<UPLEOSGameInstance>GetGameInstance()
-	if (ensureAlways(PLEOSGameInstance))
-	{
-		UE_LOG(LogPLEOS, Log, TEXT("Updating playersNeedtostart game from game instance"));
-		PlayersNeedToStartGame = PLEOSGameInstance->GetMaxPlayersInCurrentLobby();
-	}	
-#endif
 }
 
 bool APLGameMode_Infection::ReadyToStartMatch_Implementation()
@@ -35,6 +25,15 @@ bool APLGameMode_Infection::ReadyToStartMatch_Implementation()
 void APLGameMode_Infection::BeginPlay()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Running Begin play"));
+	//Dont need to update players needed to start game if in editor, just use the number we provide
+#if !WITH_EDITOR
+	UPLEOSGameInstance* PLEOSGameInstance = GetGameInstance<UPLEOSGameInstance>();
+	if (ensureAlways(PLEOSGameInstance))
+	{
+		UE_LOG(LogPLEOS, Log, TEXT("Updating playersNeedtostart game from game instance"));
+		PlayersNeedToStartGame = PLEOSGameInstance->GetMaxPlayersInCurrentLobby();
+	}
+#endif
 }
 
 void APLGameMode_Infection::PostLogin(APlayerController* NewPlayer)

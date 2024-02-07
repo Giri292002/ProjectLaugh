@@ -1,7 +1,5 @@
 # Visual Studio 2015 user specific files
-.vs/*
-.vs/ProjectLaugh/*
-.vs/ProjectEvaluation/*
+.vs/
 
 # Compiled Object files
 *.slo
@@ -16,6 +14,7 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
+*.dll
 
 # Fortran module files
 *.mod
@@ -45,9 +44,9 @@
 # Precompiled Assets
 SourceArt/**/*.png
 SourceArt/**/*.tga
-SourceArt/
 
 # Binary Files
+Binaries/*
 Plugins/*/Binaries/*
 
 # Builds
@@ -74,5 +73,5 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-#For Packaged Windows Builds
+#Local Build Folder
 TestBuilds/*

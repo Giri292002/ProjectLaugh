@@ -109,7 +109,7 @@ void UPLEOSGameInstance::CreateSession(int32 MaxPlayers)
 			SessionSettings->Settings.Add(FName(TEXT("ROOMCODE")), RoomCodeSessionSetting);
 
 			SessionPtr->OnCreateSessionCompleteDelegates.AddUObject(this, &UPLEOSGameInstance::OnCreateSessionComplete);
-			SessionPtr->CreateSession(0, SessionName, *SessionSettings);
+			SessionPtr->CreateSession(0, PLSessionName, *SessionSettings);
 			UE_LOG(LogPLEOS, Log, TEXT("Requested to create session"));
 		}
 	}
@@ -193,7 +193,7 @@ void UPLEOSGameInstance::JoinEOSSession()
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
 		{
 			SessionPtr->OnJoinSessionCompleteDelegates.AddUObject(this, &UPLEOSGameInstance::OnJoinSessionCompleteCallback);
-			if (!SessionPtr->JoinSession(0, SessionName, *SessionToJoin))
+			if (!SessionPtr->JoinSession(0, PLSessionName, *SessionToJoin))
 			{
 				UE_LOG(LogPLEOS, Error, TEXT("Join Lobby failed"));
 			}
@@ -225,7 +225,7 @@ void UPLEOSGameInstance::DestroySession()
 		if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
 		{
 			SessionPtr->OnDestroySessionCompleteDelegates.AddUObject(this, &UPLEOSGameInstance::OnDestroySessionComplete);
-			SessionPtr->DestroySession(SessionName);
+			SessionPtr->DestroySession(PLSessionName);
 		}
 	}
 }

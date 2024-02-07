@@ -9,7 +9,7 @@
 #include "PLEOSGameInstance.generated.h"
 
 class IOnlineSubsystem;
-const FName SessionName = FName("Old War Z Session");
+const FName PLSessionName = FName("Old War Z Session");
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPLEOS, Verbose, All);
 
