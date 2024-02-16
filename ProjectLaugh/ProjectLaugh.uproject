@@ -72,6 +72,11 @@
 		{
 			"Name": "OnlineServicesEOS",
 			"Enabled": true
+		},
+		{
+			"Name": "ProductivityTools",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/8beef99c4399462189d66689e2b48475"
 		}
 	]
 }
