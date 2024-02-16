@@ -89,16 +89,22 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 
 void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
-	GetController()->SetIgnoreMoveInput(bFreeze);
-	if (!HasAuthority())
+	if (ensure(GetController()))
 	{
-		Server_ToggleFreezeCharacter(bFreeze);
-	}
+		GetController()->SetIgnoreMoveInput(bFreeze);
+		if (!HasAuthority())
+		{
+			Server_ToggleFreezeCharacter(bFreeze);
+		}
+	}	
 }
 
 void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
-	GetController()->SetIgnoreMoveInput(bFreeze);
+	if (ensure(GetController()))
+	{
+		GetController()->SetIgnoreMoveInput(bFreeze);
+	}
 }
 
 bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreeze)
