@@ -82,6 +82,30 @@ void APLPlayerCharacter::Net_SetPushForce_Implementation(const float InPushForce
 	}
 }
 
+float APLPlayerCharacter::GetMaxWalkSpeed()
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+
+void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
+{
+	GetController()->SetIgnoreMoveInput(bFreeze);
+	if (!HasAuthority())
+	{
+		Server_ToggleFreezeCharacter(bFreeze);
+	}
+}
+
+void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
+{
+	GetController()->SetIgnoreMoveInput(bFreeze);
+}
+
+bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreeze)
+{
+	return true;
+}
+
 // Called every frame
 void APLPlayerCharacter::Tick(float DeltaTime)
 {
@@ -95,8 +119,6 @@ void APLPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-
-		// Jumping
 		EnhancedInputComponent->BindAction(InhaleAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Inhale);
 	}
 }
@@ -106,5 +128,12 @@ void APLPlayerCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	GetCharacterMovement()->bPushForceScaledToMass = true;
+}
+
+void APLPlayerCharacter::Restart()
+{
+	Super::Restart();
+
+	OnClientControlPossess.Broadcast(GetController());
 }
 

@@ -8,6 +8,9 @@
 
 class UPLPlayerAttributesData;
 class UPLInhalerComponent;
+class APlayerController;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
 UCLASS()
 class PROJECTLAUGH_API APLPlayerCharacter : public AProjectLaughCharacter
@@ -34,8 +37,11 @@ protected:
 	UFUNCTION()
 	void Inhale(const FInputActionValue& Value);
 
-
 public:	
+
+	UPROPERTY(BlueprintAssignable)
+	FClientControllerPossesSignature OnClientControlPossess;
+
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_SetMaxWalkSpeed(const float InMaxWalkSpeed);
 
@@ -47,12 +53,22 @@ public:
 
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
 	void Net_SetPushForce(const float InPushForce);
-	
-		// Called every frame
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxWalkSpeed();
+
+	UFUNCTION(BlueprintCallable, Client, Unreliable)
+	void Net_ToggleFreezeCharacter(const bool bFreeze);
+
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	void Server_ToggleFreezeCharacter(const bool bFreeze);
+
+	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PostInitializeComponents() override;
+	virtual void Restart() override;
 
 };

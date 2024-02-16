@@ -60,6 +60,11 @@ void AProjectLaughCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AProjectLaughCharacter::Restart()
+{
+	Super::Restart();
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 

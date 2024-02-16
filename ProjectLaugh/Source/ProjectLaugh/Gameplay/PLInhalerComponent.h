@@ -6,6 +6,14 @@
 #include "Components/ActorComponent.h"
 #include "PLInhalerComponent.generated.h"
 
+class UPLInhalerData;
+class UPLInhalerWidget;
+class APawn;
+class AController;
+class APLPlayerCharacter;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInhalerValueChange, const float, CurrentInhalerAmount, const float, MaxInhalerAmount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLungValueChange, const float, CurrentLungAmount, const float, MaxLungAmount);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTLAUGH_API UPLInhalerComponent : public UActorComponent
@@ -24,13 +32,13 @@ protected:
 	float CurrentAirInLungAmount;
 
 	UPROPERTY(Replicated)
-	float MaxAirInLungAmount;
+	int MaxAirInLungAmount;
 
 	UPROPERTY(Replicated)
 	float CurrentInhalerAmount;
 
 	UPROPERTY(Replicated)
-	float MaxInhalerAmount;
+	int MaxInhalerAmount;
 
 	UPROPERTY(Replicated)
 	bool bIsInhaling;
@@ -38,7 +46,16 @@ protected:
 	UPROPERTY()
 	FTimerHandle InhaleTimerHandle;
 
+	UPROPERTY(EditDefaultsOnly)
+	UPLInhalerData* PLInhalerData;
+
 public:	
+	UPROPERTY(BlueprintAssignable)
+	FOnInhalerValueChange OnInhalerValueChange;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLungValueChange OnLungValueChange;
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -51,4 +68,32 @@ public:
 
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
 	void Net_StopInhale();
+
+	UFUNCTION(BlueprintCallable, Client, Unreliable)
+	void Net_StartRunning();
+
+	UFUNCTION(BlueprintCallable, Client, Unreliable)
+	void Net_StopRunning();
+
+	UFUNCTION(BlueprintCallable, Client, Unreliable)
+	void Net_SetbStopRunningDone(const bool bSInStopRunning);
+
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	void Server_SetbStopRunningDone(const bool bSInStopRunning);
+
+	//UFUNCTION(BlueprintCallable, Client, Unreliable)
+	//void Net_FreezeCharacter();
+
+private:
+	UPROPERTY()
+	UPLInhalerWidget* PLInhalerWidget;
+
+	UPROPERTY()
+	float PreviousWalkSpeed = 0.f;
+
+	UPROPERTY()
+	APLPlayerCharacter* PLPlayerCharacter;
+
+	UPROPERTY(Replicated)
+	bool bStopRunningDone;
 };
