@@ -8,6 +8,7 @@
 
 class UPLPlayerAttributesData;
 class UPLInhalerComponent;
+class UPLInteractionComponent;
 class APlayerController;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
@@ -27,6 +28,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UPLInhalerComponent* PLInhalerComponent;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UPLInteractionComponent* PLInteractionComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InhaleAction;
@@ -70,5 +74,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PostInitializeComponents() override;
 	virtual void Restart() override;
+	virtual void PossessedBy(AController* Possessor) override;
 
 };

@@ -1,17 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "PLPlayerCharacter.h"
 
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter()
 {
 	PLInhalerComponent = CreateDefaultSubobject<UPLInhalerComponent>(FName(TEXT("Inhaler Component")));
+	PLInteractionComponent = CreateDefaultSubobject<UPLInteractionComponent>(FName(TEXT("Interaction Component")));
 }
 
 // Called when the game starts or when spawned
@@ -139,7 +140,12 @@ void APLPlayerCharacter::PostInitializeComponents()
 void APLPlayerCharacter::Restart()
 {
 	Super::Restart();
+	//OnClientControlPossess.Broadcast(GetController());
+}
 
+void APLPlayerCharacter::PossessedBy(AController* Possessor)
+{
+	Super::PossessedBy(Possessor);
 	OnClientControlPossess.Broadcast(GetController());
 }
 
