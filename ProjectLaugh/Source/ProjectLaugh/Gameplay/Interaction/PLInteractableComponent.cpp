@@ -17,10 +17,19 @@ void UPLInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	// ...	
 }
 
+
+bool UPLInteractableComponent::IsValidInteraction_Implementation(uint8 InteractorType)
+{
+	return InteractorType & IPLInteractionInterface::Execute_GetSupportedInteractors(this);
+}
+
+uint8 UPLInteractableComponent::GetSupportedInteractors_Implementation()
+{
+	return SupportedInteractors;
+}
 
 // Called every frame
 void UPLInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

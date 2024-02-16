@@ -52,7 +52,6 @@ void UPLInteractionComponent::BeginPlay()
 	}
 }
 
-
 // Called every frame
 void UPLInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -71,10 +70,22 @@ void UPLInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		//	HitResult.bBlockingHit ? FColor::Green : FColor::Red,
 		//	true);
 
-		//Check if implements interface
-		//Check if interaction is valid
+		if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()))
+		{
+			OnCanInteract.Broadcast(false);
+			return;
+		}
 
-		OnCanInteract.Broadcast(HitResult.bBlockingHit);
+		GEngine->AddOnScreenDebugMessage(11, 0.5f, FColor::Purple, FString::Printf(TEXT("Hit Actor: %s"), *GetNameSafe(HitResult.GetActor())));
+		if (auto FoundComponent = HitResult.GetActor()->FindComponentByInterface(UPLInteractionInterface::StaticClass()))
+		{
+			if (IPLInteractionInterface::Execute_IsValidInteraction(FoundComponent, InteractorType))
+			{
+				OnCanInteract.Broadcast(true);
+				return;
+			}
+		}
+		OnCanInteract.Broadcast(false);
 	}
 }
 
