@@ -3,12 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "../../Gameplay/Interaction/PLInteractionInterface.h"
 #include "PLThrowableComponent.generated.h"
 
+class UProjectileMovementComponent;
+class UStaticMeshComponent;
 
+//Attach this to any object that needs to be thrown
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class PROJECTLAUGH_API UPLThrowableComponent : public USceneComponent
+class PROJECTLAUGH_API UPLThrowableComponent : public UProjectileMovementComponent, public IPLInteractionInterface
 {
 	GENERATED_BODY()
 
@@ -17,12 +21,19 @@ public:
 	UPLThrowableComponent();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
+	uint8 SupportedInteractors;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UFUNCTION()
+	void OnProjectileStopped(const FHitResult& ImpactResult);
 
-		
+public:	
+	virtual void Interact_Implementation(APLPlayerCharacter* Instigator) override;
+	virtual uint8 GetSupportedInteractors_Implementation() override;
+
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;		
 };

@@ -7,8 +7,14 @@
 #include "LevelSequence.h"
 #include "LevelSequencePlayer.h"
 #include "MovieSceneSequencePlayer.h"
+#include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/PLGameModeBase.h"
+#include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Widgets/PLWaitingForPlayersWidget.h"
+#include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
+#include "ProjectLaugh/Widgets/PLInhalerWidget.h"
+#include "ProjectLaugh/Widgets/PLCrosshairWidget.h"
 #include "InputMappingContext.h"
 
 void APLPlayerController::BeginPlay()
@@ -33,6 +39,19 @@ void APLPlayerController::Client_DrawWaitingForPlayersWidget_Implementation()
 	
 	PLWaitingForPlayersWidget = CreateWidget<UPLWaitingForPlayersWidget>(GetWorld(), PLWaitingForPlayersWidgetClass);
 	PLWaitingForPlayersWidget->AddToViewport();	
+}
+
+void APLPlayerController::Client_AddComponentWidgets_Implementation()
+{
+	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
+
+	UPLInhalerWidget* Widget = CreateWidget<UPLInhalerWidget>(GetWorld(), PLPlayerCharacter->GetInhalerComponent()->GetInhalerWidgetClass());
+	Widget->SetPLInhalerComponent(PLPlayerCharacter->GetInhalerComponent());
+	Widget->AddToPlayerScreen();
+
+	UPLCrosshairWidget* PLCrosshairWidget = CreateWidget<UPLCrosshairWidget>(GetWorld(), PLPlayerCharacter->GetPLInteractionComponent()->PLCrosshairWidgetClass);
+	PLCrosshairWidget->SetPLInteractionComponent(PLPlayerCharacter->GetPLInteractionComponent());
+	PLCrosshairWidget->AddToPlayerScreen();
 }
 
 void APLPlayerController::PlayWaitingCinematicSequence()
@@ -102,8 +121,25 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-		
+		}		
 	}
+	Client_AddComponentWidgets();
+}
+
+void APLPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (HasAuthority())
+	{
+		RepPlayerControllerRotation = GetControlRotation();
+	}
+}
+
+void APLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APLPlayerController, RepPlayerControllerRotation);
 }
 

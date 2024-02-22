@@ -20,15 +20,14 @@ void UPLInteractableComponent::BeginPlay()
 	// ...	
 }
 
-
-bool UPLInteractableComponent::IsValidInteraction_Implementation(uint8 InteractorType)
-{
-	return InteractorType & IPLInteractionInterface::Execute_GetSupportedInteractors(this);
-}
-
 uint8 UPLInteractableComponent::GetSupportedInteractors_Implementation()
 {
 	return SupportedInteractors;
+}
+
+void UPLInteractableComponent::Interact_Implementation(APLPlayerCharacter* Instigator)
+{
+	UE_LOG(LogTemp, Log, TEXT("Called interact on %s"), *GetNameSafe(GetOwner()));
 }
 
 // Called every frame

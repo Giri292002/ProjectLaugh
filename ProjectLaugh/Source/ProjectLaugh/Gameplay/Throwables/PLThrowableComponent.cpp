@@ -2,6 +2,10 @@
 
 
 #include "PLThrowableComponent.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMeshActor.h"
+#include "ProjectLaugh/Core/PLPlayerCharacter.h"
 
 // Sets default values for this component's properties
 UPLThrowableComponent::UPLThrowableComponent()
@@ -9,8 +13,6 @@ UPLThrowableComponent::UPLThrowableComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -18,9 +20,29 @@ UPLThrowableComponent::UPLThrowableComponent()
 void UPLThrowableComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	OnProjectileStop.AddDynamic(this, &UPLThrowableComponent::OnProjectileStopped);
+	OnProjectileStopped(FHitResult());
+}
 
-	// ...
-	
+void UPLThrowableComponent::OnProjectileStopped(const FHitResult& ImpactResult)
+{
+	Cast<AStaticMeshActor>(GetOwner())->GetStaticMeshComponent()->SetSimulatePhysics(true);
+}
+
+void UPLThrowableComponent::Interact_Implementation(APLPlayerCharacter* Instigator)
+{
+	UPLThrowComponent* ThrowComponent = Instigator->FindComponentByClass<UPLThrowComponent>();
+	if (!IsValid(ThrowComponent))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Throw component is invalid on %s"), *GetNameSafe(Instigator));
+		return;
+	}
+	ThrowComponent->Net_HoldObject(GetOwner());
+}
+
+uint8 UPLThrowableComponent::GetSupportedInteractors_Implementation()
+{
+	return SupportedInteractors;
 }
 
 

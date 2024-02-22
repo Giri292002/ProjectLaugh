@@ -25,13 +25,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UFUNCTION(BlueprintNativeEvent)
-	bool IsValidInteraction(uint8 InteractorType);
-	virtual bool IsValidInteraction_Implementation(uint8 InteractorType) override;
-
-	UFUNCTION(BlueprintNativeEvent)
-	uint8 GetSupportedInteractors();
+	// --- IPLInteraction Interface Begin ---
 	virtual uint8 GetSupportedInteractors_Implementation() override;
+	virtual void Interact_Implementation(APLPlayerCharacter* Instigator) override;
+	// --- IPLInteraction Interface End ---
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

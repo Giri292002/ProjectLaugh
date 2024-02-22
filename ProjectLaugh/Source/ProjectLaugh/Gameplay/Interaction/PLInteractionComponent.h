@@ -24,15 +24,23 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FCanInteractSignature OnCanInteract;
 
-	//Set if the player can interact
-	UFUNCTION(BlueprintCallable)
-	void SetCanInteract(bool bInCanInteract) { bCanInteract = bInCanInteract; }
+	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults")
+	TSubclassOf<UPLCrosshairWidget> PLCrosshairWidgetClass;
 
-	//Get if the player can interact
+	//Get if the player can run the interaction trace
 	UFUNCTION(BlueprintCallable)
-	bool GetCanInteract() const { return bCanInteract; }
+	bool GetCanRunInteract() const { return bCanRunInteract; }
 
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//Try calling interact interface on a component
+	UFUNCTION(BlueprintCallable)
+	bool TryInteract();
+
+	UFUNCTION(BlueprintCallable)
+	bool RunInteractTrace(APLPlayerController* PLPlayerController);
+
+	virtual uint8 GetSupportedInteractors_Implementation() override;
+	virtual bool GetInteractionHitResult_Implementation(FHitResult& OutHitResult) override;
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
@@ -41,31 +49,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults")
 	float TraceRange;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults")
-	TSubclassOf<UPLCrosshairWidget> PLCrosshairWidgetClass;
-
-	UPROPERTY()
-	UPLCrosshairWidget* CrosshairWidget;
 	
-	UPROPERTY()
-	bool bCanInteract;
 
 	UPROPERTY()
-	APlayerController* PlayerController;
-
-	UFUNCTION()
-	APlayerController* GetPlayerController();
-
-	UFUNCTION()
-	void OnClientControlPossessed(AController* NewController);
+	bool bCanRunInteract;
 
 	// Called when the game starts
 	virtual void BeginPlay() override;	
 
 private:
+	UPROPERTY()
 	FHitResult HitResult;
 	FVector StartLocation;
 	FRotator StartRotation;
 	FVector EndLocation;
 	FCollisionQueryParams QueryParams;
+	UActorComponent* LastInteractedComponent;
+
+	UPROPERTY()
+	APLPlayerCharacter* PLPlayerCharacter;
 };

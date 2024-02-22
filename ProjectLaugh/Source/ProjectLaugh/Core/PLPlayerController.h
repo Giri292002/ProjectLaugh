@@ -23,6 +23,12 @@ public:
 	UFUNCTION(BlueprintCallable, Client, Reliable)
 	void Client_RemoveWaitingForPlayersWidget();
 
+	UFUNCTION(Client, Reliable)
+	virtual void Client_AddComponentWidgets();
+
+	UPROPERTY(Replicated)
+	FRotator RepPlayerControllerRotation;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ProjectLaugh | UI")
 	TSubclassOf<UPLWaitingForPlayersWidget> PLWaitingForPlayersWidgetClass;
@@ -40,6 +46,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ProjectLaugh | Input")
 	UInputMappingContext* DefaultMappingContext;
 
+
 	UFUNCTION()
 	void PlayWaitingCinematicSequence();
 	
@@ -49,4 +56,5 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void OnNetCleanup(UNetConnection* Connection) override;
 	virtual void AcknowledgePossession(class APawn* NewPawn) override;
+	virtual void Tick(float DeltaSeconds) override;
 };

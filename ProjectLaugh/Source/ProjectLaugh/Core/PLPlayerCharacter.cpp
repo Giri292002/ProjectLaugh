@@ -1,18 +1,24 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// All Rights belong to Backslap Studios 2024
 
 #include "PLPlayerCharacter.h"
 
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+#include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter()
 {
 	PLInhalerComponent = CreateDefaultSubobject<UPLInhalerComponent>(FName(TEXT("Inhaler Component")));
 	PLInteractionComponent = CreateDefaultSubobject<UPLInteractionComponent>(FName(TEXT("Interaction Component")));
+	PLThrowComponent = CreateDefaultSubobject<UPLThrowComponent>(FName(TEXT("Throw Component")));
+	PLThrowComponent->SetupAttachment(GetMesh(), FName("RightHand"));
 }
 
 // Called when the game starts or when spawned
@@ -88,6 +94,25 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 	return GetCharacterMovement()->MaxWalkSpeed;
 }
 
+void APLPlayerCharacter::Net_TryInteract_Implementation()
+{
+	PLInteractionComponent->TryInteract();
+	if (!HasAuthority())
+	{
+		Server_TryInteract();
+	}
+}
+
+void APLPlayerCharacter::Server_TryInteract_Implementation()
+{
+	PLInteractionComponent->TryInteract();
+}
+
+bool APLPlayerCharacter::Server_TryInteract_Validate()
+{
+	return true;
+}
+
 void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
 	if (ensure(GetController()))
@@ -113,10 +138,22 @@ bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreez
 	return true;
 }
 
+
+
+void APLPlayerCharacter::Net_ThrowObject_Implementation()
+{
+	PLThrowComponent->Net_Throw(PLPlayerController);
+}
+
 // Called every frame
 void APLPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (IsLocallyControlled())
+	{
+		PLInteractionComponent->RunInteractTrace(PLPlayerController);
+	}
 }
 
 // Called to bind functionality to input
@@ -127,6 +164,8 @@ void APLPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(InhaleAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Inhale);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Net_TryInteract);
+		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Net_ThrowObject);
 	}
 }
 
@@ -140,12 +179,18 @@ void APLPlayerCharacter::PostInitializeComponents()
 void APLPlayerCharacter::Restart()
 {
 	Super::Restart();
-	//OnClientControlPossess.Broadcast(GetController());
 }
 
 void APLPlayerCharacter::PossessedBy(AController* Possessor)
 {
 	Super::PossessedBy(Possessor);
+	PLPlayerController = Cast<APLPlayerController>(Possessor);
 	OnClientControlPossess.Broadcast(GetController());
+}
+
+void APLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APLPlayerCharacter, PLPlayerController);
 }
 
