@@ -49,8 +49,8 @@ protected:
 	float ThrowRange;	
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
-	void Server_ThrowObject(APLPlayerController* PLPlayerController, AActor* ObjectToThrow);
+	void Server_ThrowObject(AActor* ObjectToThrow, FVector TraceStartLocation, FRotator TraceStartRotation);
 
 	UFUNCTION()
-	void ThrowObject(APLPlayerController* PLPlayerController);
+	void ThrowObject(AActor* ObjectToThrowFVector, FVector TraceStartLocation, FRotator TraceStartRotation);
 };

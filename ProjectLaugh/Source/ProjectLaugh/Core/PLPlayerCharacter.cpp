@@ -94,6 +94,17 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 	return GetCharacterMovement()->MaxWalkSpeed;
 }
 
+void APLPlayerCharacter::Server_StunCharacter_Implementation()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("STUNNNN"));
+}
+
+bool APLPlayerCharacter::Server_StunCharacter_Validate()
+{
+	return true;
+}
+
+
 void APLPlayerCharacter::Net_TryInteract_Implementation()
 {
 	PLInteractionComponent->TryInteract();

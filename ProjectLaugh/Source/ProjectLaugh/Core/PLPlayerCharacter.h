@@ -49,6 +49,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
 
+	UPROPERTY()
+	FTimerHandle StunTimerHandle;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -80,6 +83,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_ToggleFreezeCharacter(const bool bFreeze);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	void Server_StunCharacter();
 
 	UFUNCTION(Client, Reliable)
 	void Net_TryInteract();

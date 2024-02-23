@@ -69,25 +69,32 @@ void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerCo
 		//TODO: Call drop object here and then pickup. For now just dont do anything
 		return;
 	}
+
+	//Get Player aim direction
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PLPlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	//Request server to throw
 	if (!(GetOwner()->HasAuthority()))
 	{
-		Server_ThrowObject(PLPlayerController, CurrentlyHoldingObject);
+		Server_ThrowObject(CurrentlyHoldingObject, CameraLocation, CameraRotation);
 	}
 	else
 	{
+		//If you are server just throw
 		Multicast_Throw(CurrentlyHoldingObject);
-		ThrowObject(PLPlayerController);
-
+		ThrowObject(CurrentlyHoldingObject, CameraLocation, CameraRotation);
 	}
 }
 
-void UPLThrowComponent::Server_ThrowObject_Implementation(APLPlayerController* PLPlayerController, AActor* ObjectToThrow)
+void UPLThrowComponent::Server_ThrowObject_Implementation(AActor* ObjectToThrow, FVector TraceStartLocation, FRotator TraceStartRotation)
 {
-	Multicast_Throw(CurrentlyHoldingObject);
-	ThrowObject(PLPlayerController);
+	Multicast_Throw(ObjectToThrow);
+	ThrowObject(ObjectToThrow, TraceStartLocation, TraceStartRotation);
 }
 
-bool UPLThrowComponent::Server_ThrowObject_Validate(APLPlayerController* PLPlayerController, AActor* ObjectToThrow)
+bool UPLThrowComponent::Server_ThrowObject_Validate(AActor* ObjectToThrow, FVector TraceStartLocation, FRotator TraceStartRotation)
 {
 	return true;
 }
@@ -101,19 +108,19 @@ void UPLThrowComponent::Multicast_Throw_Implementation(AActor* HoldingObject)
 	Comp->SetUpdatedComponent(Cast<AStaticMeshActor>(HoldingObject)->GetStaticMeshComponent());
 }
 
-void UPLThrowComponent::ThrowObject(APLPlayerController* PLPlayerController)
+void UPLThrowComponent::ThrowObject(AActor* ObjectToThrow, FVector TraceStartLocation, FRotator TraceStartRotation)
 {
 	FHitResult HitResult;
 	//Build Line trace directions
-	const FVector StartLocation = GetComponentLocation();
-	const FRotator StartRotation = PLPlayerController->RepPlayerControllerRotation;
-	const FVector EndLocation = StartLocation + (StartRotation.Vector() * GetThrowRange());
+	const FVector EndLocation = TraceStartLocation + (TraceStartRotation.Vector() * 500000.f);
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(GetOwner());
-	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel10, QueryParams);
-	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Yellow, true);
-	UPLThrowableComponent* Comp = CurrentlyHoldingObject->FindComponentByClass<UPLThrowableComponent>();
-	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetComponentLocation(), HitResult.TraceEnd);
+
+	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel10, QueryParams);
+	UPLThrowableComponent* Comp = ObjectToThrow->FindComponentByClass<UPLThrowableComponent>();
+	checkf(Comp, TEXT("Comp is invalid"));
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetComponentLocation(), HitResult.bBlockingHit? HitResult.ImpactPoint : HitResult.TraceEnd);
+	Comp->SetUpdatedComponent(Cast<AStaticMeshActor>(ObjectToThrow)->GetStaticMeshComponent());
 	Comp->Velocity = LookAtRotation.Vector() * GetThrowRange();
 	Comp->Activate(true);
 	CurrentlyHoldingObject = nullptr;	

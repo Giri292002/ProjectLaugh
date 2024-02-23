@@ -36,8 +36,12 @@ bool UPLInteractionComponent::TryInteract()
 		return false;
 	}
 
-	IPLInteractionInterface::Execute_Interact(LastInteractedComponent, Cast<APLPlayerCharacter>(GetOwner()));
-	return true;
+	if(IPLInteractionInterface::Execute_IsValidInteraction(LastInteractedComponent, InteractorType, IPLInteractionInterface::Execute_GetSupportedInteractors(LastInteractedComponent)))
+	{
+		IPLInteractionInterface::Execute_Interact(LastInteractedComponent, Cast<APLPlayerCharacter>(GetOwner()));
+		return true;
+	}
+	return false;
 }
 
 bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerController)
