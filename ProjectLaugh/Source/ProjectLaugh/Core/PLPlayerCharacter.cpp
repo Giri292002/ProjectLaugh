@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
+#include "ProjectLaugh/Data/PLStunData.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
@@ -97,11 +98,18 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 void APLPlayerCharacter::Server_StunCharacter_Implementation()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("STUNNNN"));
+	Multicast_StunCharacter();
 }
 
 bool APLPlayerCharacter::Server_StunCharacter_Validate()
 {
 	return true;
+}
+
+void APLPlayerCharacter::Multicast_StunCharacter_Implementation()
+{
+	check(PLStunData);
+	UGameplayStatics::PlaySound2D(GetWorld(), PLStunData->StunSound);
 }
 
 
@@ -204,4 +212,3 @@ void APLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APLPlayerCharacter, PLPlayerController);
 }
-

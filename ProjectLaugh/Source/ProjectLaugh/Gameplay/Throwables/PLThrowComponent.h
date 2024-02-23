@@ -35,8 +35,11 @@ public:
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
 	void Net_Throw(APLPlayerController* PLPlayerController);
 
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	void Server_ThrowObject(AActor* ObjectToThrow, FVector LaunchVelocity);
+
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_Throw(AActor* HoldingObject);
+	void Multicast_Throw(AActor* HoldingObject, FVector LaunchVelocity);
 
 	UFUNCTION(BlueprintCallable)
 	float GetThrowRange() const { return ThrowRange; }
@@ -48,9 +51,5 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Throw")
 	float ThrowRange;	
 
-	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
-	void Server_ThrowObject(AActor* ObjectToThrow, FVector TraceStartLocation, FRotator TraceStartRotation);
 
-	UFUNCTION()
-	void ThrowObject(AActor* ObjectToThrowFVector, FVector TraceStartLocation, FRotator TraceStartRotation);
 };

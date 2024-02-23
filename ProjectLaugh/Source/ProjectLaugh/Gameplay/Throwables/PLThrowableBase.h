@@ -7,6 +7,8 @@
 #include "PLThrowableBase.generated.h"
 
 class UPLThrowableComponent;
+class UNiagaraSystem;
+class USoundCue;
 
 UCLASS()
 class PROJECTLAUGH_API APLThrowableBase : public AStaticMeshActor
@@ -19,8 +21,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
 	UPLThrowableComponent* ThrowableComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Hit")
+	TArray<UNiagaraSystem*> HitFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Hit")
+	USoundCue* HitSound;
+
 	UFUNCTION()
 	void OnActorHitWithObject(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_SpawnHitFX(FVector ImpactPoint);
+
+	UPROPERTY()
+	AActor* PreviouslyHitActor;
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;

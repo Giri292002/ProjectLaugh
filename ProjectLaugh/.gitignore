@@ -44,6 +44,7 @@
 # Precompiled Assets
 SourceArt/**/*.png
 SourceArt/**/*.tga
+SourceArt/**/*.wav
 
 # Binary Files
 Binaries/*
@@ -78,3 +79,4 @@ TestBuilds/*
 
 *.png
 *.tga
+*.wav

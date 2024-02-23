@@ -10,6 +10,7 @@ class UPLPlayerAttributesData;
 class UPLInhalerComponent;
 class UPLInteractionComponent;
 class UPLThrowComponent;
+class UPLStunData;
 class APLPlayerController;
 class AController;
 
@@ -25,8 +26,11 @@ public:
 	APLPlayerCharacter();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Project Laugh | Data")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLPlayerAttributesData* PLPlayerAttributesData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
+	UPLStunData* PLStunData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLInhalerComponent* PLInhalerComponent;
@@ -45,6 +49,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ThrowAction;
+
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
@@ -86,6 +91,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_StunCharacter();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_StunCharacter();
 
 	UFUNCTION(Client, Reliable)
 	void Net_TryInteract();

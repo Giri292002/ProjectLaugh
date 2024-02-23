@@ -3,8 +3,12 @@
 
 #include "PLThrowableBase.h"
 
-#include "ProjectLaugh/Gameplay/Throwables/PLThrowableComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowableComponent.h"
+#include "Sound/SoundCue.h"
 
 APLThrowableBase::APLThrowableBase()
 {
@@ -25,8 +29,21 @@ void APLThrowableBase::OnActorHitWithObject( AActor* SelfActor, AActor* OtherAct
 			{
 				PLPlayerCharacter->Server_StunCharacter();
 			}
+			if (OtherActor != PreviouslyHitActor)
+			{
+				Multicast_SpawnHitFX(Hit.ImpactPoint);
+				PreviouslyHitActor = OtherActor;
+			}
 		}
+		
 	}
+}
+
+void APLThrowableBase::Multicast_SpawnHitFX_Implementation(FVector ImpactPoint)
+{
+	const int RandomIndex = FMath::RandRange(0, HitFX.Num() - 1);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitFX[RandomIndex], ImpactPoint);
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, ImpactPoint); 
 }
 
 void APLThrowableBase::PostInitializeComponents()
