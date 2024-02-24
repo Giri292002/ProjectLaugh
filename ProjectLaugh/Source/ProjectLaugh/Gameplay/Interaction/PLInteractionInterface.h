@@ -38,6 +38,9 @@ public:
 	virtual bool IsValidInteraction_Implementation(const uint8 InteractorType, const uint8 InteractedType);
 
 	UFUNCTION(BlueprintNativeEvent)
+	void IsLookingAtInteractable(const bool bStartFocus);
+
+	UFUNCTION(BlueprintNativeEvent)
 	uint8 GetSupportedInteractors();
 	virtual uint8 GetSupportedInteractors_Implementation();
 

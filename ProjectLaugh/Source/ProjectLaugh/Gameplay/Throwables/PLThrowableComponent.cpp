@@ -34,6 +34,11 @@ void UPLThrowableComponent::OnProjectileStopped(const FHitResult& ImpactResult)
 	Cast<AStaticMeshActor>(GetOwner())->GetStaticMeshComponent()->SetSimulatePhysics(true);
 }
 
+void UPLThrowableComponent::DisableInteractionOutline()
+{
+	Execute_IsLookingAtInteractable(this, false);
+}
+
 void UPLThrowableComponent::Interact_Implementation(APLPlayerCharacter* Instigator)
 {
 	UPLThrowComponent* ThrowComponent = Instigator->FindComponentByClass<UPLThrowComponent>();
@@ -48,6 +53,20 @@ void UPLThrowableComponent::Interact_Implementation(APLPlayerCharacter* Instigat
 uint8 UPLThrowableComponent::GetSupportedInteractors_Implementation()
 {
 	return SupportedInteractors;
+}
+
+void UPLThrowableComponent::IsLookingAtInteractable_Implementation(const bool bStartFocus)
+{
+	if (InteractionLookAtTimeHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(InteractionLookAtTimeHandle);
+	}
+	Cast<AStaticMeshActor>(GetOwner())->GetStaticMeshComponent()->SetRenderCustomDepth(bStartFocus);
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString("Interacting"));
+	if (bStartFocus)
+	{
+		GetWorld()->GetTimerManager().SetTimer(InteractionLookAtTimeHandle, this, &UPLThrowableComponent::DisableInteractionOutline, 0.05f);
+	}
 }
 
 

@@ -79,6 +79,7 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 		if (IPLInteractionInterface::Execute_IsValidInteraction(LastInteractedComponent, InteractorType, IPLInteractionInterface::Execute_GetSupportedInteractors(LastInteractedComponent)))
 		{
 			OnCanInteract.Broadcast(true);
+			IPLInteractionInterface::Execute_IsLookingAtInteractable(LastInteractedComponent, true);
 			return true;
 		}
 	}

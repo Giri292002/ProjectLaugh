@@ -6,6 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
@@ -19,7 +21,7 @@ APLPlayerCharacter::APLPlayerCharacter()
 	PLInhalerComponent = CreateDefaultSubobject<UPLInhalerComponent>(FName(TEXT("Inhaler Component")));
 	PLInteractionComponent = CreateDefaultSubobject<UPLInteractionComponent>(FName(TEXT("Interaction Component")));
 	PLThrowComponent = CreateDefaultSubobject<UPLThrowComponent>(FName(TEXT("Throw Component")));
-	PLThrowComponent->SetupAttachment(GetMesh(), FName("RightHand"));
+	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
 }
 
 // Called when the game starts or when spawned
@@ -111,6 +113,14 @@ void APLPlayerCharacter::Multicast_StunCharacter_Implementation()
 {
 	check(PLStunData);
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PLStunData->StunSound, GetActorLocation());
+	FFXSystemSpawnParameters NiagaraSystemParameters;
+	NiagaraSystemParameters.WorldContextObject = GetWorld();
+	NiagaraSystemParameters.SystemTemplate = PLStunData->HitFX;
+	NiagaraSystemParameters.AttachToComponent = GetMesh();
+	NiagaraSystemParameters.LocationType = EAttachLocation::SnapToTarget; 
+	NiagaraSystemParameters.AttachPointName = FName("StunFX");
+	UNiagaraComponent* SpawnedStunFX = UNiagaraFunctionLibrary::SpawnSystemAttachedWithParams(NiagaraSystemParameters);
+	SpawnedStunFX->SetNiagaraVariableFloat(FString("StunLifetime"), PLStunData->StunDuration);
 }
 
 void APLPlayerCharacter::Server_StopStunCharacter_Implementation()
@@ -146,11 +156,6 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 {
 	if (ensure(GetController()))
 	{
-		if (!bOverride && bFreeze != bFrozen)
-		{
-			return;
-		}
-
 		GetController()->SetIgnoreMoveInput(bFreeze);
 		if (!HasAuthority())
 		{
@@ -163,11 +168,6 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 
 void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze, const bool bOverride)
 {
-	if (!bOverride && bFreeze != bFrozen)
-	{
-		return;
-	}
-
 	if (ensure(GetController()))
 	{
 		GetController()->SetIgnoreMoveInput(bFreeze);

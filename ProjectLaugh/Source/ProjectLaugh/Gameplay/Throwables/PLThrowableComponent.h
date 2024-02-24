@@ -30,9 +30,14 @@ protected:
 	UFUNCTION()
 	void OnProjectileStopped(const FHitResult& ImpactResult);
 
+	UFUNCTION()
+	void DisableInteractionOutline();
+
+	FTimerHandle InteractionLookAtTimeHandle; 
 public:	
 	virtual void Interact_Implementation(APLPlayerCharacter* Instigator) override;
 	virtual uint8 GetSupportedInteractors_Implementation() override;
+	virtual void IsLookingAtInteractable_Implementation(const bool bStartFocus) override;	
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;		

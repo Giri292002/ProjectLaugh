@@ -43,7 +43,7 @@ void APLThrowableBase::Multicast_SpawnHitFX_Implementation(FVector ImpactPoint)
 {
 	const int RandomIndex = FMath::RandRange(0, HitFX.Num() - 1);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitFX[RandomIndex], ImpactPoint);
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, ImpactPoint); 
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, ImpactPoint);
 }
 
 void APLThrowableBase::PostInitializeComponents()
