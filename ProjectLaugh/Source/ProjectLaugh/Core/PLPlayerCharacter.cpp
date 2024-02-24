@@ -97,7 +97,8 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 
 void APLPlayerCharacter::Server_StunCharacter_Implementation()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("STUNNNN"));
+	GetWorld()->GetTimerManager().SetTimer(StunTimerHandle,this, &APLPlayerCharacter::Server_StopStunCharacter, PLStunData->StunDuration);
+	Server_ToggleFreezeCharacter(true, true);
 	Multicast_StunCharacter();
 }
 
@@ -109,9 +110,18 @@ bool APLPlayerCharacter::Server_StunCharacter_Validate()
 void APLPlayerCharacter::Multicast_StunCharacter_Implementation()
 {
 	check(PLStunData);
-	UGameplayStatics::PlaySound2D(GetWorld(), PLStunData->StunSound);
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PLStunData->StunSound, GetActorLocation());
 }
 
+void APLPlayerCharacter::Server_StopStunCharacter_Implementation()
+{
+	Server_ToggleFreezeCharacter(false, true);
+}
+
+bool APLPlayerCharacter::Server_StopStunCharacter_Validate()
+{
+	return true;
+}
 
 void APLPlayerCharacter::Net_TryInteract_Implementation()
 {
@@ -132,27 +142,40 @@ bool APLPlayerCharacter::Server_TryInteract_Validate()
 	return true;
 }
 
-void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
+void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze, const bool bOverride)
 {
 	if (ensure(GetController()))
 	{
+		if (!bOverride && bFreeze != bFrozen)
+		{
+			return;
+		}
+
 		GetController()->SetIgnoreMoveInput(bFreeze);
 		if (!HasAuthority())
 		{
-			Server_ToggleFreezeCharacter(bFreeze);
+			Server_ToggleFreezeCharacter(bFreeze, bOverride);
+			bFrozen = bFreeze;
 		}
+		
 	}	
 }
 
-void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
+void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze, const bool bOverride)
 {
+	if (!bOverride && bFreeze != bFrozen)
+	{
+		return;
+	}
+
 	if (ensure(GetController()))
 	{
 		GetController()->SetIgnoreMoveInput(bFreeze);
+		bFrozen = bFreeze;
 	}
 }
 
-bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreeze)
+bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreeze, const bool bOverride)
 {
 	return true;
 }

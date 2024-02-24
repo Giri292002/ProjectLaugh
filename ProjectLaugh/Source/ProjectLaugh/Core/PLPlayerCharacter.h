@@ -57,6 +57,10 @@ protected:
 	UPROPERTY()
 	FTimerHandle StunTimerHandle;
 
+	//Is the character currently frozen, meaning they can't move but can still move the camera around and take in input
+	UPROPERTY()
+	bool bFrozen;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -83,14 +87,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxWalkSpeed();
 
+	/*
+	* Prevent the character from moving
+	* @param bool bFreeze New Freeze state
+	* @param bool bOverride Force (Un)Freeze character ignoring the previos freeze state
+	*/
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
-	void Net_ToggleFreezeCharacter(const bool bFreeze);
+	void Net_ToggleFreezeCharacter(const bool bFreeze, const bool bOverride = false);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
-	void Server_ToggleFreezeCharacter(const bool bFreeze);
+	void Server_ToggleFreezeCharacter(const bool bFreeze, const bool bOverride = false);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_StunCharacter();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	void Server_StopStunCharacter();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_StunCharacter();
