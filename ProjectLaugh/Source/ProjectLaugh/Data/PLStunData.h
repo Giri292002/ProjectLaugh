@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Sound/SoundCue.h"
+#include "NiagaraSystem.h"
 #include "PLStunData.generated.h"
 
 UCLASS()
@@ -18,5 +19,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float StunDuration;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UNiagaraSystem* HitFX;
 	
 };
