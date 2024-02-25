@@ -22,6 +22,8 @@ UPLInhalerComponent::UPLInhalerComponent()
 
 void UPLInhalerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(UPLInhalerComponent, CurrentAirInLungAmount);
 	DOREPLIFETIME(UPLInhalerComponent, MaxAirInLungAmount);
 	DOREPLIFETIME(UPLInhalerComponent, CurrentInhalerAmount);
@@ -42,18 +44,6 @@ void UPLInhalerComponent::BeginPlay()
 	}
 
 	PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
-	const ENetRole OwnerRole = PLPlayerCharacter->GetLocalRole();
-
-	if (OwnerRole == ROLE_Authority || OwnerRole == ROLE_AutonomousProxy)
-	{
-		if (ensureAlwaysMsgf(PLInhalerData->PLInhalerWidgetClass, TEXT("PLInhaler Widget Class")))
-		{
-			PLInhalerWidget = CreateWidget<UPLInhalerWidget>(GetWorld(), PLInhalerData->PLInhalerWidgetClass);
-			PLInhalerWidget->SetPLInhalerComponent(this);
-			PLInhalerWidget->AddToViewport();
-		}
-	}
-
 }
 
 // Called every frame
@@ -95,10 +85,6 @@ void UPLInhalerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		OnLungValueChange.Broadcast(CurrentAirInLungAmount, MaxAirInLungAmount);
 	}
 }
-
-//void UPLInhalerComponent::Net_FreezeCharacter()
-//{
-//}
 
 void UPLInhalerComponent::Net_StartRunning_Implementation()
 {	
@@ -171,4 +157,17 @@ void UPLInhalerComponent::Server_SetbStopRunningDone_Implementation(const bool b
 bool UPLInhalerComponent::Server_SetbStopRunningDone_Validate(const bool bSInStopRunning)
 {
 	return true;
+}
+
+void UPLInhalerComponent::CreateComponentWidget()
+{
+	if (ensureAlwaysMsgf(PLInhalerData->PLInhalerWidgetClass, TEXT("PLInhaler Widget Class")))
+	{
+		
+	}
+}
+
+TSubclassOf<UPLInhalerWidget> UPLInhalerComponent::GetInhalerWidgetClass() const
+{
+	return PLInhalerData->PLInhalerWidgetClass;
 }

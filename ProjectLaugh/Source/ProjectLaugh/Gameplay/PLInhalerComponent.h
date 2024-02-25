@@ -81,6 +81,12 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_SetbStopRunningDone(const bool bSInStopRunning);
 
+	UFUNCTION()
+	void CreateComponentWidget();
+
+	UFUNCTION(BlueprintCallable)
+	TSubclassOf<UPLInhalerWidget> GetInhalerWidgetClass() const;
+
 	//UFUNCTION(BlueprintCallable, Client, Unreliable)
 	//void Net_FreezeCharacter();
 

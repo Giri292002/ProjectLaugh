@@ -8,7 +8,11 @@
 
 class UPLPlayerAttributesData;
 class UPLInhalerComponent;
-class APlayerController;
+class UPLInteractionComponent;
+class UPLThrowComponent;
+class UPLStunData;
+class APLPlayerController;
+class AController;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -22,20 +26,37 @@ public:
 	APLPlayerCharacter();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Data")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLPlayerAttributesData* PLPlayerAttributesData;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	UPLInhalerComponent* PLInhalerComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
+	UPLStunData* PLStunData;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLInteractionComponent* PLInteractionComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLThrowComponent* PLThrowComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* InhaleAction;
+	UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ThrowAction;
+
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	APLPlayerController* PLPlayerController; 
+
+	UPROPERTY()
+	FTimerHandle StunTimerHandle;
+
+	//Is the character currently frozen, meaning they can't move but can still move the camera around and take in input
+	UPROPERTY()
+	bool bFrozen;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	void Inhale(const FInputActionValue& Value);
 
 public:	
 
@@ -57,11 +78,37 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxWalkSpeed();
 
+	/*
+	* Prevent the character from moving
+	* @param bool bFreeze New Freeze state
+	* @param bool bOverride Force (Un)Freeze character ignoring the previos freeze state
+	*/
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
 	void Net_ToggleFreezeCharacter(const bool bFreeze);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_ToggleFreezeCharacter(const bool bFreeze);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	void Server_StunCharacter();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	void Server_StopStunCharacter();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_StunCharacter();
+
+	UFUNCTION(Client, Reliable)
+	void Net_TryInteract();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_TryInteract();
+
+	UFUNCTION(Client, Reliable)
+	void Net_ThrowObject();
+
+	UFUNCTION(BlueprintCallable)
+	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -70,5 +117,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PostInitializeComponents() override;
 	virtual void Restart() override;
+	virtual void PossessedBy(AController* Possessor) override;
 
 };

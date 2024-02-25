@@ -44,6 +44,7 @@
 # Precompiled Assets
 SourceArt/**/*.png
 SourceArt/**/*.tga
+SourceArt/**/*.wav
 
 # Builds
 Build/*
@@ -71,3 +72,7 @@ DerivedDataCache/*
 
 #Local Build Folder
 TestBuilds/*
+
+*.png
+*.tga
+*.wav
