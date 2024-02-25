@@ -44,6 +44,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetThrowRange() const { return ThrowRange; }
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Drop(AActor* ObjectToDrop);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Drop(AActor* ObjectToDrop);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated)
 	AActor* CurrentlyHoldingObject;

@@ -31,18 +31,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLStunData* PLStunData;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
-	UPLInhalerComponent* PLInhalerComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLInteractionComponent* PLInteractionComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLThrowComponent* PLThrowComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* InhaleAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
@@ -63,9 +57,6 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	void Inhale(const FInputActionValue& Value);
 
 public:	
 
@@ -93,10 +84,10 @@ public:
 	* @param bool bOverride Force (Un)Freeze character ignoring the previos freeze state
 	*/
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
-	void Net_ToggleFreezeCharacter(const bool bFreeze, const bool bOverride = false);
+	void Net_ToggleFreezeCharacter(const bool bFreeze);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
-	void Server_ToggleFreezeCharacter(const bool bFreeze, const bool bOverride = false);
+	void Server_ToggleFreezeCharacter(const bool bFreeze);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_StunCharacter();
@@ -115,9 +106,6 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Net_ThrowObject();
-
-	UFUNCTION(BlueprintCallable)
-	UPLInhalerComponent* GetInhalerComponent() const { return PLInhalerComponent; }
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };

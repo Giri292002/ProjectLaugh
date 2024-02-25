@@ -31,6 +31,11 @@ void UPLThrowComponent::BeginPlay()
 
 void UPLThrowComponent::Net_HoldObject_Implementation(AActor* ObjectToHold)
 {
+	if (IsValid(CurrentlyHoldingObject))
+	{
+		Server_Drop(CurrentlyHoldingObject);
+	}
+
 	CurrentlyHoldingObject = ObjectToHold;
 	if (!(GetOwner()->HasAuthority()))
 	{
@@ -44,6 +49,11 @@ void UPLThrowComponent::Net_HoldObject_Implementation(AActor* ObjectToHold)
 
 void UPLThrowComponent::Server_HoldObject_Implementation(AActor* ObjectToHold)
 {
+	if (IsValid(CurrentlyHoldingObject))
+	{
+		Server_Drop(CurrentlyHoldingObject);
+	}
+
 	CurrentlyHoldingObject = ObjectToHold;
 	Multicast_HoldObject(ObjectToHold);
 }
@@ -66,7 +76,6 @@ void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerCo
 {
 	if (!IsValid(CurrentlyHoldingObject))
 	{
-		//TODO: Call drop object here and then pickup. For now just dont do anything
 		return;
 	}
 
@@ -92,9 +101,9 @@ void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerCo
 	}
 	else
 	{
+		//If you are server just throw
 		Multicast_Throw(CurrentlyHoldingObject, LaunchVelocity);
 		CurrentlyHoldingObject = nullptr;
-		//If you are server just throw
 	}
 }
 
@@ -128,3 +137,25 @@ void UPLThrowComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(UPLThrowComponent, CurrentlyHoldingObject);
 }
 
+void UPLThrowComponent::Server_Drop_Implementation(AActor* ObjectToDrop)
+{
+	CurrentlyHoldingObject = nullptr;
+	Multicast_Drop(ObjectToDrop);
+} 
+
+bool UPLThrowComponent::Server_Drop_Validate(AActor* ObjectToDrop)
+{
+	return true;
+}
+
+void UPLThrowComponent::Multicast_Drop_Implementation(AActor* ObjectToDrop)
+{
+	ObjectToDrop->SetActorEnableCollision(true);
+	UPLThrowableComponent* Comp = ObjectToDrop->FindComponentByClass<UPLThrowableComponent>();
+	checkf(Comp, TEXT("Comp is invalid"));
+	Cast<AStaticMeshActor>(ObjectToDrop)->GetStaticMeshComponent()->MoveIgnoreActors.Add(GetOwner());
+	ObjectToDrop->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Comp->SetUpdatedComponent(Cast<AStaticMeshActor>(ObjectToDrop)->GetStaticMeshComponent());
+	Comp->Velocity = FVector::UpVector * -1.f * 20.f;
+	Comp->Activate(true);
+}

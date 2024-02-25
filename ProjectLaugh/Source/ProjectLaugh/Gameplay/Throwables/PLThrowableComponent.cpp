@@ -62,7 +62,6 @@ void UPLThrowableComponent::IsLookingAtInteractable_Implementation(const bool bS
 		GetWorld()->GetTimerManager().ClearTimer(InteractionLookAtTimeHandle);
 	}
 	Cast<AStaticMeshActor>(GetOwner())->GetStaticMeshComponent()->SetRenderCustomDepth(bStartFocus);
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Purple, FString("Interacting"));
 	if (bStartFocus)
 	{
 		GetWorld()->GetTimerManager().SetTimer(InteractionLookAtTimeHandle, this, &UPLThrowableComponent::DisableInteractionOutline, 0.05f);

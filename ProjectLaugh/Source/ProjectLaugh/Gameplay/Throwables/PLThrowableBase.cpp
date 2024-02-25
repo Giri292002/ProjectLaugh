@@ -17,6 +17,7 @@ APLThrowableBase::APLThrowableBase()
 	bStaticMeshReplicateMovement = true;
 	GetStaticMeshComponent()->SetSimulatePhysics(true);
 	SetReplicateMovement(true);
+	ThrowableComponent->OnProjectileStop.AddDynamic(this, &APLThrowableBase::OnProjectileStopped);
 }
 
 void APLThrowableBase::OnActorHitWithObject( AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -44,6 +45,14 @@ void APLThrowableBase::Multicast_SpawnHitFX_Implementation(FVector ImpactPoint)
 	const int RandomIndex = FMath::RandRange(0, HitFX.Num() - 1);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitFX[RandomIndex], ImpactPoint);
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, ImpactPoint);
+}
+
+void APLThrowableBase::OnProjectileStopped(const FHitResult& ImpactResult)
+{
+	if (HasAuthority())
+	{
+		PreviouslyHitActor = nullptr;
+	}
 }
 
 void APLThrowableBase::PostInitializeComponents()

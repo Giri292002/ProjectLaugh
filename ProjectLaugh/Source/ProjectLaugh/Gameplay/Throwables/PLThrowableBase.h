@@ -36,6 +36,9 @@ protected:
 	UPROPERTY()
 	AActor* PreviouslyHitActor;
 
+	UFUNCTION()
+	void OnProjectileStopped(const FHitResult& ImpactResult);
+
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 };

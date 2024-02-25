@@ -45,9 +45,13 @@ void APLPlayerController::Client_AddComponentWidgets_Implementation()
 {
 	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
 
-	UPLInhalerWidget* Widget = CreateWidget<UPLInhalerWidget>(GetWorld(), PLPlayerCharacter->GetInhalerComponent()->GetInhalerWidgetClass());
-	Widget->SetPLInhalerComponent(PLPlayerCharacter->GetInhalerComponent());
-	Widget->AddToPlayerScreen();
+	UPLInhalerComponent* InhalerComp = PLPlayerCharacter->GetComponentByClass<UPLInhalerComponent>();
+	if(IsValid(InhalerComp))
+	{
+		UPLInhalerWidget* Widget = CreateWidget<UPLInhalerWidget>(GetWorld(), PLPlayerCharacter->GetComponentByClass<UPLInhalerComponent>()->GetInhalerWidgetClass());
+		Widget->SetPLInhalerComponent(InhalerComp);
+		Widget->AddToPlayerScreen();
+	}	
 
 	UPLCrosshairWidget* PLCrosshairWidget = CreateWidget<UPLCrosshairWidget>(GetWorld(), PLPlayerCharacter->GetPLInteractionComponent()->PLCrosshairWidgetClass);
 	PLCrosshairWidget->SetPLInteractionComponent(PLPlayerCharacter->GetPLInteractionComponent());

@@ -11,14 +11,12 @@
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
-#include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter()
 {
-	PLInhalerComponent = CreateDefaultSubobject<UPLInhalerComponent>(FName(TEXT("Inhaler Component")));
 	PLInteractionComponent = CreateDefaultSubobject<UPLInteractionComponent>(FName(TEXT("Interaction Component")));
 	PLThrowComponent = CreateDefaultSubobject<UPLThrowComponent>(FName(TEXT("Throw Component")));
 	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
@@ -36,22 +34,6 @@ void APLPlayerCharacter::BeginPlay()
 
 	Net_SetMaxWalkSpeed(PLPlayerAttributesData->MaxWalkSpeed);
 	Net_SetPushForce(PLPlayerAttributesData->PushForce);
-}
-
-void APLPlayerCharacter::Inhale(const FInputActionValue& Value)
-{
-	if (ensure(PLInhalerComponent))
-	{
-		const bool bIsInhaling = Value.Get<bool>();
-		if (bIsInhaling)
-		{
-			PLInhalerComponent->Net_StartInhale();
-		}
-		else
-		{
-			PLInhalerComponent->Net_StopInhale();
-		}
-	}
 }
 
 void APLPlayerCharacter::Server_SetMaxWalkSpeed_Implementation(const float InMaxWalkSpeed)
@@ -99,8 +81,8 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 
 void APLPlayerCharacter::Server_StunCharacter_Implementation()
 {
+	Server_ToggleFreezeCharacter(true);
 	GetWorld()->GetTimerManager().SetTimer(StunTimerHandle,this, &APLPlayerCharacter::Server_StopStunCharacter, PLStunData->StunDuration);
-	Server_ToggleFreezeCharacter(true, true);
 	Multicast_StunCharacter();
 }
 
@@ -120,12 +102,13 @@ void APLPlayerCharacter::Multicast_StunCharacter_Implementation()
 	NiagaraSystemParameters.LocationType = EAttachLocation::SnapToTarget; 
 	NiagaraSystemParameters.AttachPointName = FName("StunFX");
 	UNiagaraComponent* SpawnedStunFX = UNiagaraFunctionLibrary::SpawnSystemAttachedWithParams(NiagaraSystemParameters);
-	SpawnedStunFX->SetNiagaraVariableFloat(FString("StunLifetime"), PLStunData->StunDuration);
+	SpawnedStunFX->SetVariableFloat(FName("StunLifetime"), PLStunData->StunDuration);
 }
 
 void APLPlayerCharacter::Server_StopStunCharacter_Implementation()
 {
-	Server_ToggleFreezeCharacter(false, true);
+	GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
+	Server_ToggleFreezeCharacter(false);
 }
 
 bool APLPlayerCharacter::Server_StopStunCharacter_Validate()
@@ -152,35 +135,32 @@ bool APLPlayerCharacter::Server_TryInteract_Validate()
 	return true;
 }
 
-void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze, const bool bOverride)
+void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
 	if (ensure(GetController()))
 	{
 		GetController()->SetIgnoreMoveInput(bFreeze);
 		if (!HasAuthority())
 		{
-			Server_ToggleFreezeCharacter(bFreeze, bOverride);
-			bFrozen = bFreeze;
+			Server_ToggleFreezeCharacter(bFreeze);
 		}
 		
 	}	
 }
 
-void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze, const bool bOverride)
+void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
-	if (ensure(GetController()))
+	//Only freeze or unfreeze character is stun timer handle is not valid
+	if (ensure(GetController()) && !StunTimerHandle.IsValid())
 	{
 		GetController()->SetIgnoreMoveInput(bFreeze);
-		bFrozen = bFreeze;
 	}
 }
 
-bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreeze, const bool bOverride)
+bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreeze)
 {
 	return true;
 }
-
-
 
 void APLPlayerCharacter::Net_ThrowObject_Implementation()
 {
@@ -205,7 +185,6 @@ void APLPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(InhaleAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Inhale);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Net_TryInteract);
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter::Net_ThrowObject);
 	}
