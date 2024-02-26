@@ -7,6 +7,8 @@
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
+#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
 
 APLGameMode_Infection::APLGameMode_Infection()
 {
@@ -24,6 +26,8 @@ bool APLGameMode_Infection::ReadyToStartMatch_Implementation()
 
 void APLGameMode_Infection::BeginPlay()
 {
+	Super::BeginPlay();
+
 	UE_LOG(LogTemp, Warning, TEXT("Running Begin play"));
 	//Dont need to update players needed to start game if in editor, just use the number we provide
 #if !WITH_EDITOR
@@ -48,7 +52,6 @@ void APLGameMode_Infection::PostLogin(APlayerController* NewPlayer)
 	}
 
 	//bDelayed start has been set, so we need to call StartMatch ourself
-	//TODO: Build and test
 	if (ReadyToStartMatch())
 	{
 		StartMatch();
@@ -63,6 +66,7 @@ void APLGameMode_Infection::PostLogin(APlayerController* NewPlayer)
 void APLGameMode_Infection::Tick(float DeltaSeconds)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Match State: %s"), *(GetMatchState().ToString()))
+	Super::Tick(DeltaSeconds);
 }
 
 void APLGameMode_Infection::SetMatchState(FName NewState)
@@ -77,31 +81,48 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 
 void APLGameMode_Infection::SpawnPlayers()
 {
-	if (AllCharacterClasses.Num() <= 0)
+	if (ElderClasses.Num() <= 0 || ZombieClasses.Num() <= 0)
 	{
-		UE_LOG(LogPLGameMode, Error, TEXT("AllCharacterClasses in empty."));
+		UE_LOG(LogPLGameMode, Error, TEXT("There isnt enough player classes, check ElderClasses and ZomieClasses."));
 		return;
 	}
 
-	for (APLPlayerController* PLPlayerController : ConnectedPLPlayerControllers)
-	{
-		PLPlayerController->Client_RemoveWaitingForPlayersWidget();
-		int RandomIndex = FMath::RandRange(0, AllCharacterClasses.Num() - 1);
-		APLPlayerStart* PLPlayerStart;
-		if (!GetSuitablePLPlayerStart(PLPlayerStart))
-		{
-			UE_LOG(LogPLGameMode, Error, TEXT("Cannot find suitable PL Player start"));
-			break;
-		}
-		const FTransform SpawnTransform = PLPlayerStart->GetActorTransform();
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		APLPlayerCharacter* SpawnedCharacter = GetWorld()->SpawnActor<APLPlayerCharacter>(AllCharacterClasses[RandomIndex].Get(), SpawnTransform, SpawnParams);
+	TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
 
-		if (!ensureAlwaysMsgf(SpawnedCharacter, TEXT("Spawned PL Player character is invalid")))
-		{
-			break;
-		}
-		PLPlayerController->Possess(Cast<APawn>(SpawnedCharacter));
+	// Spawn Zombie First
+	const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+	const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
+	SpawnPLPlayerCharacter(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex]);
+	CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
+	
+	TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+		const int ElderCharacterClassIndex = FMath::RandRange(0, AvailableElderCharacterClasses.Num() - 1);
+		SpawnPLPlayerCharacter(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex]);
+		CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
+		AvailableElderCharacterClasses.RemoveAt(ElderCharacterClassIndex);
 	}
+}
+
+void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController)
+{
+	OwningPlayerController->Client_RemoveWaitingForPlayersWidget();
+	APLPlayerStart* PLPlayerStart;
+	if (!GetSuitablePLPlayerStart(PLPlayerStart))
+	{
+		UE_LOG(LogPLGameMode, Error, TEXT("Cannot find suitable PL Player start"));
+		return;
+	}
+	const FTransform SpawnTransform = PLPlayerStart->GetActorTransform();
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	APLPlayerCharacter* SpawnedCharacter = GetWorld()->SpawnActor<APLPlayerCharacter>(SpawningCharacterClass, SpawnTransform, SpawnParams);
+
+	if (!ensureAlwaysMsgf(SpawnedCharacter, TEXT("Spawned PL Player character is invalid")))
+	{
+		return;
+	}
+	OwningPlayerController->Possess(Cast<APawn>(SpawnedCharacter));
 }

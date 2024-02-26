@@ -2,7 +2,7 @@
 
 
 #include "PLMainMenuGameMode.h"
-#include "ProjectLaugh/Core/PLMainMenuPawn.h"
+#include "ProjectLaugh/Core/MainMenu/PLMainMenuPawn.h"
 
 APLMainMenuGameMode::APLMainMenuGameMode()
 {

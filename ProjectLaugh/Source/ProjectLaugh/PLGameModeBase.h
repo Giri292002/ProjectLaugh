@@ -42,7 +42,7 @@ protected:
 	int PlayersNeedToStartGame;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ProjectLaugh | Players")
-	TArray<APLPlayerController*> ConnectedPLPlayerControllers;
+	TSet<APLPlayerController*> ConnectedPLPlayerControllers;
 
 	UPROPERTY(BlueprintReadOnly, Category = "ProjectLaugh | Players")
 	TArray<APLPlayerStart*> PLPlayerStarts;

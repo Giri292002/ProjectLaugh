@@ -6,7 +6,9 @@
 #include "ProjectLaugh/PLGameModeBase.h"
 #include "PLGameMode_Infection.generated.h"
 
-class APLPlayerCharacter;
+class APLPlayerCharacter_Elder;
+class APLPlayerCharacter_Zombie;
+class APLPlayerController;
 
 UCLASS()
 class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
@@ -17,8 +19,11 @@ class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, Category = "ProjectLaugh | Infection")
-	TArray<TSubclassOf<APLPlayerCharacter>>AllCharacterClasses;
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	TArray<TSubclassOf<APLPlayerCharacter_Elder>>ElderClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>ZombieClasses;
 
 	virtual bool ReadyToStartMatch_Implementation() override;
 
@@ -31,4 +36,8 @@ protected:
 	virtual void SetMatchState(FName NewState) override;
 
 	virtual void SpawnPlayers() override;
+
+	UFUNCTION()
+	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController);
+
 };

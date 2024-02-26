@@ -13,6 +13,7 @@ class UPLThrowComponent;
 class UPLStunData;
 class APLPlayerController;
 class AController;
+class UPLGameplayTagComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -37,6 +38,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLThrowComponent* PLThrowComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLGameplayTagComponent* PLGameplayTagComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
@@ -106,6 +110,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Net_ThrowObject();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnPounced();
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };

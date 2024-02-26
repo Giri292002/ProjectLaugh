@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
@@ -20,6 +21,7 @@ APLPlayerCharacter::APLPlayerCharacter()
 	PLInteractionComponent = CreateDefaultSubobject<UPLInteractionComponent>(FName(TEXT("Interaction Component")));
 	PLThrowComponent = CreateDefaultSubobject<UPLThrowComponent>(FName(TEXT("Throw Component")));
 	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
+	PLGameplayTagComponent = CreateDefaultSubobject<UPLGameplayTagComponent>(FName(TEXT("PL Gameplaytag Component")));
 }
 
 // Called when the game starts or when spawned
@@ -34,6 +36,7 @@ void APLPlayerCharacter::BeginPlay()
 
 	Net_SetMaxWalkSpeed(PLPlayerAttributesData->MaxWalkSpeed);
 	Net_SetPushForce(PLPlayerAttributesData->PushForce);
+	PLGameplayTagComponent->Server_AddTag(PLPlayerAttributesData->AffiliationTag);
 }
 
 void APLPlayerCharacter::Server_SetMaxWalkSpeed_Implementation(const float InMaxWalkSpeed)
@@ -81,7 +84,16 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 
 void APLPlayerCharacter::Server_StunCharacter_Implementation()
 {
-	Server_ToggleFreezeCharacter(true);
+	//We are already stunned, don't stun again
+	if (PLGameplayTagComponent->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Stunned))
+	{
+		return;
+	}
+
+	Net_ToggleFreezeCharacter(true);
+
+	PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Stunned); 
+
 	GetWorld()->GetTimerManager().SetTimer(StunTimerHandle,this, &APLPlayerCharacter::Server_StopStunCharacter, PLStunData->StunDuration);
 	Multicast_StunCharacter();
 }
@@ -108,7 +120,8 @@ void APLPlayerCharacter::Multicast_StunCharacter_Implementation()
 void APLPlayerCharacter::Server_StopStunCharacter_Implementation()
 {
 	GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
-	Server_ToggleFreezeCharacter(false);
+	PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Stunned);
+	Net_ToggleFreezeCharacter(false);
 }
 
 bool APLPlayerCharacter::Server_StopStunCharacter_Validate()
@@ -143,15 +156,13 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 		if (!HasAuthority())
 		{
 			Server_ToggleFreezeCharacter(bFreeze);
-		}
-		
+		}		
 	}	
 }
 
 void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
-	//Only freeze or unfreeze character is stun timer handle is not valid
-	if (ensure(GetController()) && !StunTimerHandle.IsValid())
+	if (ensure(GetController()))
 	{
 		GetController()->SetIgnoreMoveInput(bFreeze);
 	}
@@ -165,6 +176,12 @@ bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreez
 void APLPlayerCharacter::Net_ThrowObject_Implementation()
 {
 	PLThrowComponent->Net_Throw(PLPlayerController);
+}
+
+void APLPlayerCharacter::Multicast_OnPounced_Implementation()
+{
+	GetMesh()->SetCollisionProfileName(FName("Ragdoll"));
+	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true);
 }
 
 // Called every frame
