@@ -168,7 +168,6 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 {
 	if (ensure(GetController()))
 	{
-		GEngine->AddOnScreenDebugMessage((uint64)("Net_Freeze"), 10.0f, FColor::Green, FString::Printf(TEXT("NET FREEZING %s"), *GetNameSafe(GetController())));
 		GetController()->ResetIgnoreMoveInput();
 		GetController()->SetIgnoreMoveInput(bFreeze);
 		if (!HasAuthority())
@@ -182,7 +181,6 @@ void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool 
 {
 	if (ensure(GetController()))
 	{
-		GEngine->AddOnScreenDebugMessage((uint64)("Server_Freeze"), 10.0f, FColor::Green, FString::Printf(TEXT("SERVER FREEZING %s"), *GetNameSafe(GetController())));
 		GetController()->ResetIgnoreMoveInput();
 		GetController()->SetIgnoreMoveInput(bFreeze);
 	}

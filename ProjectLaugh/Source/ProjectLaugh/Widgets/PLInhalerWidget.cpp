@@ -36,5 +36,5 @@ void UPLInhalerWidget::OnLungValueChanged(const float Current, const float Max)
 void UPLInhalerWidget::UpdateProgressBar(UProgressBar* InProgressBar, const float InCurrent, const float InMax)
 {
 	InProgressBar->SetPercent((InCurrent / InMax));
-	GEngine->AddOnScreenDebugMessage(2, 0.2f, FColor::Purple, FString::Printf(TEXT("Updating %s to %f"), *(InProgressBar->GetFName().ToString()), (InCurrent / InMax)));
+	//GEngine->AddOnScreenDebugMessage(2, 0.2f, FColor::Purple, FString::Printf(TEXT("Updating %s to %f"), *(InProgressBar->GetFName().ToString()), (InCurrent / InMax)));
 }

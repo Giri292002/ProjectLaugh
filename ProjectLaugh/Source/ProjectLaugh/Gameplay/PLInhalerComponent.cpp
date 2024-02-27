@@ -88,7 +88,7 @@ void UPLInhalerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UPLInhalerComponent::Net_StartRunning_Implementation()
 {	
-	UE_LOG(LogTemp, Warning, TEXT("Start running. Changing to: %f"), PLPlayerCharacter->GetMaxWalkSpeed() * PLInhalerData->MaxWalkSpeedMultiplier);
+	//UE_LOG(LogTemp, Warning, TEXT("Start running. Changing to: %f"), PLPlayerCharacter->GetMaxWalkSpeed() * PLInhalerData->MaxWalkSpeedMultiplier);
 	if (bStopRunningDone)
 	{
 		Net_SetbStopRunningDone(false);
