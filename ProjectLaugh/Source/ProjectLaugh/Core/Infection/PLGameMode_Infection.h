@@ -7,6 +7,9 @@
 #include "PLGameMode_Infection.generated.h"
 
 class APLPlayerCharacter;
+class APLPlayerCharacter_Elder;
+class APLPlayerCharacter_Zombie;
+class APLPlayerController;
 
 UCLASS()
 class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
@@ -15,10 +18,18 @@ class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
 
 	APLGameMode_Infection();
 
+public:
+	//Handles destroying pawn and spawning a new zombie and assigning it to controller
+	UFUNCTION()
+	void SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder);
+
 protected:
 
-	UPROPERTY(EditDefaultsOnly, Category = "ProjectLaugh | Infection")
-	TArray<TSubclassOf<APLPlayerCharacter>>AllCharacterClasses;
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	TArray<TSubclassOf<APLPlayerCharacter_Elder>>ElderClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>ZombieClasses;
 
 	virtual bool ReadyToStartMatch_Implementation() override;
 
@@ -31,4 +42,10 @@ protected:
 	virtual void SetMatchState(FName NewState) override;
 
 	virtual void SpawnPlayers() override;
+
+	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag);
+
+	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform);
+
+
 };
