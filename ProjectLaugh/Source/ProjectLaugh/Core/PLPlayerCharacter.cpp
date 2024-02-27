@@ -166,7 +166,7 @@ bool APLPlayerCharacter::Server_TryInteract_Validate()
 
 void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
-	if (ensure(GetController()))
+	if (IsValid(GetController()))
 	{
 		GetController()->ResetIgnoreMoveInput();
 		GetController()->SetIgnoreMoveInput(bFreeze);
@@ -179,7 +179,7 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 
 void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
-	if (ensure(GetController()))
+	if (IsValid(GetController()))
 	{
 		GetController()->ResetIgnoreMoveInput();
 		GetController()->SetIgnoreMoveInput(bFreeze);
@@ -316,7 +316,7 @@ void APLPlayerCharacter::AppearanceTimelineCallback(float Value)
 
 void APLPlayerCharacter::AppearanceTimelineFinishedCallback()
 {
-	GEngine->AddOnScreenDebugMessage((uint64)("Appearance"), 5.0f, FColor::Purple, FString::Printf(TEXT("Timeline finished at: %f"), AppearanceTimeline.GetPlaybackPosition()));
+	//GEngine->AddOnScreenDebugMessage((uint64)("Appearance"), 5.0f, FColor::Purple, FString::Printf(TEXT("Timeline finished at: %f"), AppearanceTimeline.GetPlaybackPosition()));
 	// We reversed
 	if (AppearanceTimeline.GetPlaybackPosition() == 0.f)
 	{
