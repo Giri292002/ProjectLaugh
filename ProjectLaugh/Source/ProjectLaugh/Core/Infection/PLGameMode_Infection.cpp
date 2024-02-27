@@ -92,7 +92,7 @@ void APLGameMode_Infection::SpawnPlayers()
 	// Spawn Zombie First
 	const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 	const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-	SpawnPLPlayerCharacter(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex]);
+	SpawnPLPlayerCharacter(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], FName("Zombie"));
 	CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
 	
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
@@ -100,22 +100,27 @@ void APLGameMode_Infection::SpawnPlayers()
 	{
 		const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 		const int ElderCharacterClassIndex = FMath::RandRange(0, AvailableElderCharacterClasses.Num() - 1);
-		SpawnPLPlayerCharacter(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex]);
+		PLPlayerController->Client_RemoveWaitingForPlayersWidget();
+		SpawnPLPlayerCharacter(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex], FName("Elder"));
 		CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
 		AvailableElderCharacterClasses.RemoveAt(ElderCharacterClassIndex);
 	}
 }
 
-void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController)
+void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag)
 {
-	OwningPlayerController->Client_RemoveWaitingForPlayersWidget();
 	APLPlayerStart* PLPlayerStart;
-	if (!GetSuitablePLPlayerStart(PLPlayerStart))
+	if (!GetSuitablePLPlayerStart(PLPlayerStart, StartTag))
 	{
 		UE_LOG(LogPLGameMode, Error, TEXT("Cannot find suitable PL Player start"));
 		return;
 	}
-	const FTransform SpawnTransform = PLPlayerStart->GetActorTransform();
+	FTransform SpawnTransform = PLPlayerStart->GetActorTransform();
+	SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
+}
+
+void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform)
+{	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	APLPlayerCharacter* SpawnedCharacter = GetWorld()->SpawnActor<APLPlayerCharacter>(SpawningCharacterClass, SpawnTransform, SpawnParams);
@@ -125,4 +130,14 @@ void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacte
 		return;
 	}
 	OwningPlayerController->Possess(Cast<APawn>(SpawnedCharacter));
+}
+
+void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder)
+{
+	APLPlayerController* PLPlayerController = Cast<APLPlayerController>(Elder->GetController());
+	Elder->Net_ToggleFreezeCharacter(true);
+	Elder->Net_OnPounced();
+	Elder->Multicast_OnPounced();
+	FTransform SpawnTransform = Elder->GetActorTransform();
+	SpawnPLPlayerCharacter(ZombieClasses[0], PLPlayerController, SpawnTransform);
 }

@@ -4,10 +4,12 @@
 
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Curves/CurveFloat.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
@@ -37,6 +39,17 @@ void APLPlayerCharacter::BeginPlay()
 	Net_SetMaxWalkSpeed(PLPlayerAttributesData->MaxWalkSpeed);
 	Net_SetPushForce(PLPlayerAttributesData->PushForce);
 	PLGameplayTagComponent->Server_AddTag(PLPlayerAttributesData->AffiliationTag);
+
+	if (IsValid(PLPlayerAttributesData->AppearanceCurve))
+	{
+		FOnTimelineFloat OnTimelineCallback;
+		FOnTimelineEventStatic OnTimelineFinishedCallback;
+
+		OnTimelineCallback.BindUFunction(this, FName(TEXT("AppearanceTimelineCallback")));
+		OnTimelineFinishedCallback.BindUFunction(this, FName(TEXT("AppearanceTimelineFinishedCallback")));
+		AppearanceTimeline.AddInterpFloat(PLPlayerAttributesData->AppearanceCurve, OnTimelineCallback);
+		AppearanceTimeline.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
+	}
 }
 
 void APLPlayerCharacter::Server_SetMaxWalkSpeed_Implementation(const float InMaxWalkSpeed)
@@ -84,8 +97,11 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 
 void APLPlayerCharacter::Server_StunCharacter_Implementation()
 {
-	//We are already stunned, don't stun again
-	if (PLGameplayTagComponent->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Stunned))
+	//Check Stunning conditions
+	FGameplayTagContainer BlockedTags;
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Stunned);
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Spawning);
+	if (PLGameplayTagComponent->GetActiveGameplayTags().HasAny(BlockedTags))
 	{
 		return;
 	}
@@ -152,6 +168,8 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 {
 	if (ensure(GetController()))
 	{
+		GEngine->AddOnScreenDebugMessage((uint64)("Net_Freeze"), 10.0f, FColor::Green, FString::Printf(TEXT("NET FREEZING %s"), *GetNameSafe(GetController())));
+		GetController()->ResetIgnoreMoveInput();
 		GetController()->SetIgnoreMoveInput(bFreeze);
 		if (!HasAuthority())
 		{
@@ -164,6 +182,8 @@ void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool 
 {
 	if (ensure(GetController()))
 	{
+		GEngine->AddOnScreenDebugMessage((uint64)("Server_Freeze"), 10.0f, FColor::Green, FString::Printf(TEXT("SERVER FREEZING %s"), *GetNameSafe(GetController())));
+		GetController()->ResetIgnoreMoveInput();
 		GetController()->SetIgnoreMoveInput(bFreeze);
 	}
 }
@@ -178,10 +198,54 @@ void APLPlayerCharacter::Net_ThrowObject_Implementation()
 	PLThrowComponent->Net_Throw(PLPlayerController);
 }
 
+
+void APLPlayerCharacter::Net_OnPounced_Implementation()
+{
+	PLPlayerController->UnPossess();
+	PLPlayerController->SetViewTargetWithBlend(this);
+
+	if (HasAuthority())
+	{
+		Multicast_DisappearCharacter();
+	}
+	else
+	{
+		Server_DisappearCharacter();
+	}
+}
+
 void APLPlayerCharacter::Multicast_OnPounced_Implementation()
 {
 	GetMesh()->SetCollisionProfileName(FName("Ragdoll"));
-	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetSimulatePhysics(true);
+}
+
+
+
+void APLPlayerCharacter::Server_DisappearCharacter_Implementation()
+{
+	Multicast_DisappearCharacter();
+}
+
+bool APLPlayerCharacter::Server_DisappearCharacter_Validate()
+{
+	return true;
+}
+
+void APLPlayerCharacter::Multicast_DisappearCharacter_Implementation()
+{
+	PlayDisappearanceTimeline(PLPlayerAttributesData->DisappearanceTime);
+}
+
+void APLPlayerCharacter::Server_Destroy_Implementation()
+{
+	Destroy(true);
+}
+
+bool APLPlayerCharacter::Server_Destroy_Validate()
+{
+	return true;
 }
 
 // Called every frame
@@ -193,6 +257,7 @@ void APLPlayerCharacter::Tick(float DeltaTime)
 	{
 		PLInteractionComponent->RunInteractTrace(PLPlayerController);
 	}
+	AppearanceTimeline.TickTimeline(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -229,5 +294,34 @@ void APLPlayerCharacter::PossessedBy(AController* Possessor)
 void APLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(APLPlayerCharacter, PLPlayerController);
+	DOREPLIFETIME(APLPlayerCharacter, AppearanceTimeline);
+}
+
+void APLPlayerCharacter::PlayAppearanceTimeline(const float TimelinePlayLength)
+{
+	AppearanceTimeline.SetPlayRate(1.f / TimelinePlayLength);
+	AppearanceTimeline.PlayFromStart();
+}
+
+void APLPlayerCharacter::PlayDisappearanceTimeline(const float TimelinePlayLength)
+{
+	AppearanceTimeline.SetPlayRate(1.f / TimelinePlayLength);
+	AppearanceTimeline.ReverseFromEnd();
+}
+
+void APLPlayerCharacter::AppearanceTimelineCallback(float Value)
+{
+	GetMesh()->SetScalarParameterValueOnMaterials(FName("Appearance"), Value);
+}
+
+void APLPlayerCharacter::AppearanceTimelineFinishedCallback()
+{
+	GEngine->AddOnScreenDebugMessage((uint64)("Appearance"), 5.0f, FColor::Purple, FString::Printf(TEXT("Timeline finished at: %f"), AppearanceTimeline.GetPlaybackPosition()));
+	// We reversed
+	if (AppearanceTimeline.GetPlaybackPosition() == 0.f)
+	{
+		Server_Destroy();
+	}
 }

@@ -115,6 +115,9 @@ void APLPlayerController::OnNetCleanup(UNetConnection* Connection)
 void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
+	StoPlayingWaitingCinematicSequence();
+
+	SetViewTarget(NewPawn);
 
 	if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
 	{

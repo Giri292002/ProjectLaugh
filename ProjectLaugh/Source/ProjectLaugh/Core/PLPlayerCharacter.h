@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/TimelineComponent.h"
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
@@ -48,7 +49,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ThrowAction;
 
-
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
 
@@ -58,6 +58,29 @@ protected:
 	//Is the character currently frozen, meaning they can't move but can still move the camera around and take in input
 	UPROPERTY()
 	bool bFrozen;
+
+	//Shared timeline for both appearing and disappearing
+	UPROPERTY(Replicated)
+	FTimeline AppearanceTimeline;
+	/*
+	* Plays the appearance timeline
+	* @param TimelinePlayLength how long the timeline should play
+	*/
+	UFUNCTION()
+	void PlayAppearanceTimeline(const float TimelinePlayLength);
+
+	/*
+	* Plays the appeareance timeline in reverse 
+	* @param TimelinePlayLength how long the timeline should play
+	*/
+	UFUNCTION()
+	void PlayDisappearanceTimeline(const float TimelinePlayLength);
+
+	UFUNCTION()
+	virtual void AppearanceTimelineCallback(float Value);
+
+	UFUNCTION()
+	virtual void AppearanceTimelineFinishedCallback();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -87,13 +110,13 @@ public:
 	* @param bool bFreeze New Freeze state
 	* @param bool bOverride Force (Un)Freeze character ignoring the previos freeze state
 	*/
-	UFUNCTION(BlueprintCallable, Client, Unreliable)
+	UFUNCTION(BlueprintCallable, Client, Reliable)
 	void Net_ToggleFreezeCharacter(const bool bFreeze);
 
-	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_ToggleFreezeCharacter(const bool bFreeze);
 
-	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_StunCharacter();
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
@@ -111,8 +134,20 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Net_ThrowObject();
 
+	UFUNCTION(Client, Unreliable)
+	void Net_OnPounced();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnPounced();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DisappearCharacter();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_DisappearCharacter();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Destroy();
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };

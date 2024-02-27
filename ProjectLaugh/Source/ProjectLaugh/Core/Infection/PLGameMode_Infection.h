@@ -6,6 +6,7 @@
 #include "ProjectLaugh/PLGameModeBase.h"
 #include "PLGameMode_Infection.generated.h"
 
+class APLPlayerCharacter;
 class APLPlayerCharacter_Elder;
 class APLPlayerCharacter_Zombie;
 class APLPlayerController;
@@ -16,6 +17,11 @@ class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
 	GENERATED_BODY()
 
 	APLGameMode_Infection();
+
+public:
+	//Handles destroying pawn and spawning a new zombie and assigning it to controller
+	UFUNCTION()
+	void SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder);
 
 protected:
 
@@ -37,7 +43,9 @@ protected:
 
 	virtual void SpawnPlayers() override;
 
-	UFUNCTION()
-	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController);
+	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag);
+
+	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform);
+
 
 };

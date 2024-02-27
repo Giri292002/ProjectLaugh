@@ -6,25 +6,36 @@
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "PLPlayerCharacter_Zombie.generated.h"
 
-/**
- * 
- */
+class UTimelineComponent;
+class UCurveFloat;
+class UPLZombieAttributesData;
+
 UCLASS()
 class PROJECTLAUGH_API APLPlayerCharacter_Zombie : public APLPlayerCharacter
 {
 	GENERATED_BODY()
 
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* PounceAction;
 
-protected:
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
 	void Net_Pounce();
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_Pounce(FRotator NewRotation, FHitResult HitResult);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SpawnZombie();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnZombie();
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	virtual void Restart() override;
+
+	virtual void AppearanceTimelineFinishedCallback() override;	
 };

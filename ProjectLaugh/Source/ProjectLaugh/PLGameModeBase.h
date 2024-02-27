@@ -21,7 +21,7 @@ public:
 
 public:
 	UFUNCTION()
-	bool GetSuitablePLPlayerStart(APLPlayerStart* &OutPLPLayerStart );
+	bool GetSuitablePLPlayerStart(APLPlayerStart* &OutPLPLayerStart, FName StartTag);
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	void PreLogout(APlayerController* InPlayerController);

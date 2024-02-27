@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Curves/CurveFloat.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
 #include "PLPlayerAttributesData.generated.h"
@@ -25,4 +26,16 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Affiliation")
 	FGameplayTag AffiliationTag;
+
+	//Same curve is used for disappearing
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Appearance")
+	UCurveFloat* AppearanceCurve;
+
+	//Currently only used by zombies. Spawn in time
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Appearance", meta = (ClampMin = "1.0"))
+	float AppearanceTime = 5.0f;
+
+	//Currently only used by elders. Spawn out time
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Appearance", meta = (ClampMin = "1.0"))
+	float DisappearanceTime = 1.0f;
 };
