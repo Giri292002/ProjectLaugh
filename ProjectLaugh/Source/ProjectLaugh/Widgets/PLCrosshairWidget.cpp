@@ -4,10 +4,9 @@
 #include "PLCrosshairWidget.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 
-void UPLCrosshairWidget::NativeConstruct()
+void UPLCrosshairWidget::SetupComponent(UPLActorComponent* PLActorComponent)
 {
-	if (ensureAlwaysMsgf(PLInteractionComponent, TEXT("PLInteractionComponent is invalid. Make sure to set it when creating widget")))
-	{
-		PLInteractionComponent->OnCanInteract.AddDynamic(this,&UPLCrosshairWidget::OnCanInteract);
-	}
+	PLInteractionComponent = Cast<UPLInteractionComponent>(PLActorComponent);
+	checkf(PLInteractionComponent, TEXT("PLInteractionComponent is invalid"));
+	PLInteractionComponent->OnCanInteract.AddDynamic(this, &UPLCrosshairWidget::OnCanInteract);
 }

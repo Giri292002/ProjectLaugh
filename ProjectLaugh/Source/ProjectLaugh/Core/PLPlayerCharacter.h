@@ -160,5 +160,4 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Restart() override;
 	virtual void PossessedBy(AController* Possessor) override;
-
 };

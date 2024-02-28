@@ -15,12 +15,10 @@ void UPLInhalerWidget::NativeConstruct()
 	}
 }
 
-void UPLInhalerWidget::SetPLInhalerComponent(UPLInhalerComponent* InPLInhalerComponent)
+void UPLInhalerWidget::SetupComponent(UPLActorComponent* PLActorComponent)
 {
-	if (ensureAlwaysMsgf(InPLInhalerComponent, TEXT("INPLInhalerComponent is invalid")))
-	{
-		PLInhalerComponent = InPLInhalerComponent;
-	}
+	PLInhalerComponent = Cast<UPLInhalerComponent>(PLActorComponent);
+	checkf(PLInhalerComponent, TEXT("INPLInhalerComponent is invalid"));
 }
 
 void UPLInhalerWidget::OnInhalerValueChanged(const float Current, const float Max)

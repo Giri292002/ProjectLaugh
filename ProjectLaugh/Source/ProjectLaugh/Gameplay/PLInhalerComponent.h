@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "ProjectLaugh/Components/PLActorComponent.h"
 #include "PLInhalerComponent.generated.h"
 
 class UPLInhalerData;
@@ -15,8 +15,8 @@ class APLPlayerCharacter;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInhalerValueChange, const float, CurrentInhalerAmount, const float, MaxInhalerAmount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLungValueChange, const float, CurrentLungAmount, const float, MaxLungAmount);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class PROJECTLAUGH_API UPLInhalerComponent : public UActorComponent
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+class PROJECTLAUGH_API UPLInhalerComponent : public UPLActorComponent
 {
 	GENERATED_BODY()
 
@@ -81,19 +81,10 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_SetbStopRunningDone(const bool bSInStopRunning);
 
-	UFUNCTION()
-	void CreateComponentWidget();
-
-	UFUNCTION(BlueprintCallable)
-	TSubclassOf<UPLInhalerWidget> GetInhalerWidgetClass() const;
-
 	//UFUNCTION(BlueprintCallable, Client, Unreliable)
 	//void Net_FreezeCharacter();
 
 private:
-	UPROPERTY()
-	UPLInhalerWidget* PLInhalerWidget;
-
 	UPROPERTY()
 	float PreviousWalkSpeed = 0.f;
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
 #include "PLInhalerWidget.generated.h"
 
 class UProgressBar;
@@ -11,15 +11,13 @@ class UPLInhalerComponent;
 
 UCLASS()
 
-class PROJECTLAUGH_API UPLInhalerWidget : public UUserWidget
+class PROJECTLAUGH_API UPLInhalerWidget : public UPLComponentWidgetBase
 {
 	GENERATED_BODY()
 
 protected:
-	virtual void NativeConstruct() override;
-
-public:
-	void SetPLInhalerComponent(UPLInhalerComponent* PLInhalerComponent);
+	virtual void NativeConstruct() override; 
+	virtual void SetupComponent(UPLActorComponent* PLActorComponent) override;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))

@@ -3,16 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "ProjectLaugh/Components/PLActorComponent.h"
 #include "PLInteractionInterface.h"
 #include "PLInteractionComponent.generated.h"
-
-class UPLCrosshairWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCanInteractSignature, const bool, bCanInteract);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class PROJECTLAUGH_API UPLInteractionComponent : public UActorComponent, public IPLInteractionInterface
+class PROJECTLAUGH_API UPLInteractionComponent : public UPLActorComponent, public IPLInteractionInterface
 {
 	GENERATED_BODY()
 
@@ -23,9 +21,6 @@ public:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FCanInteractSignature OnCanInteract;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults")
-	TSubclassOf<UPLCrosshairWidget> PLCrosshairWidgetClass;
 
 	//Get if the player can run the interaction trace
 	UFUNCTION(BlueprintCallable)
@@ -47,9 +42,7 @@ protected:
 	uint8 InteractorType;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults")
-	float TraceRange;
-
-	
+	float TraceRange;	
 
 	UPROPERTY()
 	bool bCanRunInteract;

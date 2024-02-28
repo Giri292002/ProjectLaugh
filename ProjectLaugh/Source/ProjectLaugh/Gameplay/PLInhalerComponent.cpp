@@ -158,16 +158,3 @@ bool UPLInhalerComponent::Server_SetbStopRunningDone_Validate(const bool bSInSto
 {
 	return true;
 }
-
-void UPLInhalerComponent::CreateComponentWidget()
-{
-	if (ensureAlwaysMsgf(PLInhalerData->PLInhalerWidgetClass, TEXT("PLInhaler Widget Class")))
-	{
-		
-	}
-}
-
-TSubclassOf<UPLInhalerWidget> UPLInhalerComponent::GetInhalerWidgetClass() const
-{
-	return PLInhalerData->PLInhalerWidgetClass;
-}

@@ -26,6 +26,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	virtual void Client_AddComponentWidgets();
 
+	UFUNCTION(Client, Reliable)
+	virtual void Client_RemoveComponentWidgets();
+
 	UPROPERTY(Replicated)
 	FRotator RepPlayerControllerRotation;
 

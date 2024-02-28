@@ -3,27 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
 #include "PLCrosshairWidget.generated.h"
 
-/**
- * 
- */
+
 class UPLInteractionComponent;
+class UPLActorComponent;
 
 UCLASS()
-class PROJECTLAUGH_API UPLCrosshairWidget : public UUserWidget
+class PROJECTLAUGH_API UPLCrosshairWidget : public UPLComponentWidgetBase
 {
 	GENERATED_BODY()
 
 public:
-	void SetPLInteractionComponent(UPLInteractionComponent* InPLInteractionComponent) { PLInteractionComponent = InPLInteractionComponent; }
+	virtual void SetupComponent(UPLActorComponent* PLActorComponent) override;
 
 protected:
 	UPROPERTY()
-	UPLInteractionComponent* PLInteractionComponent;
-
-	void NativeConstruct() override;
+	UPLInteractionComponent* PLInteractionComponent; 
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnCanInteract(const bool bCanInteract);

@@ -199,17 +199,9 @@ void APLPlayerCharacter::Net_ThrowObject_Implementation()
 
 void APLPlayerCharacter::Net_OnPounced_Implementation()
 {
+	PLPlayerController->Client_RemoveComponentWidgets();
 	PLPlayerController->UnPossess();
 	PLPlayerController->SetViewTargetWithBlend(this);
-
-	if (HasAuthority())
-	{
-		Multicast_DisappearCharacter();
-	}
-	else
-	{
-		Server_DisappearCharacter();
-	}
 }
 
 void APLPlayerCharacter::Multicast_OnPounced_Implementation()
@@ -217,6 +209,7 @@ void APLPlayerCharacter::Multicast_OnPounced_Implementation()
 	GetMesh()->SetCollisionProfileName(FName("Ragdoll"));
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetSimulatePhysics(true);
+	PlayDisappearanceTimeline(PLPlayerAttributesData->DisappearanceTime);
 }
 
 
@@ -238,7 +231,8 @@ void APLPlayerCharacter::Multicast_DisappearCharacter_Implementation()
 
 void APLPlayerCharacter::Server_Destroy_Implementation()
 {
-	Destroy(true);
+	GEngine->AddOnScreenDebugMessage((uint64)("Destroy"), 5.0f, FColor::Purple, FString::Printf(TEXT("CALLED DESTROY")));
+	Destroy();
 }
 
 bool APLPlayerCharacter::Server_Destroy_Validate()
@@ -316,8 +310,8 @@ void APLPlayerCharacter::AppearanceTimelineCallback(float Value)
 
 void APLPlayerCharacter::AppearanceTimelineFinishedCallback()
 {
-	//GEngine->AddOnScreenDebugMessage((uint64)("Appearance"), 5.0f, FColor::Purple, FString::Printf(TEXT("Timeline finished at: %f"), AppearanceTimeline.GetPlaybackPosition()));
 	// We reversed
+	//GEngine->AddOnScreenDebugMessage((uint64)("Appearance"), 5.0f, FColor::Purple, FString::Printf(TEXT("Timeline finished at: %f"), AppearanceTimeline.GetPlaybackPosition()));
 	if (AppearanceTimeline.GetPlaybackPosition() == 0.f)
 	{
 		Server_Destroy();
