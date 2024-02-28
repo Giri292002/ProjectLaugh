@@ -14,6 +14,11 @@
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 
+APLPlayerCharacter_Zombie::APLPlayerCharacter_Zombie()
+{
+	PounceCooldownTime = 5.f;
+}
+
 void APLPlayerCharacter_Zombie::BeginPlay()
 {
 	GetMesh()->SetScalarParameterValueOnMaterials(FName("Appearance"), 0.f);
@@ -61,7 +66,6 @@ void APLPlayerCharacter_Zombie::AppearanceTimelineFinishedCallback()
 	Net_ToggleFreezeCharacter(false);
 }
 
-
 void APLPlayerCharacter_Zombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -83,7 +87,9 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 	//Check if we can pounce, Add more blocked tags here
 	FGameplayTagContainer BlockedTags;
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Stunned);
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Spawning);
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Ability_Pounce_Cooldown);
 
 	if (PLGameplayTagComponent->GetActiveGameplayTags().HasAny(BlockedTags))
 	{
@@ -112,6 +118,13 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotation, FHitResult HitResult)
 {
 	SetActorRotation(NewRotation);
+
+	//Start Cooldown
+	PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Ability_Pounce_Cooldown);
+	FText Message = FText::FromString("POUNCE COOLDOWN");
+	PLPlayerController->Client_AddTimer(PounceCooldownTime, Message, false);
+	GetWorldTimerManager().SetTimer(PounceCooldownTimer, this, &APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished, PounceCooldownTime);
+
 	if (!HitResult.bBlockingHit)
 	{
 		return;
@@ -132,6 +145,12 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 	//PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);
 	
 }
+
+void APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished()
+{
+	PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Pounce_Cooldown);
+}
+
 
 
 bool APLPlayerCharacter_Zombie::Server_Pounce_Validate(FRotator NewRotation, FHitResult HitResult)

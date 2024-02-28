@@ -10,4 +10,5 @@ namespace SharedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Affiliation_Zombie, "Character.Affiliation.Zombie");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Pouncing, "Character.Status.Pouncing");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Spawning, "Character.Status.Spawning");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Pounce_Cooldown, "Ability.Pounce.Cooldown");
 }

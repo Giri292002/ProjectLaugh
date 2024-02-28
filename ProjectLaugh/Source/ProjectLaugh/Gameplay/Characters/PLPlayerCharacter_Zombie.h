@@ -20,6 +20,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* PounceAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Pounce")
+	float PounceCooldownTime;
+
+	APLPlayerCharacter_Zombie();
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
@@ -33,6 +38,11 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnZombie();
+
+	UFUNCTION()
+	void Server_OnPounceCooldownFinished();
+
+	FTimerHandle PounceCooldownTimer;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Restart() override;

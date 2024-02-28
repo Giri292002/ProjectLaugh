@@ -14,6 +14,7 @@
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
+#include "ProjectLaugh/Widgets/PLGameplayWidget.h"
 #include "ProjectLaugh/Widgets/PLWaitingForPlayersWidget.h"
 #include "InputMappingContext.h"
 
@@ -87,6 +88,14 @@ void APLPlayerController::Client_RemoveComponentWidgets_Implementation()
 	}
 }
 
+void APLPlayerController::Client_AddTimer_Implementation(float InSeconds, const FText& InTimerText, bool InbForward)
+{
+	if (IsValid(PLGameplayWidget))
+	{
+		PLGameplayWidget->AddTimer(InSeconds, InTimerText, InbForward);
+	}
+}
+
 void APLPlayerController::PlayWaitingCinematicSequence()
 {
 	if (ensureAlwaysMsgf(WaitingSequence, TEXT("Waiting Sequence is invalid")))
@@ -145,6 +154,13 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
 	StoPlayingWaitingCinematicSequence();
+
+	//Spawn a gameplay widget if there isn't already one
+	if (!IsValid(PLGameplayWidget))
+	{
+		PLGameplayWidget = CreateWidget<UPLGameplayWidget>(this, PLGameplayWidgetClass);
+		PLGameplayWidget->AddToViewport();
+	}
 
 	SetViewTarget(NewPawn);
 
