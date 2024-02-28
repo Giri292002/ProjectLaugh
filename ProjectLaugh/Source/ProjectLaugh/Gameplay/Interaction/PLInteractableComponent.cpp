@@ -8,31 +8,10 @@ UPLInteractableComponent::UPLInteractableComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-// Called when the game starts
-void UPLInteractableComponent::BeginPlay()
+void UPLInteractableComponent::Interact(APLPlayerCharacter* Instigator, UPLInteractionComponent* InteractableComponent)
 {
-	Super::BeginPlay();
-
-	// ...	
+	IPLInteractionInterface::Execute_Interact(GetOwner(), Instigator, InteractableComponent);
 }
-
-uint8 UPLInteractableComponent::GetSupportedInteractors_Implementation()
-{
-	return SupportedInteractors;
-}
-
-void UPLInteractableComponent::Interact_Implementation(APLPlayerCharacter* Instigator)
-{
-	UE_LOG(LogTemp, Log, TEXT("Called interact on %s"), *GetNameSafe(GetOwner()));
-}
-
-// Called every frame
-void UPLInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-

@@ -9,6 +9,7 @@
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
+#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowableComponent.h"
 
 // Sets default values for this component's properties
@@ -94,21 +95,28 @@ void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerCo
 	const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetComponentLocation(), HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd);
 	const FVector LaunchVelocity = LookAtRotation.Vector()* GetThrowRange();
 
+	Server_ThrowObject(CurrentlyHoldingObject, LaunchVelocity);
+
 	//Request server to throw
-	if (!(GetOwner()->HasAuthority()))
-	{
-		Server_ThrowObject(CurrentlyHoldingObject, LaunchVelocity);
-	}
-	else
-	{
-		//If you are server just throw
-		Multicast_Throw(CurrentlyHoldingObject, LaunchVelocity);
-		CurrentlyHoldingObject = nullptr;
-	}
+	//if (!(GetOwner()->HasAuthority()))
+	//{
+	//}
+	//else
+	//{
+	//	//If you are server just throw
+	//	Multicast_Throw(CurrentlyHoldingObject, LaunchVelocity);
+	//	CurrentlyHoldingObject = nullptr;
+	//}
 }
 
 void UPLThrowComponent::Server_ThrowObject_Implementation(AActor* ObjectToThrow, FVector LaunchVelocity)
 {
+	if (UPLGameplayTagComponent* GameplayTagComp = ObjectToThrow->GetComponentByClass<UPLGameplayTagComponent>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Found Tag"));
+		GameplayTagComp->Server_AddTag(SharedGameplayTags::TAG_Ability_Throw_Thrown);
+	}
+
 	CurrentlyHoldingObject = nullptr;
 	Multicast_Throw(ObjectToThrow, LaunchVelocity);
 }

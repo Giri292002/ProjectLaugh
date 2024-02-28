@@ -5,9 +5,11 @@
 
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Math/Rotator.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractableComponent.h"
 #include "ProjectLaugh/Widgets/PLCrosshairWidget.h"
 #include "Net/UnrealNetwork.h"
 
@@ -36,9 +38,9 @@ bool UPLInteractionComponent::TryInteract()
 		return false;
 	}
 
-	if(IPLInteractionInterface::Execute_IsValidInteraction(LastInteractedComponent, InteractorType, IPLInteractionInterface::Execute_GetSupportedInteractors(LastInteractedComponent)))
+	if (IsValidInteractionWith(LastInteractedComponent))
 	{
-		IPLInteractionInterface::Execute_Interact(LastInteractedComponent, Cast<APLPlayerCharacter>(GetOwner()));
+		LastInteractedComponent->Interact(PLPlayerCharacter, this);
 		return true;
 	}
 	return false;
@@ -48,6 +50,7 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 {
 	if (!GetCanRunInteract() || !IsValid(PLPlayerController))
 	{
+		UnassignInteractableComponent();
 		OnCanInteract.Broadcast(false);
 		return false;
 	}
@@ -66,39 +69,63 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 		true);*/
 
 	//If we cant interact
-	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()))
+	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()) || !UKismetSystemLibrary::DoesImplementInterface(HitResult.GetActor(), UPLInteractionInterface::StaticClass()))
 	{
-		LastInteractedComponent = nullptr;
+		UnassignInteractableComponent();
 		OnCanInteract.Broadcast(false);
 		return false;
 	}
 
-	LastInteractedComponent = HitResult.GetActor()->FindComponentByInterface(UPLInteractionInterface::StaticClass());
-	if (IsValid(LastInteractedComponent))
+	UPLInteractableComponent* InteractableComponent = HitResult.GetActor()->FindComponentByClass<UPLInteractableComponent>();
+
+	if (!IsValid(InteractableComponent))
 	{
-		if (IPLInteractionInterface::Execute_IsValidInteraction(LastInteractedComponent, InteractorType, IPLInteractionInterface::Execute_GetSupportedInteractors(LastInteractedComponent)))
-		{
-			OnCanInteract.Broadcast(true);
-			IPLInteractionInterface::Execute_IsLookingAtInteractable(LastInteractedComponent, true);
-			return true;
-		}
+		UnassignInteractableComponent();
+		return false;
 	}
 	else
 	{
-		LastInteractedComponent = nullptr;
+		UnassignInteractableComponent();
 	}
+
+	AssignInteractableComponent(InteractableComponent);
+
+	if (IsValidInteractionWith(LastInteractedComponent))
+	{
+		OnCanInteract.Broadcast(true);
+		return true;
+	}	
+	UnassignInteractableComponent();
 	OnCanInteract.Broadcast(false);
 	return false;
 }
-uint8 UPLInteractionComponent::GetSupportedInteractors_Implementation()
+
+void UPLInteractionComponent::AssignInteractableComponent(UPLInteractableComponent* InteractableComponent)
 {
-	//Current players cant interact with other players
-	return uint8(EInteractorSupport::None);
+	//Call to draw outline
+	LastInteractedComponent = InteractableComponent;
+	UStaticMeshComponent* MeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<UStaticMeshComponent>();
+	if (IsValid(MeshComponent))
+	{
+		MeshComponent->SetRenderCustomDepth(true);
+	}
 }
 
-bool UPLInteractionComponent::GetInteractionHitResult_Implementation(FHitResult& OutHitResult)
+void UPLInteractionComponent::UnassignInteractableComponent()
 {
-	OutHitResult = HitResult;
-	return HitResult.bBlockingHit;
+	if (IsValid(LastInteractedComponent))
+	{
+		UStaticMeshComponent* MeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<UStaticMeshComponent>();
+		if (IsValid(MeshComponent))
+		{
+			MeshComponent->SetRenderCustomDepth(false);
+		}
+		LastInteractedComponent = nullptr;
+	}
+}
+
+bool UPLInteractionComponent::IsValidInteractionWith(UPLInteractableComponent* InteractableComponent)
+{
+	return InteractorType & InteractableComponent->GetSupportedInteractors();
 }
 
