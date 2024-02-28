@@ -12,7 +12,7 @@ class UStaticMeshComponent;
 
 //Attach this to any object that needs to be thrown
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class PROJECTLAUGH_API UPLThrowableComponent : public UProjectileMovementComponent, public IPLInteractionInterface
+class PROJECTLAUGH_API UPLThrowableComponent : public UProjectileMovementComponent
 {
 	GENERATED_BODY()
 
@@ -21,24 +21,9 @@ public:
 	UPLThrowableComponent();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
-	uint8 SupportedInteractors;
-
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	void OnProjectileStopped(const FHitResult& ImpactResult);
-
-	UFUNCTION()
-	void DisableInteractionOutline();
-
-	FTimerHandle InteractionLookAtTimeHandle; 
-public:	
-	virtual void Interact_Implementation(APLPlayerCharacter* Instigator) override;
-	virtual uint8 GetSupportedInteractors_Implementation() override;
-	virtual void IsLookingAtInteractable_Implementation(const bool bStartFocus) override;	
-
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;		
 };

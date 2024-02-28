@@ -9,6 +9,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCanInteractSignature, const bool, bCanInteract);
 
+class UPLInteractableComponent;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTLAUGH_API UPLInteractionComponent : public UPLActorComponent, public IPLInteractionInterface
 {
@@ -33,10 +35,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool RunInteractTrace(APLPlayerController* PLPlayerController);
 
-	virtual uint8 GetSupportedInteractors_Implementation() override;
-	virtual bool GetInteractionHitResult_Implementation(FHitResult& OutHitResult) override;
-
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
 	uint8 InteractorType;
@@ -46,6 +44,15 @@ protected:
 
 	UPROPERTY()
 	bool bCanRunInteract;
+
+	UFUNCTION()
+	void AssignInteractableComponent(UPLInteractableComponent* InteractableComponent);
+
+	UFUNCTION()
+	void UnassignInteractableComponent();
+
+	UFUNCTION()
+	bool IsValidInteractionWith(UPLInteractableComponent* InteractableComponent);
 
 	// Called when the game starts
 	virtual void BeginPlay() override;	
@@ -57,7 +64,7 @@ private:
 	FRotator StartRotation;
 	FVector EndLocation;
 	FCollisionQueryParams QueryParams;
-	UActorComponent* LastInteractedComponent;
+	UPLInteractableComponent* LastInteractedComponent;
 
 	UPROPERTY()
 	APLPlayerCharacter* PLPlayerCharacter;

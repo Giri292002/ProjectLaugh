@@ -9,7 +9,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class PROJECTLAUGH_API UPLInteractableComponent : public UActorComponent, public IPLInteractionInterface
+class PROJECTLAUGH_API UPLInteractableComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -17,19 +17,13 @@ public:
 	// Sets default values for this component's properties
 	UPLInteractableComponent();
 
+	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
+	uint8 GetSupportedInteractors() const { return SupportedInteractors; }
+
+	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
+	void Interact(APLPlayerCharacter* Instigator, UPLInteractionComponent* InteractableComponent);
+
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Interaction", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
 	uint8 SupportedInteractors;
-
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-public:
-	// --- IPLInteraction Interface Begin ---
-	virtual uint8 GetSupportedInteractors_Implementation() override;
-	virtual void Interact_Implementation(APLPlayerCharacter* Instigator) override;
-	// --- IPLInteraction Interface End ---
-
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

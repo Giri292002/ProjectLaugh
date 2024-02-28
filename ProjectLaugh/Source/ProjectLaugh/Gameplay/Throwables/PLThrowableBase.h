@@ -4,20 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "Engine/StaticMeshActor.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
 #include "PLThrowableBase.generated.h"
 
 class UPLThrowableComponent;
+class UPLInteractableComponent;
 class UNiagaraSystem;
 class USoundCue;
 
 UCLASS()
-class PROJECTLAUGH_API APLThrowableBase : public AStaticMeshActor
+class PROJECTLAUGH_API APLThrowableBase : public AStaticMeshActor, public IPLInteractionInterface
 {
 	GENERATED_BODY()
 
 	APLThrowableBase();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
+	UPLInteractableComponent* InteractableComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
 	UPLThrowableComponent* ThrowableComponent;
 
@@ -41,4 +46,5 @@ protected:
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void Interact_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent) override;
 };
