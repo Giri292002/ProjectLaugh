@@ -71,7 +71,7 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 	//If we cant interact
 	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()) || !UKismetSystemLibrary::DoesImplementInterface(HitResult.GetActor(), UPLInteractionInterface::StaticClass()))
 	{
-		LastInteractedComponent = nullptr;
+		UnassignInteractableComponent();
 		OnCanInteract.Broadcast(false);
 		return false;
 	}

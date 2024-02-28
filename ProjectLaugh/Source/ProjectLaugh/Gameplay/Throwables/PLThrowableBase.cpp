@@ -7,6 +7,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h" 
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowableComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractableComponent.h"
@@ -16,6 +17,8 @@ APLThrowableBase::APLThrowableBase()
 {
 	ThrowableComponent = CreateDefaultSubobject<UPLThrowableComponent>(FName(TEXT("PL Throwable Component")));
 	InteractableComponent = CreateDefaultSubobject<UPLInteractableComponent>(FName(TEXT("PL Interactable Component")));
+	GameplayTagComponent = CreateDefaultSubobject<UPLGameplayTagComponent>(FName(TEXT("Gameplay Tag Component")));
+
 	bReplicates = true;
 	bStaticMeshReplicateMovement = true;
 	GetStaticMeshComponent()->SetSimulatePhysics(true);
@@ -25,7 +28,7 @@ APLThrowableBase::APLThrowableBase()
 
 void APLThrowableBase::OnActorHitWithObject( AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (HasAuthority())
+	if (HasAuthority() && GameplayTagComponent->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Ability_Throw_Thrown))
 	{
 		if (OtherActor)
 		{
@@ -54,6 +57,7 @@ void APLThrowableBase::OnProjectileStopped(const FHitResult& ImpactResult)
 {
 	if (HasAuthority())
 	{
+		GameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Throw_Thrown);
 		PreviouslyHitActor = nullptr;
 	}
 }
@@ -78,5 +82,5 @@ void APLThrowableBase::Interact_Implementation(APLPlayerCharacter* InInstigator,
 		UE_LOG(LogTemp, Warning, TEXT("Throw component is invalid on %s"), *GetNameSafe(InInstigator));
 		return;
 	}
-	ThrowComponent->Net_HoldObject(GetOwner());
+	ThrowComponent->Net_HoldObject(this);
 }

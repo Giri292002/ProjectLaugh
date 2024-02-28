@@ -9,6 +9,7 @@
 
 class UPLThrowableComponent;
 class UPLInteractableComponent;
+class UPLGameplayTagComponent;
 class UNiagaraSystem;
 class USoundCue;
 
@@ -25,6 +26,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
 	UPLThrowableComponent* ThrowableComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
+	UPLGameplayTagComponent* GameplayTagComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Hit")
 	TArray<UNiagaraSystem*> HitFX;
