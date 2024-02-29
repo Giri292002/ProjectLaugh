@@ -10,7 +10,7 @@
 	"DocsURL": "https://docs.isaratech.com/ue4-plugins/productivity-tools",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/8beef99c4399462189d66689e2b48475",
 	"SupportURL": "",
-	"EngineVersion": "5.2.0",
+	"EngineVersion": "5.3.2",
 	"CanContainContent": false,
 	"Installed": true,
 	"Modules": [
