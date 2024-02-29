@@ -38,14 +38,7 @@ void UPLThrowComponent::Net_HoldObject_Implementation(AActor* ObjectToHold)
 	}
 
 	CurrentlyHoldingObject = ObjectToHold;
-	if (!(GetOwner()->HasAuthority()))
-	{
-		Server_HoldObject(ObjectToHold);
-	}
-	else
-	{
-		Multicast_HoldObject(ObjectToHold);
-	}
+	Server_HoldObject(ObjectToHold);
 }
 
 void UPLThrowComponent::Server_HoldObject_Implementation(AActor* ObjectToHold)
@@ -66,6 +59,11 @@ bool UPLThrowComponent::Server_HoldObject_Validate(AActor* ObjectToHold)
 
 void UPLThrowComponent::Multicast_HoldObject_Implementation(AActor* ObjectToHold)
 {	
+	if (!IsValid(ObjectToHold))
+	{
+		return;
+	}
+
 	Cast<AStaticMeshActor>(ObjectToHold)->GetStaticMeshComponent()->SetSimulatePhysics(false);
 	ObjectToHold->SetActorEnableCollision(false);
 	ObjectToHold->FindComponentByClass<UPLThrowableComponent>()->Deactivate();
@@ -95,18 +93,7 @@ void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerCo
 	const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetComponentLocation(), HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd);
 	const FVector LaunchVelocity = LookAtRotation.Vector()* GetThrowRange();
 
-	Server_ThrowObject(CurrentlyHoldingObject, LaunchVelocity);
-
-	//Request server to throw
-	//if (!(GetOwner()->HasAuthority()))
-	//{
-	//}
-	//else
-	//{
-	//	//If you are server just throw
-	//	Multicast_Throw(CurrentlyHoldingObject, LaunchVelocity);
-	//	CurrentlyHoldingObject = nullptr;
-	//}
+	Server_ThrowObject(CurrentlyHoldingObject, LaunchVelocity); 
 }
 
 void UPLThrowComponent::Server_ThrowObject_Implementation(AActor* ObjectToThrow, FVector LaunchVelocity)
