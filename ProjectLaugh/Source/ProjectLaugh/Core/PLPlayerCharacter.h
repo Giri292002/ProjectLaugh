@@ -152,6 +152,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };
 
+	UFUNCTION(BlueprintCallable)
+	UPLGameplayTagComponent* GetGameplayTagComponent() const { return PLGameplayTagComponent; };
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

@@ -18,9 +18,10 @@ class PROJECTLAUGH_API APLThrowableBase : public AStaticMeshActor, public IPLInt
 {
 	GENERATED_BODY()
 
-	APLThrowableBase();
 
 protected:
+	APLThrowableBase();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
 	UPLInteractableComponent* InteractableComponent;
 
