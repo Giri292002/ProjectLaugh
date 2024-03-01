@@ -8,6 +8,9 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h" 
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowableBase.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Core/Infection/PLGameMode_Infection.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
@@ -33,6 +36,7 @@ void APLPlayerCharacter_Zombie::BeginPlay()
 	if (HasAuthority())
 	{
 		Multicast_SpawnZombie();
+		ArmedMesh = GetMesh()->GetSkeletalMeshAsset();
 	}
 	else
 	{
@@ -73,6 +77,7 @@ void APLPlayerCharacter_Zombie::SetupPlayerInputComponent(UInputComponent* Playe
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(PounceAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter_Zombie::Net_Pounce);
+		EnhancedInputComponent->BindAction(DetachArmAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter_Zombie::Net_DetachArm);
 	}
 }
 
@@ -90,6 +95,7 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Spawning);
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Ability_Pounce_Cooldown);
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
 
 	if (PLGameplayTagComponent->GetActiveGameplayTags().HasAny(BlockedTags))
 	{
@@ -151,9 +157,69 @@ void APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished()
 	PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Pounce_Cooldown);
 }
 
+void APLPlayerCharacter_Zombie::Net_DetachArm_Implementation()
+{
+	Server_DetachArm();
+}
 
+void APLPlayerCharacter_Zombie::Server_DetachArm_Implementation()
+{
+	FTransform ArmTransform;
+	GetMesh()->GetSocketLocation(FName("upperarm_l"));
+	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
+	Multicast_DetachArm();
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	SpawnParameters.Owner = this;
+	checkf(ThrowableArmClass, TEXT("Throwable Arm Class is invalid. Please set it up in class defaults"));
+	ThrowableArm = GetWorld()->SpawnActor<APLThrowableBase>(ThrowableArmClass, GetActorTransform(), SpawnParameters);
+	if (HasAuthority())
+	{
+		PLThrowComponent->Server_HoldObject(ThrowableArm);
+	}
+}
+
+void APLPlayerCharacter_Zombie::Multicast_DetachArm_Implementation()
+{
+	GetMesh()->SetSkeletalMesh(ArmlessMesh);
+}
+
+void APLPlayerCharacter_Zombie::Server_AttachArm_Implementation()
+{
+	Multicast_AttachArm();
+}
+
+bool APLPlayerCharacter_Zombie::Server_AttachArm_Validate()
+{
+	return true;
+}
+
+void APLPlayerCharacter_Zombie::Multicast_AttachArm_Implementation()
+{
+	GetMesh()->SetSkeletalMesh(ArmedMesh);
+}
+
+void APLPlayerCharacter_Zombie::OnRep_ThrowableArm()
+{
+	if (IsValid(ThrowableArm))
+	{
+		PLThrowComponent->Net_HoldObject(ThrowableArm);
+	}
+}
+
+bool APLPlayerCharacter_Zombie::Server_DetachArm_Validate()
+{
+	return true;
+}
 
 bool APLPlayerCharacter_Zombie::Server_Pounce_Validate(FRotator NewRotation, FHitResult HitResult)
 {
 	return true;
+}
+
+void APLPlayerCharacter_Zombie::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APLPlayerCharacter_Zombie, ThrowableArm);
+	DOREPLIFETIME(APLPlayerCharacter_Zombie, ArmedMesh);
 }

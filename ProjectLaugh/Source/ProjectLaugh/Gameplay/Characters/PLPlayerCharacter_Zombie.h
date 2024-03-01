@@ -9,19 +9,42 @@
 class UTimelineComponent;
 class UCurveFloat;
 class UPLZombieAttributesData;
+class APLThrowableBase;
 
 UCLASS()
 class PROJECTLAUGH_API APLPlayerCharacter_Zombie : public APLPlayerCharacter
 {
 	GENERATED_BODY()
 
+public:
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AttachArm();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_AttachArm();
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* PounceAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* DetachArmAction;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Pounce")
 	float PounceCooldownTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Detach")
+	TSubclassOf<APLThrowableBase> ThrowableArmClass;
+
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_ThrowableArm)
+	APLThrowableBase* ThrowableArm;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Detach")
+	USkeletalMesh* ArmlessMesh;
+
+	UPROPERTY(Replicated)
+	USkeletalMesh* ArmedMesh;
 
 	APLPlayerCharacter_Zombie();
 
@@ -34,13 +57,25 @@ protected:
 	void Server_Pounce(FRotator NewRotation, FHitResult HitResult);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SpawnZombie();
+	void Server_SpawnZombie();	
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnZombie();
 
 	UFUNCTION()
 	void Server_OnPounceCooldownFinished();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DetachArm();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_DetachArm();
+
+	UFUNCTION(Client, Reliable)
+	void Net_DetachArm();
+
+	UFUNCTION()
+	void OnRep_ThrowableArm();
 
 	FTimerHandle PounceCooldownTimer;
 

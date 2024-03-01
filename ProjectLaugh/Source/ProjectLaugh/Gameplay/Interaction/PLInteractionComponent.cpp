@@ -62,11 +62,11 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel10, QueryParams);
 
-	/*DrawDebugLine(GetWorld(),
-		HitResult.TraceStart,
-		HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd,
-		HitResult.bBlockingHit ? FColor::Green : FColor::Red,
-		true);*/
+	//DrawDebugLine(GetWorld(),
+	//	HitResult.TraceStart,
+	//	HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd,
+	//	HitResult.bBlockingHit ? FColor::Green : FColor::Red,
+	//	true);
 
 	//If we cant interact
 	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()) || !UKismetSystemLibrary::DoesImplementInterface(HitResult.GetActor(), UPLInteractionInterface::StaticClass()))

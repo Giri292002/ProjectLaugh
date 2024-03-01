@@ -38,14 +38,7 @@ void UPLThrowComponent::Net_HoldObject_Implementation(AActor* ObjectToHold)
 	}
 
 	CurrentlyHoldingObject = ObjectToHold;
-	if (!(GetOwner()->HasAuthority()))
-	{
-		Server_HoldObject(ObjectToHold);
-	}
-	else
-	{
-		Multicast_HoldObject(ObjectToHold);
-	}
+	Server_HoldObject(ObjectToHold);
 }
 
 void UPLThrowComponent::Server_HoldObject_Implementation(AActor* ObjectToHold)
@@ -54,6 +47,8 @@ void UPLThrowComponent::Server_HoldObject_Implementation(AActor* ObjectToHold)
 	{
 		Server_Drop(CurrentlyHoldingObject);
 	}
+
+	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Holding);
 
 	CurrentlyHoldingObject = ObjectToHold;
 	Multicast_HoldObject(ObjectToHold);
@@ -66,6 +61,11 @@ bool UPLThrowComponent::Server_HoldObject_Validate(AActor* ObjectToHold)
 
 void UPLThrowComponent::Multicast_HoldObject_Implementation(AActor* ObjectToHold)
 {	
+	if (!IsValid(ObjectToHold))
+	{
+		return;
+	}
+
 	Cast<AStaticMeshActor>(ObjectToHold)->GetStaticMeshComponent()->SetSimulatePhysics(false);
 	ObjectToHold->SetActorEnableCollision(false);
 	ObjectToHold->FindComponentByClass<UPLThrowableComponent>()->Deactivate();
@@ -95,18 +95,7 @@ void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerCo
 	const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetComponentLocation(), HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd);
 	const FVector LaunchVelocity = LookAtRotation.Vector()* GetThrowRange();
 
-	Server_ThrowObject(CurrentlyHoldingObject, LaunchVelocity);
-
-	//Request server to throw
-	//if (!(GetOwner()->HasAuthority()))
-	//{
-	//}
-	//else
-	//{
-	//	//If you are server just throw
-	//	Multicast_Throw(CurrentlyHoldingObject, LaunchVelocity);
-	//	CurrentlyHoldingObject = nullptr;
-	//}
+	Server_ThrowObject(CurrentlyHoldingObject, LaunchVelocity); 
 }
 
 void UPLThrowComponent::Server_ThrowObject_Implementation(AActor* ObjectToThrow, FVector LaunchVelocity)
@@ -116,7 +105,7 @@ void UPLThrowComponent::Server_ThrowObject_Implementation(AActor* ObjectToThrow,
 		UE_LOG(LogTemp, Warning, TEXT("Found Tag"));
 		GameplayTagComp->Server_AddTag(SharedGameplayTags::TAG_Ability_Throw_Thrown);
 	}
-
+	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding);
 	CurrentlyHoldingObject = nullptr;
 	Multicast_Throw(ObjectToThrow, LaunchVelocity);
 }
@@ -148,6 +137,7 @@ void UPLThrowComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void UPLThrowComponent::Server_Drop_Implementation(AActor* ObjectToDrop)
 {
 	CurrentlyHoldingObject = nullptr;
+	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding);
 	Multicast_Drop(ObjectToDrop);
 } 
 
