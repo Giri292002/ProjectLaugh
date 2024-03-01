@@ -6,13 +6,18 @@
 #include "NativeGameplayTags.h"
 
 namespace SharedGameplayTags
-{
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Stunned);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Elder);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Zombie);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Pouncing);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Spawning);
+{	
+	// Ability
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Pounce_Cooldown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Throw_Thrown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Inhale_Inhaling);
+
+	// Character
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Elder);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Zombie);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Stunned);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Pouncing);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Spawning);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Armless);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Holding);	
 }

@@ -21,6 +21,6 @@ public:
 	float StunDuration;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UNiagaraSystem* HitFX;
+	UNiagaraSystem* StunFX;
 	
 };

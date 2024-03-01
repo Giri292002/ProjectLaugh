@@ -36,6 +36,7 @@ void APLPlayerCharacter_Zombie::BeginPlay()
 	if (HasAuthority())
 	{
 		Multicast_SpawnZombie();
+		ArmedMesh = GetMesh()->GetSkeletalMeshAsset();
 	}
 	else
 	{
@@ -94,6 +95,7 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Spawning);
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Ability_Pounce_Cooldown);
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
 
 	if (PLGameplayTagComponent->GetActiveGameplayTags().HasAny(BlockedTags))
 	{
@@ -164,7 +166,8 @@ void APLPlayerCharacter_Zombie::Server_DetachArm_Implementation()
 {
 	FTransform ArmTransform;
 	GetMesh()->GetSocketLocation(FName("upperarm_l"));
-	//DrawDebugSphere(GetWorld(), GetMesh()->GetSocketLocation(FName("upperarm_l")), 25.f, 12, FColor::Green,true);
+	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
+	Multicast_DetachArm();
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParameters.Owner = this;
@@ -176,6 +179,25 @@ void APLPlayerCharacter_Zombie::Server_DetachArm_Implementation()
 	}
 }
 
+void APLPlayerCharacter_Zombie::Multicast_DetachArm_Implementation()
+{
+	GetMesh()->SetSkeletalMesh(ArmlessMesh);
+}
+
+void APLPlayerCharacter_Zombie::Server_AttachArm_Implementation()
+{
+	Multicast_AttachArm();
+}
+
+bool APLPlayerCharacter_Zombie::Server_AttachArm_Validate()
+{
+	return true;
+}
+
+void APLPlayerCharacter_Zombie::Multicast_AttachArm_Implementation()
+{
+	GetMesh()->SetSkeletalMesh(ArmedMesh);
+}
 
 void APLPlayerCharacter_Zombie::OnRep_ThrowableArm()
 {
@@ -199,4 +221,5 @@ void APLPlayerCharacter_Zombie::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APLPlayerCharacter_Zombie, ThrowableArm);
+	DOREPLIFETIME(APLPlayerCharacter_Zombie, ArmedMesh);
 }

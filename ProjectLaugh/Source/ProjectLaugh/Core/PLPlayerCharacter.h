@@ -30,9 +30,6 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLPlayerAttributesData* PLPlayerAttributesData;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
-	UPLStunData* PLStunData;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLInteractionComponent* PLInteractionComponent;
@@ -117,13 +114,13 @@ public:
 	void Server_ToggleFreezeCharacter(const bool bFreeze);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
-	void Server_StunCharacter();
+	void Server_StunCharacter(UPLStunData* StunData);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_StopStunCharacter();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_StunCharacter();
+	void Multicast_StunCharacter(UPLStunData* StunData);
 
 	UFUNCTION(Client, Reliable)
 	void Net_TryInteract();

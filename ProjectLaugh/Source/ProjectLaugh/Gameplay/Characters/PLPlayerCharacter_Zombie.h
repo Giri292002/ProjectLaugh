@@ -16,6 +16,13 @@ class PROJECTLAUGH_API APLPlayerCharacter_Zombie : public APLPlayerCharacter
 {
 	GENERATED_BODY()
 
+public:
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AttachArm();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_AttachArm();
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
@@ -33,6 +40,11 @@ protected:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_ThrowableArm)
 	APLThrowableBase* ThrowableArm;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Detach")
+	USkeletalMesh* ArmlessMesh;
+
+	UPROPERTY(Replicated)
+	USkeletalMesh* ArmedMesh;
 
 	APLPlayerCharacter_Zombie();
 
@@ -55,6 +67,9 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DetachArm();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_DetachArm();
 
 	UFUNCTION(Client, Reliable)
 	void Net_DetachArm();

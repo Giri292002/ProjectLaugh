@@ -48,6 +48,8 @@ void UPLThrowComponent::Server_HoldObject_Implementation(AActor* ObjectToHold)
 		Server_Drop(CurrentlyHoldingObject);
 	}
 
+	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Holding);
+
 	CurrentlyHoldingObject = ObjectToHold;
 	Multicast_HoldObject(ObjectToHold);
 }
@@ -103,7 +105,7 @@ void UPLThrowComponent::Server_ThrowObject_Implementation(AActor* ObjectToThrow,
 		UE_LOG(LogTemp, Warning, TEXT("Found Tag"));
 		GameplayTagComp->Server_AddTag(SharedGameplayTags::TAG_Ability_Throw_Thrown);
 	}
-
+	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding);
 	CurrentlyHoldingObject = nullptr;
 	Multicast_Throw(ObjectToThrow, LaunchVelocity);
 }
@@ -135,6 +137,7 @@ void UPLThrowComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void UPLThrowComponent::Server_Drop_Implementation(AActor* ObjectToDrop)
 {
 	CurrentlyHoldingObject = nullptr;
+	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding);
 	Multicast_Drop(ObjectToDrop);
 } 
 
