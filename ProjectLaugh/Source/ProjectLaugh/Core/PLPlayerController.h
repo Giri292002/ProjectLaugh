@@ -11,6 +11,7 @@ class ULevelSequence;
 class ULevelSequencePlayer;
 class UInputMappingContext;
 class UPLGameplayWidget;
+class UPLWidgetBase;
 
 UCLASS()
 class PROJECTLAUGH_API APLPlayerController : public APlayerController
@@ -29,6 +30,13 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	virtual void Client_RemoveComponentWidgets();
+
+	UFUNCTION(Client, Reliable)
+	void Client_AddPLWidget(TSubclassOf<UPLWidgetBase> WidgetClassToAdd);
+
+	//Spawns a widget and also calls setup component from here
+	UFUNCTION(Client, Reliable)
+	void Client_AddComponentWidget(TSubclassOf<UPLComponentWidgetBase> WidgetClassToAdd, UPLActorComponent* InComp);
 
 	//Adds a timer widget that removes itself once done
 	UFUNCTION(Client, Reliable)
@@ -70,4 +78,8 @@ protected:
 	virtual void OnNetCleanup(UNetConnection* Connection) override;
 	virtual void AcknowledgePossession(class APawn* NewPawn) override;
 	virtual void Tick(float DeltaSeconds) override;
+
+private:
+	template<typename T>
+	T* Internal_AddWidget(TSubclassOf<T> WidgetClassToAdd);
 };

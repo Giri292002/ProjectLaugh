@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "ProjectLaugh/Widgets/PLWidgetBase.h"
 #include "PLWaitingForPlayersWidget.generated.h"
 
 class UTextBlock;
 
 UCLASS()
-class PROJECTLAUGH_API UPLWaitingForPlayersWidget : public UUserWidget
+class PROJECTLAUGH_API UPLWaitingForPlayersWidget : public UPLWidgetBase 
 {
 	GENERATED_BODY()
 

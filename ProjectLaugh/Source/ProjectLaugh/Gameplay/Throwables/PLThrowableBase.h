@@ -42,7 +42,7 @@ protected:
 	USoundCue* HitSound;
 
 	UFUNCTION()
-	void OnActorHitWithObject(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnActorHitWithObject(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_SpawnHitFX(FVector ImpactPoint);

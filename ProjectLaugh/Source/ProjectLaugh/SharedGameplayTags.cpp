@@ -18,4 +18,5 @@ namespace SharedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Spawning, "Character.Status.Spawning");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Armless, "Character.Status.Armless");	
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Holding, "Character.Status.Holding");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Holding_Arm, "Character.Status.Holding.Arm");
 }

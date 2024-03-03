@@ -42,7 +42,7 @@ class AProjectLaughCharacter : public ACharacter
 
 
 public:
-	AProjectLaughCharacter();
+	AProjectLaughCharacter(const FObjectInitializer& ObjectInitializer);
 	
 
 protected:

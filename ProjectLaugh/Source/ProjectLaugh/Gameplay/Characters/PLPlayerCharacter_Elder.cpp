@@ -5,7 +5,8 @@
 #include "EnhancedInputComponent.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 
-APLPlayerCharacter_Elder::APLPlayerCharacter_Elder()
+APLPlayerCharacter_Elder::APLPlayerCharacter_Elder(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer)
 {
 	PLInhalerComponent = CreateDefaultSubobject<UPLInhalerComponent>(FName(TEXT("Inhaler Component")));
 }

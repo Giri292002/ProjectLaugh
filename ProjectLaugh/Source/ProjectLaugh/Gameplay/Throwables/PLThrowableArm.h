@@ -17,6 +17,7 @@ class PROJECTLAUGH_API APLThrowableArm : public APLThrowableBase
 	APLThrowableArm(); 	
 
 	virtual void Interact_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent) override;
+	virtual void OnActorHitWithObject(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit) override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Destroy();

@@ -11,6 +11,7 @@ class UPLPlayerAttributesData;
 class UPLInhalerComponent;
 class UPLInteractionComponent;
 class UPLThrowComponent;
+class UPLSkillCheckComponent;
 class UPLStunData;
 class APLPlayerController;
 class AController;
@@ -25,7 +26,7 @@ class PROJECTLAUGH_API APLPlayerCharacter : public AProjectLaughCharacter
 
 public:
 	// Sets default values for this character's properties
-	APLPlayerCharacter();
+	APLPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
@@ -40,11 +41,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLGameplayTagComponent* PLGameplayTagComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLSkillCheckComponent* PLSkillCheckComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ThrowAction;
+	UInputAction* ThrowAction; 
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
@@ -129,7 +133,7 @@ public:
 	void Server_TryInteract();
 
 	UFUNCTION(Client, Reliable)
-	void Net_ThrowObject();
+	virtual void Net_ThrowObject();
 
 	UFUNCTION(Client, Unreliable)
 	void Net_OnPounced();
@@ -151,6 +155,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UPLGameplayTagComponent* GetGameplayTagComponent() const { return PLGameplayTagComponent; };
+
+	UFUNCTION(BlueprintCallable)
+	UPLSkillCheckComponent* GetSkillCheckComponent() const { return PLSkillCheckComponent; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

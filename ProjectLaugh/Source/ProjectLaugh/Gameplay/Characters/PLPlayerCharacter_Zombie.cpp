@@ -8,16 +8,18 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h" 
-#include "ProjectLaugh/Gameplay/Throwables/PLThrowableBase.h"
-#include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
-#include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Core/Infection/PLGameMode_Infection.h"
-#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
+#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
+#include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowableBase.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
 
-APLPlayerCharacter_Zombie::APLPlayerCharacter_Zombie()
+APLPlayerCharacter_Zombie::APLPlayerCharacter_Zombie(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer)
 {
 	PounceCooldownTime = 5.f;
 }
@@ -87,6 +89,23 @@ void APLPlayerCharacter_Zombie::Restart()
 	Net_ToggleFreezeCharacter(true);
 }
 
+void APLPlayerCharacter_Zombie::Net_ThrowObject()
+{
+	if (PLGameplayTagComponent->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Holding_Arm))
+	{
+		//Trying to throw arm skill check
+		if (PLSkillCheckComponent->SkillCheck())
+		{
+			PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding_Arm);
+			PLThrowComponent->Net_Throw(PLPlayerController);
+		}
+		else
+		{
+			PLThrowComponent->Net_TryDrop();
+		}
+	}
+}
+
 void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 {
 	//Check if we can pounce, Add more blocked tags here
@@ -136,7 +155,7 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 		return;
 	}
 
-	if(APLPlayerCharacter_Elder* OtherPlayer = Cast<APLPlayerCharacter_Elder>(HitResult.GetActor()))
+	if (APLPlayerCharacter_Elder* OtherPlayer = Cast<APLPlayerCharacter_Elder>(HitResult.GetActor()))
 	{
 		if (!(OtherPlayer->FindComponentByClass<UPLGameplayTagComponent>()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Affiliation_Elder)))
 		{
@@ -149,7 +168,7 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 	}
 	//TODO: Add line back when pouncing animation is setup
 	//PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);
-	
+
 }
 
 void APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished()
@@ -159,11 +178,26 @@ void APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished()
 
 void APLPlayerCharacter_Zombie::Net_DetachArm_Implementation()
 {
+	FGameplayTagContainer BlockedTags;
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
+
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasAny(BlockedTags))
+	{
+		return;
+	}
 	Server_DetachArm();
+	GetSkillCheckComponent()->StartSkillCheck();
 }
 
 void APLPlayerCharacter_Zombie::Server_DetachArm_Implementation()
 {
+	FGameplayTagContainer BlockedTags;
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
+
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasAny(BlockedTags))
+	{
+		return;
+	}
 	FTransform ArmTransform;
 	GetMesh()->GetSocketLocation(FName("upperarm_l"));
 	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
@@ -176,6 +210,7 @@ void APLPlayerCharacter_Zombie::Server_DetachArm_Implementation()
 	if (HasAuthority())
 	{
 		PLThrowComponent->Server_HoldObject(ThrowableArm);
+		PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Holding_Arm);
 	}
 }
 

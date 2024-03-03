@@ -19,5 +19,6 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Pouncing);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Spawning);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Armless);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Holding);	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Holding);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Holding_Arm);
 }

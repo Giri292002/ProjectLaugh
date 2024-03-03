@@ -113,7 +113,7 @@ void UPLInteractionComponent::AssignInteractableComponent(UPLInteractableCompone
 
 void UPLInteractionComponent::UnassignInteractableComponent()
 {
-	if (IsValid(LastInteractedComponent))
+	if (IsValid(LastInteractedComponent) && IsValid(LastInteractedComponent->GetOwner()))
 	{
 		UStaticMeshComponent* MeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<UStaticMeshComponent>();
 		if (IsValid(MeshComponent))

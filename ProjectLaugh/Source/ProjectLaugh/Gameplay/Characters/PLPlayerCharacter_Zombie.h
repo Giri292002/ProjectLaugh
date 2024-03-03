@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(Replicated)
 	USkeletalMesh* ArmedMesh;
 
-	APLPlayerCharacter_Zombie();
+	APLPlayerCharacter_Zombie(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
 
@@ -81,6 +81,8 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Restart() override;
+
+	virtual void Net_ThrowObject() override;
 
 	virtual void AppearanceTimelineFinishedCallback() override;	
 };
