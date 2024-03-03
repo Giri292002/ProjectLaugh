@@ -25,6 +25,7 @@ APLThrowableBase::APLThrowableBase()
 	GetStaticMeshComponent()->SetSimulatePhysics(true);
 	SetReplicateMovement(true);
 	ThrowableComponent->OnProjectileStop.AddDynamic(this, &APLThrowableBase::OnProjectileStopped);
+	GetStaticMeshComponent()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 }
 
 void APLThrowableBase::OnActorHitWithObject( AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)

@@ -16,11 +16,14 @@ APLThrowableArm::APLThrowableArm()
 
 void APLThrowableArm::Interact_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent)
 {
-	InInstigator->GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Armless);
-	APLPlayerCharacter_Zombie* Zombie = Cast<APLPlayerCharacter_Zombie>(InInstigator);
-	Zombie->Server_AttachArm();
-	checkf(Zombie, TEXT("Cant cast InInstigator to zombie."));
-	Server_Destroy();
+	if (InInstigator->GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Armless))
+	{
+		APLPlayerCharacter_Zombie* Zombie = Cast<APLPlayerCharacter_Zombie>(InInstigator);
+		checkf(Zombie, TEXT("Cant cast InInstigator to zombie."));
+		InInstigator->GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Armless);
+		Zombie->Server_AttachArm();
+		Server_Destroy();
+	}
 }
 
 void APLThrowableArm::OnActorHitWithObject(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -43,6 +46,15 @@ void APLThrowableArm::OnActorHitWithObject(AActor* SelfActor, AActor* OtherActor
 		}
 
 	}
+}
+
+bool APLThrowableArm::CanInteract_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent)
+{
+	FGameplayTagContainer ActiveTagContainer;
+	ActiveTagContainer.AddTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie);
+	ActiveTagContainer.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
+
+	return InInstigator->GetGameplayTagComponent()->GetActiveGameplayTags().HasAllExact(ActiveTagContainer);
 }
 
 void APLThrowableArm::Server_Destroy_Implementation()

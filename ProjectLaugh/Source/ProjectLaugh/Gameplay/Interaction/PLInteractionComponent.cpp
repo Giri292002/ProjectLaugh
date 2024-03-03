@@ -90,7 +90,7 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 
 	AssignInteractableComponent(InteractableComponent);
 
-	if (IsValidInteractionWith(LastInteractedComponent))
+	if (IsValidInteractionWith(LastInteractedComponent) && LastInteractedComponent->CanInteract(PLPlayerCharacter, this))
 	{
 		OnCanInteract.Broadcast(true);
 		return true;
@@ -113,15 +113,23 @@ void UPLInteractionComponent::AssignInteractableComponent(UPLInteractableCompone
 
 void UPLInteractionComponent::UnassignInteractableComponent()
 {
-	if (IsValid(LastInteractedComponent) && IsValid(LastInteractedComponent->GetOwner()))
+	if (!IsValid(LastInteractedComponent))
 	{
-		UStaticMeshComponent* MeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<UStaticMeshComponent>();
-		if (IsValid(MeshComponent))
-		{
-			MeshComponent->SetRenderCustomDepth(false);
-		}
 		LastInteractedComponent = nullptr;
+		return;
 	}
+	if(!IsValid(LastInteractedComponent->GetOwner()))
+	{
+		LastInteractedComponent = nullptr;
+		return;
+	}
+
+	UStaticMeshComponent* MeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<UStaticMeshComponent>();
+	if (IsValid(MeshComponent))
+	{
+		MeshComponent->SetRenderCustomDepth(false);
+	}
+	LastInteractedComponent = nullptr;	
 }
 
 bool UPLInteractionComponent::IsValidInteractionWith(UPLInteractableComponent* InteractableComponent)

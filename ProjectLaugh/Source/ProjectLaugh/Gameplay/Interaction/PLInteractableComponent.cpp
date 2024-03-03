@@ -15,3 +15,8 @@ void UPLInteractableComponent::Interact(APLPlayerCharacter* Instigator, UPLInter
 {
 	IPLInteractionInterface::Execute_Interact(GetOwner(), Instigator, InteractableComponent);
 }
+
+bool UPLInteractableComponent::CanInteract(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent)
+{
+	return IPLInteractionInterface::Execute_CanInteract(GetOwner(), InInstigator, OtherInteractableComponent);
+}

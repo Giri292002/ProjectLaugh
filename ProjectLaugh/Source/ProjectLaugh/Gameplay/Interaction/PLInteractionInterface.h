@@ -36,4 +36,9 @@ class PROJECTLAUGH_API IPLInteractionInterface
 public:
 	UFUNCTION(BlueprintNativeEvent)
 	void Interact(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent);
+
+	//Inherit this in your specific classes to add extra Interaction checks 
+	UFUNCTION(BlueprintNativeEvent)
+	bool CanInteract(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent);
+	virtual bool CanInteract_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent);
 };

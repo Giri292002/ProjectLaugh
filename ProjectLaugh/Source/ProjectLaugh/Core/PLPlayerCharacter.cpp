@@ -27,6 +27,8 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
 	PLGameplayTagComponent = CreateDefaultSubobject<UPLGameplayTagComponent>(FName(TEXT("PL Gameplaytag Component")));
 	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component"))); 
+
+	//GetCharacterMovement()->MaxStepHeight = 0.f;
 }
 
 // Called when the game starts or when spawned

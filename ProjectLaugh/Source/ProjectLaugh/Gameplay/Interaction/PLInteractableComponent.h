@@ -23,6 +23,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
 	void Interact(APLPlayerCharacter* Instigator, UPLInteractionComponent* InteractableComponent);
 
+	//Extra interaction checks that are added to the attached actor
+	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
+	bool CanInteract(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Interaction", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
 	uint8 SupportedInteractors;
