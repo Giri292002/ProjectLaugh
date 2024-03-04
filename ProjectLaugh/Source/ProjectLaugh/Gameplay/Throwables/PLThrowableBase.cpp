@@ -7,6 +7,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Data/PLStunData.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h" 
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowableComponent.h"
@@ -35,7 +36,8 @@ void APLThrowableBase::OnActorHitWithObject( AActor* SelfActor, AActor* OtherAct
 		{
 			if (APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(OtherActor))
 			{
-				PLPlayerCharacter->Server_StunCharacter();
+				checkf(StunData, TEXT("Stun Data is null"));
+				PLPlayerCharacter->Server_StunCharacter(StunData);
 			}
 			if (OtherActor != PreviouslyHitActor)
 			{
