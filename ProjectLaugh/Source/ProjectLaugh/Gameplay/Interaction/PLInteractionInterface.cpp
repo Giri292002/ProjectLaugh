@@ -2,3 +2,8 @@
 
 
 #include "PLInteractionInterface.h"
+
+bool IPLInteractionInterface::CanInteract_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent)
+{
+    return true;
+}

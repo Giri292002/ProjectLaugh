@@ -31,15 +31,12 @@ void APLPlayerController::Client_DrawWaitingForPlayersWidget_Implementation()
 	{
 		return;
 	}
-	if (!ensureAlwaysMsgf(PLWaitingForPlayersWidgetClass, TEXT("PLWaitingForPlayersWidget class is invalid")))
-	{
-		return;
-	}
+
+	checkf(PLWaitingForPlayersWidgetClass, TEXT("PLWaitingForPlayersWidget class is invalid"));
 
 	PlayWaitingCinematicSequence();
-	
-	PLWaitingForPlayersWidget = CreateWidget<UPLWaitingForPlayersWidget>(GetWorld(), PLWaitingForPlayersWidgetClass);
-	PLWaitingForPlayersWidget->AddToViewport();	
+
+	Client_AddPLWidget(PLWaitingForPlayersWidgetClass);
 }
 
 void APLPlayerController::Client_AddComponentWidgets_Implementation()
@@ -59,10 +56,7 @@ void APLPlayerController::Client_AddComponentWidgets_Implementation()
 		if (IsValid(PLActorComp->GetComponentWidgetClass()))
 		{
 			UPLComponentWidgetBase* SpawnedComponentWidget = CreateWidget<UPLComponentWidgetBase>(GetWorld(), PLActorComp->GetComponentWidgetClass());
-			checkf(SpawnedComponentWidget, TEXT("Couldnt spawn widget :/"));
-			SpawnedComponentWidget->SetupComponent(PLActorComp);
-			SpawnedComponentWidget->AddToViewport();
-			PLActorComp->SetSpawnedComponentWidget(SpawnedComponentWidget);
+			Client_AddComponentWidget(PLActorComp->GetComponentWidgetClass(), PLActorComp); 
 		}		
 	}
 }
@@ -73,7 +67,6 @@ void APLPlayerController::Client_RemoveComponentWidgets_Implementation()
 	TArray<UPLActorComponent*> PLActorComponents;
 	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
 
-	//Iterate through all the components, if they have a widget, create, add and send the widget pointer back to the component
 	if (!PLActorComponents.Num())
 	{
 		return;
@@ -195,3 +188,22 @@ void APLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(APLPlayerController, RepPlayerControllerRotation);
 }
 
+void APLPlayerController::Client_AddPLWidget_Implementation(TSubclassOf<UPLWidgetBase> WidgetClassToAdd)
+{
+	Internal_AddWidget<UPLWidgetBase>(WidgetClassToAdd);
+}
+
+void APLPlayerController::Client_AddComponentWidget_Implementation(TSubclassOf<UPLComponentWidgetBase> WidgetClassToAdd, UPLActorComponent* InComp)
+{
+	auto SpawnedWidget = Internal_AddWidget<UPLComponentWidgetBase>(WidgetClassToAdd);
+	SpawnedWidget->SetupComponent(InComp);
+	InComp->SetSpawnedComponentWidget(SpawnedWidget);
+}
+
+template<typename T>
+inline T* APLPlayerController::Internal_AddWidget(TSubclassOf<T> WidgetClassToAdd)
+{
+	T* CreatedWidget = CreateWidget<T>(GetWorld(), WidgetClassToAdd);
+	CreatedWidget->AddToViewport();
+	return CreatedWidget;
+}

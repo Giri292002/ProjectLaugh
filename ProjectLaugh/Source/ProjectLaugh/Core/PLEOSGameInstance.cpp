@@ -122,7 +122,7 @@ void UPLEOSGameInstance::OnCreateSessionComplete(FName InSessionName, bool bIsSu
 	if (IOnlineSessionPtr SessionPtr = OnlineSubsystem->GetSessionInterface())
 	{
 		SessionPtr->ClearOnCreateSessionCompleteDelegates(this);
-		FString Map = "/Game/Levels/Art_Test/NewMap?listen";
+		FString Map = "/Game/ProjectLaugh/Maps/GameJamElderHouse/ElderHouse?listen";
 		FURL TravelURL;
 		TravelURL.Map = Map;
 		GetWorld()->ServerTravel(Map);

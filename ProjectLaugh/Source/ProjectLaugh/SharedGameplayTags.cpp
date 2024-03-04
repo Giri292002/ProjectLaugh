@@ -5,11 +5,18 @@
 
 namespace SharedGameplayTags
 {
+	//Ability
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Pounce_Cooldown, "Ability.Pounce.Cooldown");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Throw_Thrown, "Ability.Throw.Thrown");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Inhale_Inhaling, "Ability.Inhale.Inhaling");
+
+	//Character
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Stunned, "Character.Status.Stunned");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Affiliation_Elder, "Character.Affiliation.Elder");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Affiliation_Zombie, "Character.Affiliation.Zombie");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Pouncing, "Character.Status.Pouncing");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Spawning, "Character.Status.Spawning");
-	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Pounce_Cooldown, "Ability.Pounce.Cooldown");
-	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Throw_Thrown, "Ability.Throw.Thrown");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Armless, "Character.Status.Armless");	
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Holding, "Character.Status.Holding");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Status_Holding_Arm, "Character.Status.Holding.Arm");
 }

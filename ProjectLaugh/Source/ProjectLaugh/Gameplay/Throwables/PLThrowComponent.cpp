@@ -167,3 +167,11 @@ void UPLThrowComponent::Multicast_Drop_Implementation(AActor* ObjectToDrop)
 	Comp->Velocity = FVector::UpVector * -1.f * 20.f;
 	Comp->Activate(true);
 }
+
+void UPLThrowComponent::Net_TryDrop_Implementation()
+{
+	if (IsValid(CurrentlyHoldingObject))
+	{
+		Server_Drop(CurrentlyHoldingObject);
+	}
+}

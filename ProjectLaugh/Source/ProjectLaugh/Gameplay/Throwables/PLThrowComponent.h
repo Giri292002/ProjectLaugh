@@ -24,7 +24,7 @@ protected:
 
 public:	
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
-	void Net_HoldObject(AActor* ObjectToHold);
+	virtual void Net_HoldObject(AActor* ObjectToHold);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_HoldObject(AActor* ObjectToHold);
@@ -33,7 +33,7 @@ public:
 	void Multicast_HoldObject(AActor* ObjectToHold);
 
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
-	void Net_Throw(APLPlayerController* PLPlayerController);
+	virtual void Net_Throw(APLPlayerController* PLPlayerController);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_ThrowObject(AActor* ObjectToThrow, FVector LaunchVelocity);
@@ -43,6 +43,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetThrowRange() const { return ThrowRange; }
+
+	//Tries to drop if you are holding an object
+	UFUNCTION(Client, Reliable)
+	void Net_TryDrop();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Drop(AActor* ObjectToDrop);

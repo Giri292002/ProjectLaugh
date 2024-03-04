@@ -15,7 +15,7 @@ class PROJECTLAUGH_API APLPlayerCharacter_Elder : public APLPlayerCharacter
 	GENERATED_BODY()
 	
 protected:
-	APLPlayerCharacter_Elder();
+	APLPlayerCharacter_Elder(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLInhalerComponent* PLInhalerComponent;

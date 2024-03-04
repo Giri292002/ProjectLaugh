@@ -11,6 +11,7 @@ class UPLPlayerAttributesData;
 class UPLInhalerComponent;
 class UPLInteractionComponent;
 class UPLThrowComponent;
+class UPLSkillCheckComponent;
 class UPLStunData;
 class APLPlayerController;
 class AController;
@@ -25,14 +26,11 @@ class PROJECTLAUGH_API APLPlayerCharacter : public AProjectLaughCharacter
 
 public:
 	// Sets default values for this character's properties
-	APLPlayerCharacter();
+	APLPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLPlayerAttributesData* PLPlayerAttributesData;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
-	UPLStunData* PLStunData;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLInteractionComponent* PLInteractionComponent;
@@ -43,11 +41,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLGameplayTagComponent* PLGameplayTagComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLSkillCheckComponent* PLSkillCheckComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ThrowAction;
+	UInputAction* ThrowAction; 
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
@@ -117,13 +118,13 @@ public:
 	void Server_ToggleFreezeCharacter(const bool bFreeze);
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
-	void Server_StunCharacter();
+	void Server_StunCharacter(UPLStunData* StunData);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
 	void Server_StopStunCharacter();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_StunCharacter();
+	void Multicast_StunCharacter(UPLStunData* StunData);
 
 	UFUNCTION(Client, Reliable)
 	void Net_TryInteract();
@@ -132,7 +133,7 @@ public:
 	void Server_TryInteract();
 
 	UFUNCTION(Client, Reliable)
-	void Net_ThrowObject();
+	virtual void Net_ThrowObject();
 
 	UFUNCTION(Client, Unreliable)
 	void Net_OnPounced();
@@ -151,6 +152,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };
+
+	UFUNCTION(BlueprintCallable)
+	UPLGameplayTagComponent* GetGameplayTagComponent() const { return PLGameplayTagComponent; };
+
+	UFUNCTION(BlueprintCallable)
+	UPLSkillCheckComponent* GetSkillCheckComponent() const { return PLSkillCheckComponent; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

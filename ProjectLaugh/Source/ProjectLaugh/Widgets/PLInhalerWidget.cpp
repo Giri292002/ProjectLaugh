@@ -8,17 +8,14 @@
 
 void UPLInhalerWidget::NativeConstruct()
 {
-	if (ensureAlwaysMsgf(PLInhalerComponent, TEXT("PL Inhaler component is invalid, did you set it during construction")))
-	{
-		PLInhalerComponent->OnInhalerValueChange.AddDynamic(this, &UPLInhalerWidget::OnInhalerValueChanged);
-		PLInhalerComponent->OnLungValueChange.AddDynamic(this, &UPLInhalerWidget::OnLungValueChanged);
-	}
 }
 
 void UPLInhalerWidget::SetupComponent(UPLActorComponent* PLActorComponent)
 {
 	PLInhalerComponent = Cast<UPLInhalerComponent>(PLActorComponent);
 	checkf(PLInhalerComponent, TEXT("INPLInhalerComponent is invalid"));
+	PLInhalerComponent->OnInhalerValueChange.AddDynamic(this, &UPLInhalerWidget::OnInhalerValueChanged);
+	PLInhalerComponent->OnLungValueChange.AddDynamic(this, &UPLInhalerWidget::OnLungValueChanged);
 }
 
 void UPLInhalerWidget::OnInhalerValueChanged(const float Current, const float Max)

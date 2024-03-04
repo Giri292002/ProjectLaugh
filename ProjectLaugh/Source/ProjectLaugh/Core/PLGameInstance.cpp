@@ -105,7 +105,7 @@ void UPLGameInstance::OnCreateSessionComplete()
 {
 	UE_LOG(LogPLGameInstance, Log, TEXT("Session Succesfully Created"));
 
-	GetWorld()->ServerTravel("/Game/Levels/Art_Test/NewMap?listen");	
+	GetWorld()->ServerTravel("/Game/ProjectLaugh/Maps/GameJamElderHouse/ElderHouse?listen");	
 	//UGameplayStatics::OpenLevel(GetWorld(), FName("GameLevel"), true, FString("listen"));
 }
 
