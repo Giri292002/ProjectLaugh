@@ -7,7 +7,6 @@
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Data/PLInhalerData.h"
-#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Widgets/PLInhalerWidget.h"
 
 // Sets default values for this component's properties
@@ -110,7 +109,6 @@ void UPLInhalerComponent::Net_StartInhale_Implementation()
 {
 	bIsInhaling = true;
 	PLPlayerCharacter->Net_ToggleFreezeCharacter(true);
-	PLPlayerCharacter->GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Ability_Inhale_Inhaling);
 	if (!GetOwner()->HasAuthority())
 	{
 		Server_SetInhale(true);
@@ -121,7 +119,6 @@ void UPLInhalerComponent::Net_StopInhale_Implementation()
 {
 	bIsInhaling = false;
 	PLPlayerCharacter->Net_ToggleFreezeCharacter(false);
-	PLPlayerCharacter->GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Inhale_Inhaling);
 	if (CurrentAirInLungAmount > 0.f)
 	{
 		Net_StartRunning();

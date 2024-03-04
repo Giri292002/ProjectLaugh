@@ -12,17 +12,15 @@ class UPLInteractableComponent;
 class UPLGameplayTagComponent;
 class UNiagaraSystem;
 class USoundCue;
-class UPLStunData;
 
 UCLASS()
 class PROJECTLAUGH_API APLThrowableBase : public AStaticMeshActor, public IPLInteractionInterface
 {
 	GENERATED_BODY()
 
-
-protected:
 	APLThrowableBase();
 
+protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
 	UPLInteractableComponent* InteractableComponent;
 
@@ -31,9 +29,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
 	UPLGameplayTagComponent* GameplayTagComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL")
-	UPLStunData* StunData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Hit")
 	TArray<UNiagaraSystem*> HitFX;

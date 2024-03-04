@@ -100,7 +100,7 @@ float APLPlayerCharacter::GetMaxWalkSpeed()
 	return GetCharacterMovement()->MaxWalkSpeed;
 }
 
-void APLPlayerCharacter::Server_StunCharacter_Implementation(UPLStunData* StunData)
+void APLPlayerCharacter::Server_StunCharacter_Implementation()
 {
 	//Check Stunning conditions
 	FGameplayTagContainer BlockedTags;
@@ -115,27 +115,27 @@ void APLPlayerCharacter::Server_StunCharacter_Implementation(UPLStunData* StunDa
 
 	PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Stunned); 
 
-	GetWorld()->GetTimerManager().SetTimer(StunTimerHandle,this, &APLPlayerCharacter::Server_StopStunCharacter, StunData->StunDuration);
-	Multicast_StunCharacter(StunData);
+	GetWorld()->GetTimerManager().SetTimer(StunTimerHandle,this, &APLPlayerCharacter::Server_StopStunCharacter, PLStunData->StunDuration);
+	Multicast_StunCharacter();
 }
 
-bool APLPlayerCharacter::Server_StunCharacter_Validate(UPLStunData* StunData)
+bool APLPlayerCharacter::Server_StunCharacter_Validate()
 {
 	return true;
 }
 
-void APLPlayerCharacter::Multicast_StunCharacter_Implementation(UPLStunData* StunData)
+void APLPlayerCharacter::Multicast_StunCharacter_Implementation()
 {
-	check(StunData);
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), StunData->StunSound, GetActorLocation());
+	check(PLStunData);
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PLStunData->StunSound, GetActorLocation());
 	FFXSystemSpawnParameters NiagaraSystemParameters;
 	NiagaraSystemParameters.WorldContextObject = GetWorld();
-	NiagaraSystemParameters.SystemTemplate = StunData->StunFX;
+	NiagaraSystemParameters.SystemTemplate = PLStunData->HitFX;
 	NiagaraSystemParameters.AttachToComponent = GetMesh();
 	NiagaraSystemParameters.LocationType = EAttachLocation::SnapToTarget; 
 	NiagaraSystemParameters.AttachPointName = FName("StunFX");
 	UNiagaraComponent* SpawnedStunFX = UNiagaraFunctionLibrary::SpawnSystemAttachedWithParams(NiagaraSystemParameters);
-	SpawnedStunFX->SetVariableFloat(FName("StunLifetime"), StunData->StunDuration);
+	SpawnedStunFX->SetVariableFloat(FName("StunLifetime"), PLStunData->StunDuration);
 }
 
 void APLPlayerCharacter::Server_StopStunCharacter_Implementation()
