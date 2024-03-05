@@ -6,7 +6,9 @@
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
@@ -20,7 +22,6 @@ UPLThrowComponent::UPLThrowComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicatedByDefault(true);
 	ThrowRange = 2500.f;
-	// ...
 }
 
 
@@ -48,6 +49,9 @@ void UPLThrowComponent::Server_HoldObject_Implementation(AActor* ObjectToHold)
 		Server_Drop(CurrentlyHoldingObject);
 	}
 
+	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
+	PLPlayerCharacter->Multicast_PlayAnimation(PLPlayerCharacter->GetAnimationData()->ThrowMontage);
+
 	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Holding);
 
 	CurrentlyHoldingObject = ObjectToHold;
@@ -71,6 +75,12 @@ void UPLThrowComponent::Multicast_HoldObject_Implementation(AActor* ObjectToHold
 	ObjectToHold->FindComponentByClass<UPLThrowableComponent>()->Deactivate();
 	ObjectToHold->FindComponentByClass<UPLThrowableComponent>()->SetUpdatedComponent(nullptr);
 	ObjectToHold->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+}
+
+void UPLThrowComponent::Net_StartThrow_Implementation()
+{
+	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
+	PLPlayerCharacter->Server_PlayAnimation(PLPlayerCharacter->GetAnimationData()->ThrowMontage, true, FName("HoldEnd"));
 }
 
 void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerController)
@@ -138,6 +148,10 @@ void UPLThrowComponent::Server_Drop_Implementation(AActor* ObjectToDrop)
 {
 	CurrentlyHoldingObject = nullptr;
 	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding);
+
+	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
+	PLPlayerCharacter->Server_StopAnimation(PLPlayerCharacter->GetAnimationData()->ThrowMontage);
+
 	Multicast_Drop(ObjectToDrop);
 } 
 
