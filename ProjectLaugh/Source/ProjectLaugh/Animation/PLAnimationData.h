@@ -17,4 +17,7 @@ class PROJECTLAUGH_API UPLAnimationData : public UDataAsset
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Animation")
 	UAnimMontage* ThrowMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Animation")
+	UAnimMontage* PounceMontage; 
 };

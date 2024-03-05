@@ -8,6 +8,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h" 
+#include "ProjectLaugh/Animation/PLAnimationData.h"
+#include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Core/Infection/PLGameMode_Infection.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
@@ -138,6 +140,9 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 
 	const FRotator NewActorRotation = FRotator(GetActorRotation().Pitch, StartRotation.Yaw, GetActorRotation().Roll);
 	SetActorRotation(NewActorRotation);
+
+	Server_PlayAnimation(GetAnimationData()->PounceMontage);
+
 	Server_Pounce(NewActorRotation, HitResult);
 }
 
