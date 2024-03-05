@@ -139,9 +139,10 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 	UKismetSystemLibrary::CapsuleTraceSingleForObjects(GetWorld(), StartLocation, EndLocation, 30.f, 40.f, ObjectsToQuery, false, IgnoredActors, EDrawDebugTrace::None, HitResult, true);
 
 	const FRotator NewActorRotation = FRotator(GetActorRotation().Pitch, StartRotation.Yaw, GetActorRotation().Roll);
-	SetActorRotation(NewActorRotation);
 
 	Server_PlayAnimation(GetAnimationData()->PounceMontage);
+	
+	SetActorRotation(NewActorRotation);
 
 	Server_Pounce(NewActorRotation, HitResult);
 }
