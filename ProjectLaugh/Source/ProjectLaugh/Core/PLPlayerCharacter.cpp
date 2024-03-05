@@ -55,6 +55,11 @@ void APLPlayerCharacter::BeginPlay()
 		AppearanceTimeline.AddInterpFloat(PLPlayerAttributesData->AppearanceCurve, OnTimelineCallback);
 		AppearanceTimeline.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
 	}
+
+	if (IsValid(DefaultAnimationLayer))
+	{
+		GetMesh()->LinkAnimClassLayers(DefaultAnimationLayer);
+	}
 }
 
 void APLPlayerCharacter::Server_SetMaxWalkSpeed_Implementation(const float InMaxWalkSpeed)

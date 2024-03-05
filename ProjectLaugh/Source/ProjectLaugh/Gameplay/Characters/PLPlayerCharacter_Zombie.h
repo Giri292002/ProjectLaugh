@@ -10,6 +10,7 @@ class UTimelineComponent;
 class UCurveFloat;
 class UPLZombieAttributesData;
 class APLThrowableBase;
+class APLThrowableArm;
 
 UCLASS()
 class PROJECTLAUGH_API APLPlayerCharacter_Zombie : public APLPlayerCharacter
@@ -18,7 +19,7 @@ class PROJECTLAUGH_API APLPlayerCharacter_Zombie : public APLPlayerCharacter
 
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AttachArm();
+	void Server_AttachArm(APLThrowableArm* PLThrowableArm);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_AttachArm();

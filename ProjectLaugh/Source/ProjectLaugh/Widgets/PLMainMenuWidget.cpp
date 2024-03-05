@@ -73,6 +73,12 @@ void UPLMainMenuWidget::OnRoomCodeInputTextBoxChanged(const FText& NewText)
 	{
 		return;
 	}
+
+	if (NewText.IsEmpty())
+	{
+		return;
+	}
+
 	auto CharacterArray = NewText.ToString().ToUpper().GetCharArray();	
 
 	//If unsupported characters have been inputted, remove them
