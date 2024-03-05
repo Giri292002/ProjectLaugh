@@ -7,15 +7,16 @@
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
+class AController;
+class APLPlayerController;
 class UPLPlayerAttributesData;
 class UPLInhalerComponent;
 class UPLInteractionComponent;
 class UPLThrowComponent;
 class UPLSkillCheckComponent;
 class UPLStunData;
-class APLPlayerController;
-class AController;
 class UPLGameplayTagComponent;
+class UPLAnimationData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -31,6 +32,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLPlayerAttributesData* PLPlayerAttributesData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data | Animation")
+	UPLAnimationData* PLAnimationData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Animation")
 	TSubclassOf<UAnimInstance> DefaultAnimationLayer;
@@ -153,14 +157,34 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Destroy();
 
+	//Play a montage animation, optionally jump to a montage section
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PlayAnimation(UAnimMontage* MontageToPlay, bool bJumpToSection = false, FName SectionName = FName("None"));
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayAnimation(UAnimMontage* MontageToPlay, bool bJumpToSection = false, FName SectionName = FName("None"));
+	
+	//Stop any montage that is currently playing, if MontageToStop is provided it will stop that particular montage
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StopAnimation(UAnimMontage* MontageToStop = nullptr); 
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopAnimation(UAnimMontage* MontageToStop = nullptr);
+
 	UFUNCTION(BlueprintCallable)
-	UPLInteractionComponent* GetPLInteractionComponent() const { return PLInteractionComponent; };
+	UPLInteractionComponent* GetInteractionComponent() const { return PLInteractionComponent; };
 
 	UFUNCTION(BlueprintCallable)
 	UPLGameplayTagComponent* GetGameplayTagComponent() const { return PLGameplayTagComponent; };
 
 	UFUNCTION(BlueprintCallable)
 	UPLSkillCheckComponent* GetSkillCheckComponent() const { return PLSkillCheckComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UPLThrowComponent* GetThrowComponent() const { return PLThrowComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UPLAnimationData* GetAnimationData() const { return PLAnimationData; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

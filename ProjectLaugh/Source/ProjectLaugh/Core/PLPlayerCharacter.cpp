@@ -3,6 +3,7 @@
 #include "PLPlayerCharacter.h"
 
 #include "EnhancedInputComponent.h"
+#include "Animation/AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -11,6 +12,7 @@
 #include "NiagaraComponent.h"
 #include "Curves/CurveFloat.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
@@ -26,9 +28,7 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLThrowComponent = CreateDefaultSubobject<UPLThrowComponent>(FName(TEXT("Throw Component")));
 	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
 	PLGameplayTagComponent = CreateDefaultSubobject<UPLGameplayTagComponent>(FName(TEXT("PL Gameplaytag Component")));
-	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component"))); 
-
-	//GetCharacterMovement()->MaxStepHeight = 0.f;
+	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component")));
 }
 
 // Called when the game starts or when spawned
@@ -36,10 +36,8 @@ void APLPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!ensureAlwaysMsgf(PLPlayerAttributesData, TEXT("PLPlayerAttributesData is null")))
-	{
-		return;
-	}
+	checkf(PLAnimationData, TEXT("PL Animation Data is null"));
+	checkf(PLPlayerAttributesData, TEXT("PLPlayerAttributesData is null"));
 
 	Net_SetMaxWalkSpeed(PLPlayerAttributesData->MaxWalkSpeed);
 	Net_SetPushForce(PLPlayerAttributesData->PushForce);
@@ -203,7 +201,7 @@ bool APLPlayerCharacter::Server_ToggleFreezeCharacter_Validate(const bool bFreez
 
 void APLPlayerCharacter::Net_ThrowObject_Implementation()
 {
-	PLThrowComponent->Net_Throw(PLPlayerController);
+	PLThrowComponent->Net_StartThrow();
 }
 
 
@@ -249,6 +247,7 @@ bool APLPlayerCharacter::Server_Destroy_Validate()
 {
 	return true;
 }
+
 
 // Called every frame
 void APLPlayerCharacter::Tick(float DeltaTime)
@@ -325,5 +324,57 @@ void APLPlayerCharacter::AppearanceTimelineFinishedCallback()
 	if (AppearanceTimeline.GetPlaybackPosition() == 0.f)
 	{
 		Server_Destroy();
+	}
+}
+
+void APLPlayerCharacter::Server_PlayAnimation_Implementation(UAnimMontage* MontageToPlay, bool bJumpToSection, FName SectionName)
+{
+	Multicast_PlayAnimation(MontageToPlay, bJumpToSection, SectionName);
+}
+
+bool APLPlayerCharacter::Server_PlayAnimation_Validate(UAnimMontage* MontageToPlay, bool bJumpToSection, FName SectionName)
+{
+	return true;
+}
+
+void APLPlayerCharacter::Multicast_PlayAnimation_Implementation(UAnimMontage* MontageToPlay, bool bJumpToSection, FName SectionName)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance))
+	{
+		AnimInstance->Montage_Play(MontageToPlay);
+		if (bJumpToSection)
+		{
+			AnimInstance->Montage_JumpToSection(SectionName);
+		}
+	}
+}
+
+void APLPlayerCharacter::Server_StopAnimation_Implementation(UAnimMontage* MontageToStop)
+{
+	Multicast_StopAnimation(MontageToStop);
+}
+
+bool APLPlayerCharacter::Server_StopAnimation_Validate(UAnimMontage* MontageToStop)
+{
+	return true;
+}
+
+void APLPlayerCharacter::Multicast_StopAnimation_Implementation(UAnimMontage* MontageToStop)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance))
+	{
+		if (IsValid(MontageToStop))
+		{
+			if(AnimInstance->Montage_IsPlaying(MontageToStop))
+			{
+				AnimInstance->Montage_Stop(0.5f, MontageToStop);
+			}
+		}
+		else
+		{
+			AnimInstance->StopAllMontages(0.5f);
+		}
 	}
 }

@@ -32,6 +32,10 @@ public:
 	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
 	void Multicast_HoldObject(AActor* ObjectToHold);
 
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void Net_StartThrow();
+
+	//Will be called from montage, dont call this by yourself. Call Net_StartThrow instead
 	UFUNCTION(BlueprintCallable, Client, Unreliable)
 	virtual void Net_Throw(APLPlayerController* PLPlayerController);
 
