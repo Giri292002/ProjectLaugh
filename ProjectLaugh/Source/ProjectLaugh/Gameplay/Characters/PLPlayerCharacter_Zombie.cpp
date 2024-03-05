@@ -16,6 +16,7 @@
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowableBase.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowableArm.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
 
 APLPlayerCharacter_Zombie::APLPlayerCharacter_Zombie(const FObjectInitializer& ObjectInitializer)
@@ -219,12 +220,13 @@ void APLPlayerCharacter_Zombie::Multicast_DetachArm_Implementation()
 	GetMesh()->SetSkeletalMesh(ArmlessMesh);
 }
 
-void APLPlayerCharacter_Zombie::Server_AttachArm_Implementation()
+void APLPlayerCharacter_Zombie::Server_AttachArm_Implementation(APLThrowableArm* PLThrowableArm)
 {
+	PLThrowableArm->Destroy();
 	Multicast_AttachArm();
 }
 
-bool APLPlayerCharacter_Zombie::Server_AttachArm_Validate()
+bool APLPlayerCharacter_Zombie::Server_AttachArm_Validate(APLThrowableArm* PLThrowableArm)
 {
 	return true;
 }

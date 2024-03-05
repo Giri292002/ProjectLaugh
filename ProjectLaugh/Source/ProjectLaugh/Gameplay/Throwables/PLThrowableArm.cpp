@@ -21,7 +21,7 @@ void APLThrowableArm::Interact_Implementation(APLPlayerCharacter* InInstigator, 
 		APLPlayerCharacter_Zombie* Zombie = Cast<APLPlayerCharacter_Zombie>(InInstigator);
 		checkf(Zombie, TEXT("Cant cast InInstigator to zombie."));
 		InInstigator->GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Armless);
-		Zombie->Server_AttachArm();
+		Zombie->Server_AttachArm(this);
 		Server_Destroy();
 	}
 }
