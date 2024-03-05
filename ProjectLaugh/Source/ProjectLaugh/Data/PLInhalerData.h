@@ -38,4 +38,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UPLInhalerWidget> PLInhalerWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMesh* InhalerMesh;
 };

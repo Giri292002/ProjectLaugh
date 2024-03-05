@@ -3,6 +3,7 @@
 
 #include "PLInhalerComponent.h"
 
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
@@ -31,6 +32,7 @@ void UPLInhalerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(UPLInhalerComponent, MaxInhalerAmount);
 	DOREPLIFETIME(UPLInhalerComponent, bIsInhaling);
 	DOREPLIFETIME(UPLInhalerComponent, bStopRunningDone);
+	DOREPLIFETIME(UPLInhalerComponent, InhalerMesh);
 }
 
 // Called when the game starts
@@ -45,6 +47,13 @@ void UPLInhalerComponent::BeginPlay()
 	}
 
 	PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
+	
+	//Attach Mesh to player
+	if (PLPlayerCharacter->HasAuthority())
+	{
+		Server_SpawnInhalerMesh();
+		Multicast_ToggleMeshVisibility(false);
+	}
 }
 
 // Called every frame
@@ -111,6 +120,7 @@ void UPLInhalerComponent::Net_StartInhale_Implementation()
 	bIsInhaling = true;
 	PLPlayerCharacter->Net_ToggleFreezeCharacter(true);
 	PLPlayerCharacter->GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Ability_Inhale_Inhaling);
+	Server_ToggleMeshVisibility(true); 
 	if (!GetOwner()->HasAuthority())
 	{
 		Server_SetInhale(true);
@@ -122,6 +132,7 @@ void UPLInhalerComponent::Net_StopInhale_Implementation()
 	bIsInhaling = false;
 	PLPlayerCharacter->Net_ToggleFreezeCharacter(false);
 	PLPlayerCharacter->GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Inhale_Inhaling);
+	Server_ToggleMeshVisibility(false);
 	if (CurrentAirInLungAmount > 0.f)
 	{
 		Net_StartRunning();
@@ -160,4 +171,65 @@ void UPLInhalerComponent::Server_SetbStopRunningDone_Implementation(const bool b
 bool UPLInhalerComponent::Server_SetbStopRunningDone_Validate(const bool bSInStopRunning)
 {
 	return true;
+}
+
+void UPLInhalerComponent::Server_SpawnInhalerMesh_Implementation()
+{
+	InhalerMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass());
+	InhalerMesh->SetReplicates(true);
+	InhalerMesh->SetActorEnableCollision(false);
+	UStaticMeshComponent* MeshComponent = InhalerMesh->GetStaticMeshComponent();
+	if (IsValid(MeshComponent))
+	{
+		InhalerMesh->SetMobility(EComponentMobility::Movable);
+		MeshComponent->SetStaticMesh(PLInhalerData->InhalerMesh);
+	}
+}
+
+bool UPLInhalerComponent::Server_SpawnInhalerMesh_Validate()
+{
+	return true;
+}
+
+void UPLInhalerComponent::Server_ToggleMeshVisibility_Implementation(const bool bVisible)
+{
+	Multicast_ToggleMeshVisibility(bVisible);
+}
+
+bool UPLInhalerComponent::Server_ToggleMeshVisibility_Validate(const bool bVisible)
+{
+	return true;
+}
+
+void UPLInhalerComponent::Multicast_ToggleMeshVisibility_Implementation(const bool bVisible)
+{
+	AttachInhalerToCharacter(InhalerMesh);
+	if (IsValid(InhalerMesh))
+	{
+		InhalerMesh->GetStaticMeshComponent()->SetVisibility(bVisible);
+	}
+}
+
+void UPLInhalerComponent::AttachInhalerToCharacter(AStaticMeshActor* InInhalerMesh)
+{
+	if (!IsValid(PLPlayerCharacter))
+	{
+		return;
+	}
+	InhalerMesh->SetMobility(EComponentMobility::Movable);
+	InInhalerMesh->AttachToComponent(PLPlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_r"));
+}
+
+void UPLInhalerComponent::OnRep_InhalerMesh()
+{
+	InhalerMesh->SetActorEnableCollision(false);
+
+	InhalerMesh->GetStaticMeshComponent()->SetVisibility(false);
+
+	UStaticMeshComponent* MeshComponent = InhalerMesh->GetStaticMeshComponent();
+	if (IsValid(MeshComponent))
+	{
+		InhalerMesh->SetMobility(EComponentMobility::Movable);
+		MeshComponent->SetStaticMesh(PLInhalerData->InhalerMesh);
+	}
 }

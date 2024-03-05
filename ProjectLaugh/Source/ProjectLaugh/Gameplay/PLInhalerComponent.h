@@ -11,6 +11,8 @@ class UPLInhalerWidget;
 class APawn;
 class AController;
 class APLPlayerCharacter;
+class AStaticMeshActor;
+class UStaticMesh;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInhalerValueChange, const float, CurrentInhalerAmount, const float, MaxInhalerAmount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLungValueChange, const float, CurrentLungAmount, const float, MaxLungAmount);
@@ -81,6 +83,21 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
 	void Server_SetbStopRunningDone(const bool bSInStopRunning);
 
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	void Server_ToggleMeshVisibility(const bool bVisible);
+
+	UFUNCTION(BlueprintCallable, Server, Unreliable, WithValidation)
+	void Server_SpawnInhalerMesh();
+
+	UFUNCTION(BlueprintCallable, NetMulticast, Unreliable)
+	void Multicast_ToggleMeshVisibility(const bool bVisible);
+
+	UFUNCTION()
+	void AttachInhalerToCharacter(AStaticMeshActor* InInhalerMesh);
+
+	UFUNCTION()
+	void OnRep_InhalerMesh();
+
 	//UFUNCTION(BlueprintCallable, Client, Unreliable)
 	//void Net_FreezeCharacter();
 
@@ -93,4 +110,7 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bStopRunningDone;
+
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_InhalerMesh)
+	AStaticMeshActor* InhalerMesh;
 };
