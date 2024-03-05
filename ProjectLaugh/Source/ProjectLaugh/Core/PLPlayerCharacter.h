@@ -31,6 +31,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data")
 	UPLPlayerAttributesData* PLPlayerAttributesData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Animation")
+	TSubclassOf<UAnimInstance> DefaultAnimationLayer;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLInteractionComponent* PLInteractionComponent;
@@ -44,10 +47,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLSkillCheckComponent* PLSkillCheckComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* ThrowAction; 
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
