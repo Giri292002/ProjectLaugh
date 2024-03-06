@@ -36,7 +36,7 @@ void APLPlayerController::Client_DrawWaitingForPlayersWidget_Implementation()
 
 	PlayWaitingCinematicSequence();
 
-	Client_AddPLWidget(PLWaitingForPlayersWidgetClass);
+	PLWaitingForPlayersWidget = Internal_AddWidget<UPLWaitingForPlayersWidget>(PLWaitingForPlayersWidgetClass);
 }
 
 void APLPlayerController::Client_AddComponentWidgets_Implementation()
@@ -150,7 +150,7 @@ void APLPlayerController::OnNetCleanup(UNetConnection* Connection)
 void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
-	StoPlayingWaitingCinematicSequence();
+	Client_RemoveWaitingForPlayersWidget();
 
 	SetViewTarget(NewPawn);
 
