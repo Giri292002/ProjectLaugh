@@ -26,6 +26,9 @@ public:
 	void Client_RemoveWaitingForPlayersWidget();
 
 	UFUNCTION(Client, Reliable)
+	void Client_DrawGameplayWidget();
+
+	UFUNCTION(Client, Reliable)
 	virtual void Client_AddComponentWidgets();
 
 	UFUNCTION(Client, Reliable)

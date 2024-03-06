@@ -292,6 +292,11 @@ void APLPlayerCharacter::PossessedBy(AController* Possessor)
 	OnClientControlPossess.Broadcast(GetController());
 }
 
+void APLPlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+}
+
 void APLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

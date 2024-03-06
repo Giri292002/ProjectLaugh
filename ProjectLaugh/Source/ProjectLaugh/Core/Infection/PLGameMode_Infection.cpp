@@ -5,6 +5,8 @@
 
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
+#include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
@@ -38,6 +40,8 @@ void APLGameMode_Infection::BeginPlay()
 		PlayersNeedToStartGame = PLEOSGameInstance->GetMaxPlayersInCurrentLobby();
 	}
 #endif
+
+	PLGameState_Infection = GetGameState<APLGameState_Infection>();
 }
 
 void APLGameMode_Infection::PostLogin(APlayerController* NewPlayer)
@@ -75,7 +79,7 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 
 	if (NewState == FName("InProgress"))
 	{
-		SpawnPlayers();
+		StartRound();
 	}
 }
 
@@ -140,4 +144,15 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 	Elder->Multicast_OnPounced();
 	FTransform SpawnTransform = Elder->GetActorTransform();
 	SpawnPLPlayerCharacter(ZombieClasses[0], PLPlayerController, SpawnTransform);
+}
+
+void APLGameMode_Infection::StartRound()
+{
+	SpawnPlayers();
+	PLGameState_Infection->IncreaseRound();
+	PLGameState_Infection->RunBrainMeter(GetGameData()->BrainMeterTime * 60.f);
+}
+
+void APLGameMode_Infection::EndRound()
+{
 }

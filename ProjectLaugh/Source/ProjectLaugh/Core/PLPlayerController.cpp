@@ -41,16 +41,20 @@ void APLPlayerController::Client_DrawWaitingForPlayersWidget_Implementation()
 
 void APLPlayerController::Client_AddComponentWidgets_Implementation()
 {
+	if (!IsValid(GetPawn()))
+	{
+		return;
+	}
 	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
 	TArray<UPLActorComponent*> PLActorComponents;
 	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
 
-	//Iterate through all the components, if they have a widget, create, add and send the widget pointer back to the component
 	if (!PLActorComponents.Num())
 	{
 		return;
 	}
 
+	//Iterate through all the components, if they have a widget, create, add and send the widget pointer back to the component
 	for (UPLActorComponent* PLActorComp : PLActorComponents)
 	{
 		if (IsValid(PLActorComp->GetComponentWidgetClass()))
@@ -148,13 +152,6 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 	Super::AcknowledgePossession(NewPawn);
 	StoPlayingWaitingCinematicSequence();
 
-	//Spawn a gameplay widget if there isn't already one
-	if (!IsValid(PLGameplayWidget))
-	{
-		PLGameplayWidget = CreateWidget<UPLGameplayWidget>(this, PLGameplayWidgetClass);
-		PLGameplayWidget->AddToViewport();
-	}
-
 	SetViewTarget(NewPawn);
 
 	if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
@@ -168,6 +165,7 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}		
 	}
+	Client_DrawGameplayWidget();
 	Client_AddComponentWidgets();
 }
 
@@ -206,4 +204,13 @@ inline T* APLPlayerController::Internal_AddWidget(TSubclassOf<T> WidgetClassToAd
 	T* CreatedWidget = CreateWidget<T>(GetWorld(), WidgetClassToAdd);
 	CreatedWidget->AddToViewport();
 	return CreatedWidget;
+}
+
+void APLPlayerController::Client_DrawGameplayWidget_Implementation()
+{
+	//Spawn a gameplay widget if there isn't already one
+	if (!IsValid(PLGameplayWidget))
+	{
+		PLGameplayWidget = Internal_AddWidget<UPLGameplayWidget>(PLGameplayWidgetClass);
+	}
 }

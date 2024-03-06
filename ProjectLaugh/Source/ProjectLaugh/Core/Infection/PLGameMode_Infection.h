@@ -10,6 +10,8 @@ class APLPlayerCharacter;
 class APLPlayerCharacter_Elder;
 class APLPlayerCharacter_Zombie;
 class APLPlayerController;
+class UPLInfectionGameModeData;
+class APLGameState_Infection;
 
 UCLASS()
 class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
@@ -23,13 +25,22 @@ public:
 	UFUNCTION()
 	void SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder);
 
-protected:
+	virtual void SpawnPlayers() override;
 
+	UPLInfectionGameModeData* GetGameData() const { return PLInfectionGameModeData; }
+
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>>ElderClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>ZombieClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	UPLInfectionGameModeData* PLInfectionGameModeData;
+
+	UPROPERTY()
+	APLGameState_Infection* PLGameState_Infection;
 
 	virtual bool ReadyToStartMatch_Implementation() override;
 
@@ -41,11 +52,13 @@ protected:
 
 	virtual void SetMatchState(FName NewState) override;
 
-	virtual void SpawnPlayers() override;
-
 	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag);
 
 	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform);
 
+	UFUNCTION()
+	void StartRound();
 
+	UFUNCTION()
+	void EndRound();
 };
