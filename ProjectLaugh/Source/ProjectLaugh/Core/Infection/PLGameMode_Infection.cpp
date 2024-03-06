@@ -3,10 +3,14 @@
 
 #include "PLGameMode_Infection.h"
 
+#include "EngineUtils.h" 
+#include "ProjectLaugh/Core/PLActor.h"
+#include "ProjectLaugh/Core/PLStaticMeshActor.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
+#include "ProjectLaugh/Core/System/PLResetInterface.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
@@ -155,4 +159,29 @@ void APLGameMode_Infection::StartRound()
 
 void APLGameMode_Infection::EndRound()
 {
+	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->RoundEndWidget);
+		APawn* Pawn = PLPlayerController->GetPawn();
+		Pawn->Destroy();
+	}
+	//TODO: Add Round Done, after round scoring stuff would go here
+	ResetLevel();
 }
+
+void APLGameMode_Infection::ResetLevel()
+{
+	//Reset all PLActors in level
+	for (TActorIterator<APLActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+
+	//Reset all PLStaticActors in level
+	for (TActorIterator<APLStaticMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+}
+

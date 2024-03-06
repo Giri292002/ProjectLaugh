@@ -4,6 +4,8 @@
 #include "PLGameplayWidget.h"
 
 #include "Components/VerticalBox.h"
+#include "Components/TextBlock.h"
+#include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
 #include "PLTimerWidget.h"
 
 void UPLGameplayWidget::AddTimer(const float InSeconds, FText TimerText, bool bForward)
@@ -14,4 +16,17 @@ void UPLGameplayWidget::AddTimer(const float InSeconds, FText TimerText, bool bF
 	TimerWidget->StartRunning();
 
 	TimerVerticalBox->AddChildToVerticalBox(TimerWidget);
+}
+
+void UPLGameplayWidget::PLConstruct()
+{
+	PLInfectionGameState = Cast<APLGameState_Infection>(PLGameState);
+	PLInfectionGameState->OnRoundUpdateDelegate.AddDynamic(this, &UPLGameplayWidget::OnRoundUpdated);
+	OnRoundUpdated(PLInfectionGameState->GetCurrentRound());
+}
+
+void UPLGameplayWidget::OnRoundUpdated(int NewRound)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Round Updated"));
+	RoundTextBlock->SetText(FText::FromString(FString::FromInt(NewRound)));
 }

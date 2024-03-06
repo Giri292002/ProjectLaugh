@@ -29,6 +29,12 @@ public:
 
 	UPLInfectionGameModeData* GetGameData() const { return PLInfectionGameModeData; }
 
+	UFUNCTION()
+	void StartRound();
+
+	UFUNCTION()
+	void EndRound();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>>ElderClasses;
@@ -56,9 +62,5 @@ protected:
 
 	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform);
 
-	UFUNCTION()
-	void StartRound();
-
-	UFUNCTION()
-	void EndRound();
+	virtual void ResetLevel() override;
 };

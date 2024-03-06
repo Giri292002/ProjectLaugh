@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "ProjectLaugh/Widgets/PLRoundEndWidget.h"
 #include "PLInfectionGameModeData.generated.h"
 
 UCLASS()
@@ -17,4 +18,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly , meta = (Units = "Minutes"))
 	float BrainMeterTime;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UPLRoundEndWidget> RoundEndWidget;
 };
