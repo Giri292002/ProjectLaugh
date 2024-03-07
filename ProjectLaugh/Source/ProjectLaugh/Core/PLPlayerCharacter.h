@@ -17,6 +17,7 @@ class UPLSkillCheckComponent;
 class UPLStunData;
 class UPLGameplayTagComponent;
 class UPLAnimationData;
+class UCharacterUIProfileData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -35,6 +36,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data | Animation")
 	UPLAnimationData* PLAnimationData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data | UI")
+	UCharacterUIProfileData* CharacterUIProfileData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Animation")
 	TSubclassOf<UAnimInstance> DefaultAnimationLayer;
@@ -188,6 +192,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UPLPlayerAttributesData* GetPLPlayerAttributesData() const { return PLPlayerAttributesData; }
+
+	UFUNCTION(BlueprintCallable)
+	UCharacterUIProfileData* GetCharacterUIData() const { return CharacterUIProfileData; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

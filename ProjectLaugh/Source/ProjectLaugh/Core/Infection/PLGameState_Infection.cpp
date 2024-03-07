@@ -2,10 +2,12 @@
 
 
 #include "PLGameState_Infection.h"
-#include "PLGameMode_Infection.h"
+
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "PLGameMode_Infection.h"
+#include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 
 void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -16,6 +18,9 @@ void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(APLGameState_Infection, MaxBrainMeter);
 	DOREPLIFETIME(APLGameState_Infection, WinningTeam);
 	DOREPLIFETIME(APLGameState_Infection, InfectionGameModeData);
+	DOREPLIFETIME(APLGameState_Infection, NumberOfElders);
+	DOREPLIFETIME(APLGameState_Infection, NumberOfZombies);
+	DOREPLIFETIME(APLGameState_Infection, InGameCharacters);
 }
 
 void APLGameState_Infection::RunBrainMeter(float StartingBrainMeter)
@@ -44,6 +49,11 @@ bool APLGameState_Infection::CheckRoundWinCondition()
 		PrepareToEndRound(SharedGameplayTags::TAG_Character_Affiliation_Elder);
 		bIsRoundDone = true;
 	}
+	if (NumberOfZombies >= PlayerArray.Num())
+	{
+		PrepareToEndRound(SharedGameplayTags::TAG_Character_Affiliation_Zombie);
+		bIsRoundDone = true;
+	}
 	return bIsRoundDone;
 }
 
@@ -59,6 +69,11 @@ void APLGameState_Infection::PrepareToEndRound(FGameplayTag InWinningTeam)
 	Multicast_SetDilation(0.5f);
 }
 
+void APLGameState_Infection::StartRound()
+{
+	bHasRoundStarted = true;
+}
+
 void APLGameState_Infection::EndRound()
 {
 	Multicast_SetDilation(1.f);
@@ -69,6 +84,30 @@ void APLGameState_Infection::EndRound()
 void APLGameState_Infection::Server_SetDilation(float NewTimeDilation)
 {
 	Multicast_SetDilation(NewTimeDilation);
+}
+
+void APLGameState_Infection::IncreaseZombieCount()
+{
+	NumberOfZombies++;
+	CheckRoundWinCondition();
+}
+
+void APLGameState_Infection::RegisterCharacterToGame(FGameplayTag AffilitationTag, APLPlayerCharacter* NewCharacter)
+{
+	if (!IsValid(NewCharacter))
+	{
+		return;
+	}
+
+	InGameCharacters.Add(NewCharacter);
+
+	//Add To UI
+	OnCharacterAddOrRemoveSignature.Broadcast(AffilitationTag, NewCharacter->GetCharacterUIData());
+
+}
+
+void APLGameState_Infection::UnregisterCharacterFromGame(APLPlayerCharacter* NewCharacter)
+{
 }
 
 void APLGameState_Infection::Multicast_SetDilation_Implementation(float NewTimeDilation)
@@ -117,6 +156,10 @@ void APLGameState_Infection::PLReset_Implementation()
 {
 	bIsRoundDone = false;
 	WinningTeam = FGameplayTag();
+	NumberOfElders = 0;
+	NumberOfZombies = 0;
+	bHasRoundStarted = false;
+	InGameCharacters.Empty();
 }
 
 

@@ -15,10 +15,11 @@ class PROJECTLAUGH_API APLStaticMeshActor : public AStaticMeshActor, public IPLR
 {
 	GENERATED_BODY()
 
-	APLStaticMeshActor();
 
 	FTransform StartingTransform;
 
+public:
+	APLStaticMeshActor();
 	virtual void BeginPlay() override;
 
 	// --- IPLResetInterface begin ---

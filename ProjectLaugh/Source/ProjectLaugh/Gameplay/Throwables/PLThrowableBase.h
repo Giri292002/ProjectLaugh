@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/StaticMeshActor.h"
+#include "ProjectLaugh/Core/PLStaticMeshActor.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
 #include "PLThrowableBase.generated.h"
 
@@ -15,7 +15,7 @@ class USoundCue;
 class UPLStunData;
 
 UCLASS()
-class PROJECTLAUGH_API APLThrowableBase : public AStaticMeshActor, public IPLInteractionInterface
+class PROJECTLAUGH_API APLThrowableBase : public APLStaticMeshActor, public IPLInteractionInterface
 {
 	GENERATED_BODY()
 

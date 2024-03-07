@@ -9,8 +9,13 @@
 #include "ProjectLaugh/SharedGameplayTags.h"
 
 #include "PLGameState_Infection.generated.h"
+
+class  UCharacterUIProfileData;
+class APLPlayerCharacter;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrainMeterSignature, float, CurrentBrainMeter, float, MaxBrainMeter);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRoundUpdateSignature, int, RoundNumber);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCharacterAddOrRemoveSignature, FGameplayTag, AffiliationTag, UCharacterUIProfileData*, CharacterUIData);
 
 
 UCLASS()
@@ -39,6 +44,15 @@ protected:
 	UPROPERTY()
 	bool bIsRoundDone = false;
 
+	UPROPERTY()
+	bool bHasRoundStarted = false;
+
+	UPROPERTY(Replicated)
+	int32 NumberOfZombies = 0;
+
+	UPROPERTY(Replicated)
+	int32 NumberOfElders = 0;
+
 	UFUNCTION()
 	void ReduceBrainMeter();
 
@@ -47,6 +61,22 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CurrentRound();
+
+	UFUNCTION()
+	void IncreaseElderCount() { NumberOfElders++; }
+
+	UFUNCTION()
+	void IncreaseZombieCount();
+
+	UFUNCTION()
+	void DecreaseElderCount() { NumberOfElders--; }
+
+	UFUNCTION()
+	void DecreaseZombieCount() { NumberOfZombies--; }
+
+	//Handles adding character information to other players like UI
+	UFUNCTION(BlueprintCallable)
+	void RegisterCharacterToGame(FGameplayTag AffilitationTag, APLPlayerCharacter* NewCharacter);
 
 public:
 	UFUNCTION()
@@ -66,6 +96,9 @@ public:
 	void PrepareToEndRound(FGameplayTag InWinningTeam);
 
 	UFUNCTION()
+	void StartRound();
+
+	UFUNCTION()
 	void EndRound();
 
 	UFUNCTION()
@@ -73,6 +106,15 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetDilation(float NewTimeDilation);
+
+	UFUNCTION()
+	void RegisterElder(APLPlayerCharacter* NewCharacter) { RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Elder, NewCharacter); }
+
+	UFUNCTION()
+	void RegisterZombie(APLPlayerCharacter* NewCharacter) { RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Zombie, NewCharacter); }
+
+	UFUNCTION(BlueprintCallable)
+	void UnregisterCharacterFromGame(APLPlayerCharacter* NewCharacter);
 
 	UFUNCTION()
 	UPLInfectionGameModeData* GetGameData() const { return InfectionGameModeData; }
@@ -83,8 +125,14 @@ public:
 	UPROPERTY()
 	FRoundUpdateSignature OnRoundUpdateDelegate;
 
+	UPROPERTY()
+	FCharacterAddOrRemoveSignature OnCharacterAddOrRemoveSignature;
+
 	UPROPERTY(Replicated)
 	FGameplayTag WinningTeam;
+
+	UPROPERTY(Replicated)
+	TArray<APLPlayerCharacter*> InGameCharacters;
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
