@@ -11,11 +11,7 @@ void UPLRoundEndWidget::PLConstruct()
 {
 	APLGameState_Infection* InfectionGameState = Cast<APLGameState_Infection>(PLGameState);
 	FGameplayTag WinningTeam = InfectionGameState->WinningTeam;
-	if (APLPlayerController* PLPlayerController = Cast<APLPlayerController>(GetOwningPlayer()))
-	{
-		FGameplayTag MyTeam = PLPlayerController->GetCurrentAffiliationTag();
-		FText VictoryText = WinningTeam == MyTeam ? FText::FromString("ROUND WON") : FText::FromString("ROUND LOST");
-		VictoryTextBlock->SetText(VictoryText);
-	}
+	FText VictoryText = WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Zombie ? FText::FromString("ZOMBIES WON") : FText::FromString("ELDERS WON");
+	VictoryTextBlock->SetText(VictoryText);
 	PlayAnimation(VictoryAnimation);
 }

@@ -39,6 +39,11 @@ void APLGameState_Infection::IncreaseRound()
 bool APLGameState_Infection::CheckRoundWinCondition()
 {
 	//TODO: Add More win conditions
+	if (!bHasRoundStarted)
+	{
+		return false;
+	}
+
 	if (bIsRoundDone)
 	{
 		return true;
@@ -86,6 +91,30 @@ void APLGameState_Infection::Server_SetDilation(float NewTimeDilation)
 	Multicast_SetDilation(NewTimeDilation);
 }
 
+void APLGameState_Infection::RegisterElder(APLPlayerCharacter* NewCharacter)
+{
+	IncreaseElderCount();
+	RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Elder, NewCharacter);
+}
+
+void APLGameState_Infection::RegisterZombie(APLPlayerCharacter* NewCharacter)
+{
+	IncreaseZombieCount();
+	RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Zombie, NewCharacter);
+}
+
+void APLGameState_Infection::UnregisterElder(APLPlayerCharacter* CharacterToRemove)
+{
+	DecreaseElderCount();
+	UnregisterCharacterFromGame(CharacterToRemove); 
+}
+
+void APLGameState_Infection::UnregisterZombie(APLPlayerCharacter* CharacterToRemove)
+{
+	DecreaseZombieCount();
+	UnregisterCharacterFromGame(CharacterToRemove);
+}
+
 void APLGameState_Infection::IncreaseZombieCount()
 {
 	NumberOfZombies++;
@@ -101,13 +130,18 @@ void APLGameState_Infection::RegisterCharacterToGame(FGameplayTag AffilitationTa
 
 	InGameCharacters.Add(NewCharacter);
 
-	//Add To UI
-	OnCharacterAddOrRemoveSignature.Broadcast(AffilitationTag, NewCharacter->GetCharacterUIData());
+	OnCharacterAddOrRemoveSignature.Broadcast();
+}
 
+void APLGameState_Infection::OnRep_InGameCharacters()
+{
+	OnCharacterAddOrRemoveSignature.Broadcast();
 }
 
 void APLGameState_Infection::UnregisterCharacterFromGame(APLPlayerCharacter* NewCharacter)
 {
+	InGameCharacters.Remove(NewCharacter);
+	OnCharacterAddOrRemoveSignature.Broadcast();
 }
 
 void APLGameState_Infection::Multicast_SetDilation_Implementation(float NewTimeDilation)

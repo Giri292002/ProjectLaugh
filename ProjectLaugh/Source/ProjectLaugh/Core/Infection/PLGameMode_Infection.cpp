@@ -152,11 +152,11 @@ void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> Spawning
 	APLPlayerCharacter* SpawnedCharacter = nullptr;
 	if (!bOverrideDefaultSpawnTransform)
 	{
-		SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SharedGameplayTags::TAG_Character_Affiliation_Zombie);
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SharedGameplayTags::TAG_Character_Affiliation_Zombie);
 	}
 	else
 	{
-		SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
 	}
 	PLGameState_Infection->RegisterZombie(SpawnedCharacter);
 }
@@ -166,11 +166,11 @@ void APLGameMode_Infection::SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningC
 	APLPlayerCharacter* SpawnedCharacter = nullptr;
 	if (!bOverrideDefaultSpawnTransform)
 	{
-		SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SharedGameplayTags::TAG_Character_Affiliation_Elder);
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SharedGameplayTags::TAG_Character_Affiliation_Elder);
 	}
 	else
 	{
-		SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
 	}
 	PLGameState_Infection->RegisterElder(SpawnedCharacter);
 }

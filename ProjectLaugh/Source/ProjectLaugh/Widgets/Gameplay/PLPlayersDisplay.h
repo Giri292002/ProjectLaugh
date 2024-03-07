@@ -9,6 +9,7 @@
 
 class UHorizontalBox;
 class UPLPlayerProfileSlot;
+class APLGameState_Infection;
 class UCharacterUIProfileData;
 
 UCLASS()
@@ -25,9 +26,11 @@ class PROJECTLAUGH_API UPLPlayersDisplay : public UPLWidgetBase
 	UPROPERTY(EditDefaultsOnly, Category = "PL | UI")
 	TSubclassOf<UPLPlayerProfileSlot> PlayerProfileWidgetClass;
 
+	UPROPERTY()
+	APLGameState_Infection* InfectionGameState;
+
 	virtual void PLConstruct() override;
 
-	void AddOrRemoveCharacter(FGameplayTag AffiliationTag, UCharacterUIProfileData* CharacterUIData);
-
-	void AddCharacter(FGameplayTag AffiliationTag, UCharacterUIProfileData* CharacterUIData);
+	UFUNCTION()
+	void RefreshCharacterDisplay();
 };

@@ -15,7 +15,7 @@ class APLPlayerCharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrainMeterSignature, float, CurrentBrainMeter, float, MaxBrainMeter);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRoundUpdateSignature, int, RoundNumber);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCharacterAddOrRemoveSignature, FGameplayTag, AffiliationTag, UCharacterUIProfileData*, CharacterUIData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterAddOrRemoveSignature);
 
 
 UCLASS()
@@ -53,6 +53,9 @@ protected:
 	UPROPERTY(Replicated)
 	int32 NumberOfElders = 0;
 
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_InGameCharacters)
+	TArray<APLPlayerCharacter*> InGameCharacters;
+
 	UFUNCTION()
 	void ReduceBrainMeter();
 
@@ -77,6 +80,9 @@ protected:
 	//Handles adding character information to other players like UI
 	UFUNCTION(BlueprintCallable)
 	void RegisterCharacterToGame(FGameplayTag AffilitationTag, APLPlayerCharacter* NewCharacter);
+
+	UFUNCTION()
+	void OnRep_InGameCharacters();
 
 public:
 	UFUNCTION()
@@ -108,13 +114,22 @@ public:
 	void Multicast_SetDilation(float NewTimeDilation);
 
 	UFUNCTION()
-	void RegisterElder(APLPlayerCharacter* NewCharacter) { RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Elder, NewCharacter); }
+	void RegisterElder(APLPlayerCharacter* NewCharacter);
 
 	UFUNCTION()
-	void RegisterZombie(APLPlayerCharacter* NewCharacter) { RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Zombie, NewCharacter); }
+	void RegisterZombie(APLPlayerCharacter* NewCharacter);
+
+	UFUNCTION()
+	void UnregisterElder(APLPlayerCharacter* CharacterToRemove);
+
+	UFUNCTION()
+	void UnregisterZombie(APLPlayerCharacter* CharacterToRemove);
 
 	UFUNCTION(BlueprintCallable)
 	void UnregisterCharacterFromGame(APLPlayerCharacter* NewCharacter);
+
+	UFUNCTION()
+	TArray<APLPlayerCharacter*> GetCharactersInGame() const { return InGameCharacters; }
 
 	UFUNCTION()
 	UPLInfectionGameModeData* GetGameData() const { return InfectionGameModeData; }
@@ -130,9 +145,6 @@ public:
 
 	UPROPERTY(Replicated)
 	FGameplayTag WinningTeam;
-
-	UPROPERTY(Replicated)
-	TArray<APLPlayerCharacter*> InGameCharacters;
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
