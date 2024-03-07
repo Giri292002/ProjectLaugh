@@ -4,13 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "ProjectLaugh/Core/PLEOSGameState.h"
-#include "PLGameState_Infection.generated.h"
+#include "ProjectLaugh/Core/System/PLResetInterface.h"
+#include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 
+#include "PLGameState_Infection.generated.h"
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrainMeterSignature, float, CurrentBrainMeter, float, MaxBrainMeter);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRoundUpdateSignature, int, RoundNumber);
 
+
 UCLASS()
-class PROJECTLAUGH_API APLGameState_Infection : public APLEOSGameState
+class PROJECTLAUGH_API APLGameState_Infection : public APLEOSGameState, public IPLResetInterface
 {
 	GENERATED_BODY()
 
@@ -25,6 +29,9 @@ protected:
 
 	UPROPERTY(Replicated)
 	float MaxBrainMeter;
+
+	UPROPERTY(Replicated)
+	UPLInfectionGameModeData* InfectionGameModeData;
 
 	UPROPERTY()
 	FTimerHandle BrainMeterTimer;
@@ -56,6 +63,9 @@ public:
 	bool CheckRoundWinCondition();
 
 	UFUNCTION()
+	void PrepareToEndRound(FGameplayTag InWinningTeam);
+
+	UFUNCTION()
 	void EndRound();
 
 	UFUNCTION()
@@ -64,11 +74,20 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetDilation(float NewTimeDilation);
 
+	UFUNCTION()
+	UPLInfectionGameModeData* GetGameData() const { return InfectionGameModeData; }
+
 	UPROPERTY()
 	FBrainMeterSignature OnBrainMeterUpdateDelegate;
 
 	UPROPERTY()
 	FRoundUpdateSignature OnRoundUpdateDelegate;
 
+	UPROPERTY(Replicated)
+	FGameplayTag WinningTeam;
+
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	virtual void PLReset_Implementation() override;
 };

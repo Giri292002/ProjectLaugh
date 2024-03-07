@@ -186,6 +186,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UPLAnimationData* GetAnimationData() const { return PLAnimationData; }
 
+	UFUNCTION(BlueprintCallable)
+	UPLPlayerAttributesData* GetPLPlayerAttributesData() const { return PLPlayerAttributesData; }
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

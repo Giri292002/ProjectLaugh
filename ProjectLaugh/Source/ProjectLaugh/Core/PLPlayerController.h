@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 #include "PLPlayerController.generated.h"
 
 class UPLWaitingForPlayersWidget;
@@ -41,9 +42,21 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_AddComponentWidget(TSubclassOf<UPLComponentWidgetBase> WidgetClassToAdd, UPLActorComponent* InComp);
 
+	UFUNCTION(Client, Reliable)
+	void Client_RemoveAllWidgets();
+
 	//Adds a timer widget that removes itself once done
 	UFUNCTION(Client, Reliable)
 	void Client_AddTimer(float InSeconds, const FText& InTimerText, bool InbForward);
+
+	UFUNCTION(Client, Reliable)
+	void ToggleDisableInput(bool bDisable);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetCurrentAffiliationTag(FGameplayTag AffiliationTag);
+
+	UFUNCTION(BlueprintCallable)
+	FGameplayTag GetCurrentAffiliationTag() const { return CurrentAffilitationTag; }
 
 	UPROPERTY(Replicated)
 	FRotator RepPlayerControllerRotation;
@@ -70,6 +83,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Input")
 	UInputMappingContext* DefaultMappingContext;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "PL | Affiliation")
+	FGameplayTag CurrentAffilitationTag;
+
+	UPROPERTY()
+	TArray<UPLWidgetBase*> SpawnedWidgets;
 
 	UFUNCTION()
 	void PlayWaitingCinematicSequence();

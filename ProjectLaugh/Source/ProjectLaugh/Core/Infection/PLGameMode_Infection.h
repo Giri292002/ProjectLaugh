@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectLaugh/PLGameModeBase.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 #include "PLGameMode_Infection.generated.h"
 
 class APLPlayerCharacter;
@@ -30,10 +31,16 @@ public:
 	UPLInfectionGameModeData* GetGameData() const { return PLInfectionGameModeData; }
 
 	UFUNCTION()
+	void PrepareToStartRound();
+
+	UFUNCTION()
 	void StartRound();
 
 	UFUNCTION()
-	void EndRound();
+	void PrepareToEndRound(FGameplayTag WinningTeam);
+
+	UFUNCTION()
+	void EndRound(FGameplayTag WinningTeam);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
@@ -58,7 +65,7 @@ protected:
 
 	virtual void SetMatchState(FName NewState) override;
 
-	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag);
+	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FGameplayTag StartAffilitationTag);
 
 	void SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform);
 

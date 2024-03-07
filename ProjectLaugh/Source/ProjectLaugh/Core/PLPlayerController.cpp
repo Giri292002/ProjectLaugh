@@ -10,6 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/PLGameModeBase.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Components/PLActorComponent.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
@@ -85,6 +86,23 @@ void APLPlayerController::Client_RemoveComponentWidgets_Implementation()
 	}
 }
 
+void APLPlayerController::Client_RemoveAllWidgets_Implementation()
+{
+	for (UPLWidgetBase* Widget : SpawnedWidgets)
+	{
+		if (IsValid(Widget))
+		{
+			Widget->RemoveFromParent();
+		}
+	}
+	if (IsValid(PLGameplayWidget))
+	{
+		PLGameplayWidget->RemoveFromParent();
+		PLGameplayWidget = nullptr;
+	}
+	SpawnedWidgets.Empty();
+}
+
 void APLPlayerController::Client_AddTimer_Implementation(float InSeconds, const FText& InTimerText, bool InbForward)
 {
 	if (IsValid(PLGameplayWidget))
@@ -154,6 +172,10 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 
 	SetViewTarget(NewPawn);
 
+	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn);
+
+	Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
+
 	if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
 	{
 		return;
@@ -184,6 +206,7 @@ void APLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APLPlayerController, RepPlayerControllerRotation);
+	DOREPLIFETIME(APLPlayerController, CurrentAffilitationTag);
 }
 
 void APLPlayerController::Client_AddPLWidget_Implementation(TSubclassOf<UPLWidgetBase> WidgetClassToAdd)
@@ -201,8 +224,9 @@ void APLPlayerController::Client_AddComponentWidget_Implementation(TSubclassOf<U
 template<typename T>
 inline T* APLPlayerController::Internal_AddWidget(TSubclassOf<T> WidgetClassToAdd)
 {
-	T* CreatedWidget = CreateWidget<T>(GetWorld(), WidgetClassToAdd);
+	T* CreatedWidget = CreateWidget<T>(this, WidgetClassToAdd);
 	CreatedWidget->AddToViewport();
+	SpawnedWidgets.Add(CreatedWidget);
 	return CreatedWidget;
 }
 
@@ -212,5 +236,27 @@ void APLPlayerController::Client_DrawGameplayWidget_Implementation()
 	if (!IsValid(PLGameplayWidget))
 	{
 		PLGameplayWidget = Internal_AddWidget<UPLGameplayWidget>(PLGameplayWidgetClass);
+	}
+}
+
+void APLPlayerController::Server_SetCurrentAffiliationTag_Implementation(FGameplayTag AffiliationTag)
+{
+	CurrentAffilitationTag = AffiliationTag;
+}
+
+bool APLPlayerController::Server_SetCurrentAffiliationTag_Validate(FGameplayTag AffiliationTag)
+{
+	return true;
+}
+
+void APLPlayerController::ToggleDisableInput_Implementation(bool bDisable)
+{
+	if (bDisable)
+	{
+		DisableInput(this);
+	}
+	else
+	{
+		EnableInput(this);
 	}
 }

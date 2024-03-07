@@ -11,6 +11,7 @@
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
 #include "ProjectLaugh/Core/System/PLResetInterface.h"
+#include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
@@ -83,7 +84,7 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 
 	if (NewState == FName("InProgress"))
 	{
-		StartRound();
+		PrepareToStartRound();
 	}
 }
 
@@ -100,7 +101,7 @@ void APLGameMode_Infection::SpawnPlayers()
 	// Spawn Zombie First
 	const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 	const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-	SpawnPLPlayerCharacter(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], FName("Zombie"));
+	SpawnPLPlayerCharacter(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], SharedGameplayTags::TAG_Character_Affiliation_Zombie);
 	CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
 	
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
@@ -109,16 +110,16 @@ void APLGameMode_Infection::SpawnPlayers()
 		const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 		const int ElderCharacterClassIndex = FMath::RandRange(0, AvailableElderCharacterClasses.Num() - 1);
 		PLPlayerController->Client_RemoveWaitingForPlayersWidget();
-		SpawnPLPlayerCharacter(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex], FName("Elder"));
+		SpawnPLPlayerCharacter(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex], SharedGameplayTags::TAG_Character_Affiliation_Elder);
 		CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
 		AvailableElderCharacterClasses.RemoveAt(ElderCharacterClassIndex);
 	}
 }
 
-void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag)
+void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FGameplayTag StartAffilitationTag)
 {
 	APLPlayerStart* PLPlayerStart;
-	if (!GetSuitablePLPlayerStart(PLPlayerStart, StartTag))
+	if (!GetSuitablePLPlayerStart(PLPlayerStart, StartAffilitationTag))
 	{
 		UE_LOG(LogPLGameMode, Error, TEXT("Cannot find suitable PL Player start"));
 		return;
@@ -150,24 +151,51 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 	SpawnPLPlayerCharacter(ZombieClasses[0], PLPlayerController, SpawnTransform);
 }
 
+void APLGameMode_Infection::PrepareToStartRound()
+{
+	PLGameState_Infection->IncreaseRound();
+
+	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		PLPlayerController->Client_RemoveAllWidgets();
+		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->RoundWidget);
+	}
+	FTimerHandle StartToundTimerHandle;
+	GetWorldTimerManager().SetTimer(StartToundTimerHandle, this, &APLGameMode_Infection::StartRound, PLInfectionGameModeData->PreRoundTime);
+}
+
 void APLGameMode_Infection::StartRound()
 {
 	SpawnPlayers();
-	PLGameState_Infection->IncreaseRound();
 	PLGameState_Infection->RunBrainMeter(GetGameData()->BrainMeterTime * 60.f);
 }
 
-void APLGameMode_Infection::EndRound()
+void APLGameMode_Infection::PrepareToEndRound(FGameplayTag WinningTeam)
 {
 	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
 	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
 	{
 		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->RoundEndWidget);
+	}
+}
+
+void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
+{
+	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
 		APawn* Pawn = PLPlayerController->GetPawn();
+		PLPlayerController->UnPossess();
 		Pawn->Destroy();
+		PLPlayerController->Client_RemoveAllWidgets();
+		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->ScoreWidget);
 	}
 	//TODO: Add Round Done, after round scoring stuff would go here
 	ResetLevel();
+
+	FTimerHandle StartRoundTimer;
+	GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, 5.f, false);
 }
 
 void APLGameMode_Infection::ResetLevel()
@@ -183,5 +211,8 @@ void APLGameMode_Infection::ResetLevel()
 	{
 		IPLResetInterface::Execute_PLReset(*ActorItr);
 	}
+
+	//Reset Game State
+	IPLResetInterface::Execute_PLReset(GetGameState<APLGameState_Infection>());
 }
 

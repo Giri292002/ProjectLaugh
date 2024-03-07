@@ -3,12 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 #include "GameFramework/PlayerStart.h"
 #include "PLPlayerStart.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class PROJECTLAUGH_API APLPlayerStart : public APlayerStart
 {
@@ -20,6 +19,10 @@ public:
 
 	UFUNCTION()
 	void SetHasBeenUsed(bool bInHasBeenUsed) { bHasBeenUsed = bInHasBeenUsed; }
+
+	UPROPERTY(EditAnywhere, Category = "PL | Affilitation")
+	FGameplayTag StartAffiliationTag;
+
 protected:
 	UPROPERTY(VisibleDefaultsOnly)
 	bool bHasBeenUsed;
