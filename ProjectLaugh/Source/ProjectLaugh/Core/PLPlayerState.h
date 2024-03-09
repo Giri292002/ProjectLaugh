@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "PLPlayerState.generated.h"
 
 class UPLScoreComponent;
@@ -22,6 +23,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Components")
 	UPLScoreComponent* PLScoreComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated)
+	int32 ConversionsThisRound = 0;
+
 public:
 	UPLScoreComponent* GetPLScoreComponent() const { return PLScoreComponent; }
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_IncreaseConversion();
+
+	int32 GetConversionsThisRound() const { return ConversionsThisRound; }
 };

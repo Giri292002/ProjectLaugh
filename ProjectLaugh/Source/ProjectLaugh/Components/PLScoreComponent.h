@@ -33,6 +33,12 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable)
 	void Server_AddScoreFromPositionSurvived();
 
+	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable)
+	void Server_AddScoreFromConversionStreak(const int32 ConversionStreak, bool bIsAlphaZombie);
+
+	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable)
+	void Server_AddScoreFromConversionAssist();
+
 	UFUNCTION(Client, Unreliable)
 	void Net_AddScorePopup(const FText& ScoreReason, int32 Score);
 
@@ -51,4 +57,10 @@ protected:
 
 	UPROPERTY()
 	TArray<FString> OrdinalSuffix = { "st", "nd", "rd" };
+
+	UPROPERTY()
+	APLGameState_Infection* InfectionGameState;
+
+	UFUNCTION()
+	APLGameState_Infection* GetInfectionGameState();
 };

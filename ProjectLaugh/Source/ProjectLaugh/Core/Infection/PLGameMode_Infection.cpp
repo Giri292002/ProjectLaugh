@@ -101,7 +101,7 @@ void APLGameMode_Infection::SpawnPlayers()
 	// Spawn Zombie First
 	const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 	const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-	SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex]);
+	SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], true);
 	CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
 	
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
@@ -150,7 +150,7 @@ void APLGameMode_Infection::DestroyPLPlayerCharacter(APLPlayerCharacter* Charact
 	CharacterToDestroy->Destroy();
 }
 
-void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
+void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bIsAlphaZombie, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
 {
 	APLPlayerCharacter* SpawnedCharacter = nullptr;
 	if (!bOverrideDefaultSpawnTransform)
@@ -161,7 +161,14 @@ void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> Spawning
 	{
 		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
 	}
-	PLGameState_Infection->RegisterZombie(SpawnedCharacter);
+	if (bIsAlphaZombie)
+	{
+		PLGameState_Infection->RegisterAlphaZombie(SpawnedCharacter);
+	}
+	else
+	{
+		PLGameState_Infection->RegisterZombie(SpawnedCharacter);
+	}
 }
 
 void APLGameMode_Infection::SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
@@ -186,7 +193,7 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 	Elder->Net_OnPounced();
 	Elder->Multicast_OnPounced();
 	FTransform SpawnTransform = Elder->GetActorTransform();
-	SpawnZombie(ZombieClasses[0], PLPlayerController, true, SpawnTransform);
+	SpawnZombie(ZombieClasses[0], PLPlayerController, false, true, SpawnTransform);
 }
 
 void APLGameMode_Infection::PrepareToStartRound()

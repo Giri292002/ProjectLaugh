@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/TimelineComponent.h"
+#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
+#include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
@@ -195,6 +197,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UCharacterUIProfileData* GetCharacterUIData() const { return CharacterUIProfileData; }
+
+	UFUNCTION(BlueprintCallable)
+	APLPlayerController* GetPLPlayerController() const { return PLPlayerController; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -75,7 +75,7 @@ protected:
 
 
 	//Handles correctly spawning a zombie and registering it
-	void SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
+	void SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bIsAlphaZombie = false, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
 
 	void SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
 

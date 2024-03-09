@@ -21,4 +21,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UCurveFloat* PositionScoreCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UCurveFloat* AlphaZombieConversionScoreCurve;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UCurveFloat* BetaZombieConversionScoreCurve;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int ConversionAssistScore = 50;
 };

@@ -21,11 +21,11 @@ void UPLScoreComponent::AddScoreToTotal(const int32 ScoreToAdd, FString Reason)
 	Net_AddScorePopup(FText::FromString(Reason), ScoreToAdd);
 }
 
+
+
 void UPLScoreComponent::Server_AddScoreFromPositionSurvived_Implementation()
 {
-	APLGameState_Infection* InfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
-	check(InfectionGameState);
-	int Position = InfectionGameState->GetNumberOfElders();
+	int Position = GetInfectionGameState()->GetNumberOfElders();
 	int Score =	FMath::TruncToInt(GetScoreData()->PositionScoreCurve->GetFloatValue(Position));
 	if (Score > 0)
 	{
@@ -45,13 +45,11 @@ void UPLScoreComponent::Net_AddScorePopup_Implementation(const FText& ScoreReaso
 
 void UPLScoreComponent::Server_AddScoreFromTimeSurvived_Implementation()
 {
-	APLGameState_Infection* InfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
-	check(InfectionGameState);
-	const int TimeSurvivedInSeconds = FMath::TruncToInt(InfectionGameState->GetTimeSurvived());
+	const int TimeSurvivedInSeconds = FMath::TruncToInt(GetInfectionGameState()->GetTimeSurvived());
 	const int TimeSurvivedInMinute = FMath::TruncToInt(TimeSurvivedInSeconds / 60.f);
 	const bool bUseMinutes = TimeSurvivedInSeconds > 60;
 
-	FString ReasonText = FString(FString::Printf(TEXT("%i %s survived "), bUseMinutes ? TimeSurvivedInMinute : TimeSurvivedInSeconds, bUseMinutes ? TEXT("minutes") : TEXT("seconds")));
+	FString ReasonText = FString::Printf(TEXT("%i %s survived "), bUseMinutes ? TimeSurvivedInMinute : TimeSurvivedInSeconds, bUseMinutes ? TEXT("minutes") : TEXT("seconds"));
 	const int32 Score = FMath::TruncToInt(GetScoreData()->TimeSurvivedScoreCurve->GetFloatValue(TimeSurvivedInSeconds));
 	AddScoreToTotal(Score, ReasonText);
 }
@@ -62,9 +60,45 @@ bool UPLScoreComponent::Server_AddScoreFromTimeSurvived_Validate()
 }
 
 
+void UPLScoreComponent::Server_AddScoreFromConversionStreak_Implementation(const int32 ConversionStreak, bool bIsAlphaZombie)
+{
+	int Score = FMath::TruncToInt(bIsAlphaZombie? GetScoreData()->AlphaZombieConversionScoreCurve->GetFloatValue(ConversionStreak)
+												: GetScoreData()->BetaZombieConversionScoreCurve->GetFloatValue(ConversionStreak));
+	FString ReasonText = FString::Printf(TEXT("x%i %s"), ConversionStreak, ConversionStreak > 1 ? TEXT("Conversion Streak") : TEXT("Conversion"));
+	AddScoreToTotal(Score, ReasonText);
+}
+
+bool UPLScoreComponent::Server_AddScoreFromConversionStreak_Validate(const int32 ConversionStreak, bool bIsAlphaZombie)
+{
+	return true;
+}
+
+APLGameState_Infection* UPLScoreComponent::GetInfectionGameState()
+{
+	if (IsValid(InfectionGameState))
+	{
+		return InfectionGameState;
+	}
+	InfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
+	check(InfectionGameState);
+	return InfectionGameState;
+}
+
+
+
 void UPLScoreComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UPLScoreComponent, TotalScore);
+}
+
+void UPLScoreComponent::Server_AddScoreFromConversionAssist_Implementation()
+{
+	AddScoreToTotal(GetScoreData()->ConversionAssistScore, FString("Conversion assist"));
+}
+
+bool UPLScoreComponent::Server_AddScoreFromConversionAssist_Validate()
+{
+	return true;
 }

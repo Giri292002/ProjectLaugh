@@ -7,6 +7,8 @@
 #include "Net/UnrealNetwork.h"
 #include "PLGameMode_Infection.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
+#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 
 void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -103,6 +105,13 @@ void APLGameState_Infection::RegisterZombie(APLPlayerCharacter* NewCharacter)
 	RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Zombie, NewCharacter);
 }
 
+void APLGameState_Infection::RegisterAlphaZombie(APLPlayerCharacter* NewCharacter)
+{
+	NewCharacter->GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha);
+	AlphaZombie = Cast<APLPlayerCharacter_Zombie>(NewCharacter);
+	RegisterZombie(NewCharacter);
+}
+
 void APLGameState_Infection::UnregisterElder(APLPlayerCharacter* CharacterToRemove)
 {
 	DecreaseElderCount();
@@ -174,6 +183,18 @@ void APLGameState_Infection::OnRep_CurrentRound()
 float APLGameState_Infection::GetTimeSurvived()
 {
 	return MaxBrainMeter - CurrentBrainMeter;
+}
+
+void APLGameState_Infection::GiveAlphaZombieAssist()
+{
+	if (IsValid(GetAlphaZombie()->GetPLPlayerController()))
+	{
+		APLPlayerState* PLPlayerState = GetAlphaZombie()->GetPLPlayerController()->GetPlayerState<APLPlayerState>();
+		if (IsValid(PLPlayerState))
+		{
+			PLPlayerState->GetPLScoreComponent()->Server_AddScoreFromConversionAssist();
+		}
+	}
 }
 
 void APLGameState_Infection::BeginPlay()

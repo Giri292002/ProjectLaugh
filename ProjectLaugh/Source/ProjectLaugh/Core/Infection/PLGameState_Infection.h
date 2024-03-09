@@ -12,10 +12,12 @@
 
 class  UCharacterUIProfileData;
 class APLPlayerCharacter;
+class APLPlayerCharacter_Zombie;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrainMeterSignature, float, CurrentBrainMeter, float, MaxBrainMeter);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRoundUpdateSignature, int, RoundNumber);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterAddOrRemoveSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAlphaZombieConversionAssistSignature);
 
 
 UCLASS()
@@ -58,6 +60,9 @@ protected:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_InGameCharacters)
 	TArray<APLPlayerCharacter*> InGameCharacters;
 
+	UPROPERTY(Replicated)
+	APLPlayerCharacter_Zombie* AlphaZombie;
+
 	UFUNCTION()
 	void ReduceBrainMeter();
 
@@ -95,6 +100,9 @@ public:
 
 	UPROPERTY()
 	FCharacterAddOrRemoveSignature OnCharacterAddOrRemoveSignature;
+
+	UPROPERTY()
+	FAlphaZombieConversionAssistSignature OnAlphaZombieGetAssistSignature;
 
 	UPROPERTY(Replicated)
 	FGameplayTag WinningTeam;
@@ -134,6 +142,9 @@ public:
 	void RegisterZombie(APLPlayerCharacter* NewCharacter);
 
 	UFUNCTION()
+	void RegisterAlphaZombie(APLPlayerCharacter* NewCharacter);
+
+	UFUNCTION()
 	void UnregisterElder(APLPlayerCharacter* CharacterToRemove);
 
 	UFUNCTION()
@@ -159,6 +170,12 @@ public:
 
 	UFUNCTION()
 	int GetTotalNumberOfPlayers() const { return GetNumberOfElders() + GetNumberOfZombies(); }
+
+	UFUNCTION()
+	APLPlayerCharacter_Zombie* GetAlphaZombie() const { return AlphaZombie; }
+
+	UFUNCTION()
+	void GiveAlphaZombieAssist();
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
