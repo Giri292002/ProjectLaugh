@@ -62,6 +62,7 @@ bool APLGameModeBase::GetSuitablePLPlayerStart(APLPlayerStart* &OutPLPLayerStart
 		{
 			continue;
 		}
+		PLPlayerStart->SetHasBeenUsed(true);
 		OutPLPLayerStart = PLPlayerStart;
 		return true;
 	}

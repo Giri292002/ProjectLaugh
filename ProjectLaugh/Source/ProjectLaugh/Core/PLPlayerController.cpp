@@ -10,6 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/PLGameModeBase.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Components/PLActorComponent.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
@@ -47,16 +48,22 @@ void APLPlayerController::Client_AddComponentWidgets_Implementation()
 		return;
 	}
 	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
-	TArray<UPLActorComponent*> PLActorComponents;
-	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
+	APLPlayerState* PLPlayerState = Cast<APLPlayerState>(PlayerState);
+	TArray<UPLActorComponent*> PLPlayerCharacterComponents;
+	TArray<UPLActorComponent*> PLPlayerStateComponents;
 
-	if (!PLActorComponents.Num())
+	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLPlayerCharacterComponents);
+	PLPlayerState->GetComponents<UPLActorComponent>(PLPlayerStateComponents);
+
+	PLPlayerCharacterComponents.Append(PLPlayerStateComponents);
+
+	if (!PLPlayerCharacterComponents.Num())
 	{
 		return;
 	}
 
 	//Iterate through all the components, if they have a widget, create, add and send the widget pointer back to the component
-	for (UPLActorComponent* PLActorComp : PLActorComponents)
+	for (UPLActorComponent* PLActorComp : PLPlayerCharacterComponents)
 	{
 		if (IsValid(PLActorComp->GetComponentWidgetClass()))
 		{

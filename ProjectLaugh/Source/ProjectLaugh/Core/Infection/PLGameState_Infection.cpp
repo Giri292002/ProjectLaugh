@@ -171,6 +171,11 @@ void APLGameState_Infection::OnRep_CurrentRound()
 	OnRoundUpdateDelegate.Broadcast(CurrentRound);
 }
 
+float APLGameState_Infection::GetTimeSurvived()
+{
+	return MaxBrainMeter - CurrentBrainMeter;
+}
+
 void APLGameState_Infection::BeginPlay()
 {
 	Super::BeginPlay();

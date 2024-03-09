@@ -144,6 +144,9 @@ APLPlayerCharacter* APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<AP
 
 void APLGameMode_Infection::DestroyPLPlayerCharacter(APLPlayerCharacter* CharacterToDestroy)
 {
+	APLGameState_Infection* InfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
+	check(InfectionGameState);
+	InfectionGameState->UnregisterElder(CharacterToDestroy);
 	CharacterToDestroy->Destroy();
 }
 

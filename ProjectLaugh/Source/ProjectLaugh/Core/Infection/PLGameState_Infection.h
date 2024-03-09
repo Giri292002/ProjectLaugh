@@ -29,9 +29,11 @@ protected:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentRound)
 	int32 CurrentRound;
 
+	//In Seconds
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_BrainMeter)
 	float CurrentBrainMeter;
 
+	//In Seconds
 	UPROPERTY(Replicated)
 	float MaxBrainMeter;
 
@@ -85,6 +87,18 @@ protected:
 	void OnRep_InGameCharacters();
 
 public:
+	UPROPERTY()
+	FBrainMeterSignature OnBrainMeterUpdateDelegate;
+
+	UPROPERTY()
+	FRoundUpdateSignature OnRoundUpdateDelegate;
+
+	UPROPERTY()
+	FCharacterAddOrRemoveSignature OnCharacterAddOrRemoveSignature;
+
+	UPROPERTY(Replicated)
+	FGameplayTag WinningTeam;
+
 	UFUNCTION()
 	void RunBrainMeter(float StartingBrainMeter);
 
@@ -134,17 +148,17 @@ public:
 	UFUNCTION()
 	UPLInfectionGameModeData* GetGameData() const { return InfectionGameModeData; }
 
-	UPROPERTY()
-	FBrainMeterSignature OnBrainMeterUpdateDelegate;
+	UFUNCTION()
+	float GetTimeSurvived();
 
-	UPROPERTY()
-	FRoundUpdateSignature OnRoundUpdateDelegate;
+	UFUNCTION()
+	int GetNumberOfElders() const { return NumberOfElders; }
 
-	UPROPERTY()
-	FCharacterAddOrRemoveSignature OnCharacterAddOrRemoveSignature;
+	UFUNCTION()
+	int GetNumberOfZombies() const { return NumberOfZombies; }
 
-	UPROPERTY(Replicated)
-	FGameplayTag WinningTeam;
+	UFUNCTION()
+	int GetTotalNumberOfPlayers() const { return GetNumberOfElders() + GetNumberOfZombies(); }
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;

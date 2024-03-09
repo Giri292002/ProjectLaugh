@@ -12,6 +12,8 @@
 #include "NiagaraComponent.h"
 #include "Curves/CurveFloat.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
+#include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
@@ -19,6 +21,8 @@
 #include "ProjectLaugh/Data/PLStunData.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
+#include "Infection/PLGameState_Infection.h"
+#include "Infection/PLGameMode_Infection.h"
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -210,6 +214,9 @@ void APLPlayerCharacter::Net_OnPounced_Implementation()
 	PLPlayerController->Client_RemoveComponentWidgets();
 	PLPlayerController->UnPossess();
 	PLPlayerController->SetViewTargetWithBlend(this);
+
+	PLPlayerController->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromTimeSurvived();
+	PLPlayerController->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromPositionSurvived();
 }
 
 void APLPlayerCharacter::Multicast_OnPounced_Implementation()
@@ -239,8 +246,9 @@ void APLPlayerCharacter::Multicast_DisappearCharacter_Implementation()
 
 void APLPlayerCharacter::Server_Destroy_Implementation()
 {
-	GEngine->AddOnScreenDebugMessage((uint64)("Destroy"), 5.0f, FColor::Purple, FString::Printf(TEXT("CALLED DESTROY")));
-	Destroy();
+	APLGameMode_Infection* InfectionGameMode = Cast<APLGameMode_Infection>(GetWorld()->GetAuthGameMode());
+	InfectionGameMode->DestroyPLPlayerCharacter(this);
+
 }
 
 bool APLPlayerCharacter::Server_Destroy_Validate()

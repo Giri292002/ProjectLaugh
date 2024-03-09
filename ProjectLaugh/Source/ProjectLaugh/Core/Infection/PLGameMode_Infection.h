@@ -42,6 +42,9 @@ public:
 	UFUNCTION()
 	void EndRound(FGameplayTag WinningTeam);
 
+	UFUNCTION()
+	void DestroyPLPlayerCharacter(APLPlayerCharacter* CharacterToDestroy);
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>>ElderClasses;
@@ -70,8 +73,7 @@ protected:
 
 	APLPlayerCharacter* SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform);
 
-	void DestroyPLPlayerCharacter(APLPlayerCharacter* CharacterToDestroy);
-	
+
 	//Handles correctly spawning a zombie and registering it
 	void SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
 
