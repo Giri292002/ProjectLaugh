@@ -18,6 +18,7 @@ class UPLThrowComponent;
 class UPLSkillCheckComponent;
 class UPLStunData;
 class UPLGameplayTagComponent;
+class UPLNameComponent;
 class UPLAnimationData;
 class UCharacterUIProfileData;
 
@@ -57,6 +58,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLSkillCheckComponent* PLSkillCheckComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLNameComponent* PLNameComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
@@ -95,6 +99,12 @@ protected:
 
 	UFUNCTION()
 	virtual void AppearanceTimelineFinishedCallback();
+
+	UFUNCTION(Server, Unreliable, WithValidation)
+	void Server_UpdateNameWidget(const FString& Name);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_UpdateNameWidget(const FString& Name);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -201,6 +211,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	APLPlayerController* GetPLPlayerController() const { return PLPlayerController; }
 
+	UFUNCTION(BlueprintCallable)
+	UPLNameComponent* GetPLNameComponent() const { return PLNameComponent; }
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -210,4 +223,5 @@ public:
 	virtual void Restart() override;
 	virtual void PossessedBy(AController* Possessor) override;
 	virtual void OnRep_PlayerState() override;
+	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
 };

@@ -13,6 +13,7 @@
 #include "Curves/CurveFloat.h"
 #include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Components/PLScoreComponent.h"
+#include "ProjectLaugh/Components/PLNameComponent.h"
 #include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
@@ -31,6 +32,8 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
 	PLGameplayTagComponent = CreateDefaultSubobject<UPLGameplayTagComponent>(FName(TEXT("PL Gameplaytag Component")));
 	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component")));
+	PLNameComponent = CreateDefaultSubobject<UPLNameComponent>(FName(TEXT("PL Name Component")));
+	PLNameComponent->SetupAttachment(GetMesh());
 }
 
 // Called when the game starts or when spawned
@@ -301,6 +304,21 @@ void APLPlayerCharacter::PossessedBy(AController* Possessor)
 void APLPlayerCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
+	if (!IsValid(GetPlayerState()))
+	{
+		return;
+	}
+	Server_UpdateNameWidget(GetPlayerState()->GetPlayerName());
+}
+
+void APLPlayerCharacter::OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState)
+{
+	if (!IsValid(NewPlayerState))
+	{
+		return;
+	}
+	Super::OnPlayerStateChanged(NewPlayerState, OldPlayerState);
+	Server_UpdateNameWidget(NewPlayerState->GetPlayerName());
 }
 
 void APLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -336,6 +354,21 @@ void APLPlayerCharacter::AppearanceTimelineFinishedCallback()
 	{
 		Server_Destroy();
 	}
+}
+
+void APLPlayerCharacter::Server_UpdateNameWidget_Implementation(const FString& Name)
+{
+	Multicast_UpdateNameWidget(Name);
+}
+
+bool APLPlayerCharacter::Server_UpdateNameWidget_Validate(const FString& Name)
+{
+	return true;
+}
+
+void APLPlayerCharacter::Multicast_UpdateNameWidget_Implementation(const FString& Name)
+{
+	PLNameComponent->SetupName(Name);
 }
 
 void APLPlayerCharacter::Server_PlayAnimation_Implementation(UAnimMontage* MontageToPlay, bool bJumpToSection, FName SectionName)

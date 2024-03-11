@@ -36,6 +36,10 @@ void UPLPlayersDisplay::RefreshCharacterDisplay()
 	for (APLPlayerCharacter* PLPlayerCharacter : InfectionGameState->GetCharactersInGame())
 	{
 		UPLPlayerProfileSlot* PlayerProfile = CreateWidget<UPLPlayerProfileSlot>(this, PlayerProfileWidgetClass);
+		if (!IsValid(PlayerProfile))
+		{
+			return;
+		}
 		PlayerProfile->Setup(PLPlayerCharacter->GetCharacterUIData());
 		if (PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag == SharedGameplayTags::TAG_Character_Affiliation_Elder)
 		{
