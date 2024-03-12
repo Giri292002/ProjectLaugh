@@ -16,8 +16,8 @@
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
-#include "ProjectLaugh/Widgets/PLGameplayWidget.h"
-#include "ProjectLaugh/Widgets/PLWaitingForPlayersWidget.h"
+#include "ProjectLaugh/Widgets/Gameplay/PLGameplayWidget.h"
+#include "ProjectLaugh/Widgets/Rounds/PLWaitingForPlayersWidget.h"
 #include "InputMappingContext.h"
 
 void APLPlayerController::BeginPlay()

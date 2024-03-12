@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "ProjectLaugh/Widgets/PLRoundEndWidget.h"
-#include "ProjectLaugh/Widgets/PLScoreWidget.h"
-#include "ProjectLaugh/Widgets/PLBigRoundWidget.h"
+#include "ProjectLaugh/Widgets/Rounds/PLRoundEndWidget.h"
+#include "ProjectLaugh/Widgets/Rounds/PLBigRoundWidget.h"
 #include "PLInfectionGameModeData.generated.h"
+
+class UPLScoreWidget;
 
 UCLASS()
 class PROJECTLAUGH_API UPLInfectionGameModeData : public UDataAsset
@@ -23,6 +24,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, meta = (Units = "Seconds"))
 	float PreRoundTime;
+
+	//The time it takes to show scores
+	UPROPERTY(EditDefaultsOnly)
+	float PostRoundTime = 10.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UPLRoundEndWidget> RoundEndWidget;

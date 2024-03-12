@@ -9,7 +9,7 @@
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Data/PLInhalerData.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
-#include "ProjectLaugh/Widgets/PLInhalerWidget.h"
+#include "ProjectLaugh/Widgets/Components/PLInhalerWidget.h"
 
 // Sets default values for this component's properties
 UPLInhalerComponent::UPLInhalerComponent()

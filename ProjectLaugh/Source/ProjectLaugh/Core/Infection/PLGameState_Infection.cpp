@@ -7,6 +7,7 @@
 #include "Net/UnrealNetwork.h"
 #include "PLGameMode_Infection.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 #include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
@@ -23,6 +24,7 @@ void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(APLGameState_Infection, NumberOfElders);
 	DOREPLIFETIME(APLGameState_Infection, NumberOfZombies);
 	DOREPLIFETIME(APLGameState_Infection, InGameCharacters);
+	DOREPLIFETIME(APLGameState_Infection, PlayerScores);
 }
 
 void APLGameState_Infection::RunBrainMeter(float StartingBrainMeter)
@@ -107,6 +109,7 @@ void APLGameState_Infection::RegisterZombie(APLPlayerCharacter* NewCharacter)
 
 void APLGameState_Infection::RegisterAlphaZombie(APLPlayerCharacter* NewCharacter)
 {
+	check(NewCharacter);
 	NewCharacter->GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha);
 	AlphaZombie = Cast<APLPlayerCharacter_Zombie>(NewCharacter);
 	RegisterZombie(NewCharacter);
@@ -145,6 +148,11 @@ void APLGameState_Infection::RegisterCharacterToGame(FGameplayTag AffilitationTa
 void APLGameState_Infection::OnRep_InGameCharacters()
 {
 	OnCharacterAddOrRemoveSignature.Broadcast();
+}
+
+void APLGameState_Infection::OnRep_Results()
+{
+	OnResultUpdateDelegate.Broadcast(PlayerScores);
 }
 
 void APLGameState_Infection::UnregisterCharacterFromGame(APLPlayerCharacter* NewCharacter)
@@ -195,6 +203,35 @@ void APLGameState_Infection::GiveAlphaZombieAssist()
 			PLPlayerState->GetPLScoreComponent()->Server_AddScoreFromConversionAssist();
 		}
 	}
+}
+
+void APLGameState_Infection::Server_UpdateScoreForPlayer_Implementation(const FString& Name, int Score)
+{
+	FPLScoreStruct ScoreStruct;
+	ScoreStruct.Name = Name;
+	ScoreStruct.Score = Score;
+
+	const int32 Index = PlayerScores.Find(ScoreStruct);
+	if (Index != INDEX_NONE)
+	{
+		PlayerScores[Index] = ScoreStruct;
+	}
+	else
+	{
+		PlayerScores.Add(ScoreStruct);
+	}
+	//Sort the scores
+	PlayerScores.Sort([](const FPLScoreStruct& A, const FPLScoreStruct& B)
+		{
+			return A.Score > B.Score;
+		});
+
+	OnResultUpdateDelegate.Broadcast(PlayerScores);
+}
+
+bool APLGameState_Infection::Server_UpdateScoreForPlayer_Validate(const FString& Name, int Score)
+{
+	return true;
 }
 
 void APLGameState_Infection::BeginPlay()

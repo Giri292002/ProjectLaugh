@@ -10,7 +10,7 @@
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractableComponent.h"
-#include "ProjectLaugh/Widgets/PLCrosshairWidget.h"
+#include "ProjectLaugh/Widgets/Gameplay/PLCrosshairWidget.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties

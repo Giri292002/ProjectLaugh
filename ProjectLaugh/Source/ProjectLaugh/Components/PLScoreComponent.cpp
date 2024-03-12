@@ -18,7 +18,9 @@ void UPLScoreComponent::AddScoreToTotal(const int32 ScoreToAdd, FString Reason)
 {
 	TotalScore += ScoreToAdd;
 	UE_LOG(LogTemp, Log, TEXT("Added Score: %d, Total Score is: %d"), ScoreToAdd, TotalScore);
+	GetPLPlayerState()->SetScore(TotalScore); 
 	Net_AddScorePopup(FText::FromString(Reason), ScoreToAdd);
+	GetInfectionGameState()->Server_UpdateScoreForPlayer(GetPLPlayerState()->GetPlayerName(), TotalScore);
 }
 
 
@@ -82,6 +84,16 @@ APLGameState_Infection* UPLScoreComponent::GetInfectionGameState()
 	InfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
 	check(InfectionGameState);
 	return InfectionGameState;
+}
+
+APLPlayerState* UPLScoreComponent::GetPLPlayerState()
+{
+	if (IsValid(PLPlayerState))
+	{
+		return PLPlayerState;
+	}
+	PLPlayerState = Cast<APLPlayerState>(GetOwner());
+	return PLPlayerState;
 }
 
 

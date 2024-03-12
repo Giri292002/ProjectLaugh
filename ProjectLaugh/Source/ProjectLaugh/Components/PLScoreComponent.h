@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectLaugh/Components/PLActorComponent.h"
-#include "ProjectLaugh/Widgets/PLIngameScoreWidget.h"
+#include "ProjectLaugh/Widgets/Scores/PLIngameScoreWidget.h"
 #include "PLScoreComponent.generated.h"
 
 /**
@@ -61,6 +61,13 @@ protected:
 	UPROPERTY()
 	APLGameState_Infection* InfectionGameState;
 
+	UPROPERTY()
+	APLPlayerState* PLPlayerState;
+
 	UFUNCTION()
 	APLGameState_Infection* GetInfectionGameState();
+
+	UFUNCTION()
+	APLPlayerState* GetPLPlayerState();
+
 };

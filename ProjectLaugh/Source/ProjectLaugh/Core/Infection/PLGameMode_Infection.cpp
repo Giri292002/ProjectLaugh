@@ -16,6 +16,7 @@
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
+#include "ProjectLaugh/Widgets/Scores/PLScoreWidget.h"
 
 APLGameMode_Infection::APLGameMode_Infection()
 {
@@ -241,7 +242,7 @@ void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
 	ResetLevel();
 
 	FTimerHandle StartRoundTimer;
-	GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, 5.f, false);
+	GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, GetGameData()->PostRoundTime, false);
 }
 
 void APLGameMode_Infection::ResetLevel()
@@ -252,8 +253,14 @@ void APLGameMode_Infection::ResetLevel()
 		IPLResetInterface::Execute_PLReset(*ActorItr);
 	}
 
-	//Reset all PLStaticActors in level
+	//Reset all PLStaticMeshActors in level
 	for (TActorIterator<APLStaticMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+
+	//Reset PLPlayerStars
+	for (TActorIterator<APLPlayerStart> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 	{
 		IPLResetInterface::Execute_PLReset(*ActorItr);
 	}

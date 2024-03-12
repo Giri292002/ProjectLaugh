@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
+#include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 
 void UPLBigRoundWidget::PLConstruct()
 {

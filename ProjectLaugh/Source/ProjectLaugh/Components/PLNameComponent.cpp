@@ -7,7 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
-#include "ProjectLaugh/Widgets/PLNameWidget.h"
+#include "ProjectLaugh/Widgets/Components/PLNameWidget.h"
 #include <Kismet/KismetSystemLibrary.h>
 
 // Sets default values for this component's properties

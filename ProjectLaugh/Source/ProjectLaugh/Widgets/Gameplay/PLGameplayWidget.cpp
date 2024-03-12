@@ -6,7 +6,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
-#include "PLTimerWidget.h"
+#include "ProjectLaugh/Widgets/Shared/PLTimerWidget.h"
 
 void UPLGameplayWidget::AddTimer(const float InSeconds, FText TimerText, bool bForward)
 {
