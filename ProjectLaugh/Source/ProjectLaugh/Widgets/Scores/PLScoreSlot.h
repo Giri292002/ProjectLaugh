@@ -19,6 +19,10 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreTextBlock;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* PopInAnimation;
+
 public:
 	UFUNCTION()
 	void Setup(FString Name, int Score);

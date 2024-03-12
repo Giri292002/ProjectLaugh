@@ -9,4 +9,5 @@ void UPLScoreSlot::Setup(FString Name, int Score)
 {
 	NameTextBlock->SetText(FText::FromString(Name));
 	ScoreTextBlock->SetText(FText::FromString(FString::FromInt(Score)));
+	PlayAnimation(PopInAnimation);
 }
