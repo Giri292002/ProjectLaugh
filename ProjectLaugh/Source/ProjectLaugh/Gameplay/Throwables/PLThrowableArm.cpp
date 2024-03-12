@@ -57,6 +57,12 @@ bool APLThrowableArm::CanInteract_Implementation(APLPlayerCharacter* InInstigato
 	return InInstigator->GetGameplayTagComponent()->GetActiveGameplayTags().HasAllExact(ActiveTagContainer);
 }
 
+void APLThrowableArm::PLReset_Implementation()
+{
+	Super::PLReset_Implementation();
+	Destroy();
+}
+
 void APLThrowableArm::Server_Destroy_Implementation()
 {
 	Destroy();

@@ -3,3 +3,29 @@
 
 #include "PLWidgetBase.h"
 
+#include "ProjectLaugh/Core/PLEOSGameState.h"
+
+void UPLWidgetBase::NativeConstruct()
+{
+	OnGetGameState.AddDynamic(this, &UPLWidgetBase::OnGetPLGameState);
+	GetWorld()->GetTimerManager().SetTimer(GetGameStateTimerHandle, this, &UPLWidgetBase::GetGameState, 0.5f, true);
+}
+
+void UPLWidgetBase::GetGameState()
+{
+	PLGameState = GetWorld()->GetGameState<APLEOSGameState>();
+	if (IsValid(PLGameState))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(GetGameStateTimerHandle);
+		OnGetGameState.Broadcast();
+	}
+}
+
+void UPLWidgetBase::OnGetPLGameState()
+{
+	PLConstruct();
+}
+
+void UPLWidgetBase::PLConstruct()
+{
+}

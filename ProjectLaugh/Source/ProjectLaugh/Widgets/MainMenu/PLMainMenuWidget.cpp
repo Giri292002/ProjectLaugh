@@ -12,7 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "ProjectLaugh/Alphabets.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
-#include "ProjectLaugh/Widgets/PLServerSlotWidget.h"
+#include "ProjectLaugh/Widgets/MainMenu/PLServerSlotWidget.h"
 
 void UPLMainMenuWidget::NativePreConstruct()
 {

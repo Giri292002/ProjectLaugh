@@ -3,12 +3,20 @@
 
 #include "PLGameMode_Infection.h"
 
+#include "EngineUtils.h" 
+#include "ProjectLaugh/Core/PLActor.h"
+#include "ProjectLaugh/Core/PLStaticMeshActor.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
+#include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
+#include "ProjectLaugh/Core/System/PLResetInterface.h"
+#include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
+#include "ProjectLaugh/Widgets/Scores/PLScoreWidget.h"
 
 APLGameMode_Infection::APLGameMode_Infection()
 {
@@ -38,6 +46,8 @@ void APLGameMode_Infection::BeginPlay()
 		PlayersNeedToStartGame = PLEOSGameInstance->GetMaxPlayersInCurrentLobby();
 	}
 #endif
+
+	PLGameState_Infection = GetGameState<APLGameState_Infection>();
 }
 
 void APLGameMode_Infection::PostLogin(APlayerController* NewPlayer)
@@ -75,7 +85,7 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 
 	if (NewState == FName("InProgress"))
 	{
-		SpawnPlayers();
+		PrepareToStartRound();
 	}
 }
 
@@ -92,7 +102,7 @@ void APLGameMode_Infection::SpawnPlayers()
 	// Spawn Zombie First
 	const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 	const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-	SpawnPLPlayerCharacter(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], FName("Zombie"));
+	SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], true);
 	CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
 	
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
@@ -101,25 +111,25 @@ void APLGameMode_Infection::SpawnPlayers()
 		const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
 		const int ElderCharacterClassIndex = FMath::RandRange(0, AvailableElderCharacterClasses.Num() - 1);
 		PLPlayerController->Client_RemoveWaitingForPlayersWidget();
-		SpawnPLPlayerCharacter(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex], FName("Elder"));
+		SpawnElder(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex]);
 		CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
 		AvailableElderCharacterClasses.RemoveAt(ElderCharacterClassIndex);
 	}
 }
 
-void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FName StartTag)
+APLPlayerCharacter* APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FGameplayTag StartAffilitationTag)
 {
 	APLPlayerStart* PLPlayerStart;
-	if (!GetSuitablePLPlayerStart(PLPlayerStart, StartTag))
+	if (!GetSuitablePLPlayerStart(PLPlayerStart, StartAffilitationTag))
 	{
 		UE_LOG(LogPLGameMode, Error, TEXT("Cannot find suitable PL Player start"));
-		return;
+		return nullptr;
 	}
 	FTransform SpawnTransform = PLPlayerStart->GetActorTransform();
-	SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
+	return SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
 }
 
-void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform)
+APLPlayerCharacter* APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FTransform& SpawnTransform)
 {	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -127,17 +137,135 @@ void APLGameMode_Infection::SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacte
 
 	if (!ensureAlwaysMsgf(SpawnedCharacter, TEXT("Spawned PL Player character is invalid")))
 	{
-		return;
+		return nullptr;
 	}
 	OwningPlayerController->Possess(Cast<APawn>(SpawnedCharacter));
+	return SpawnedCharacter;
+}
+
+void APLGameMode_Infection::DestroyPLPlayerCharacter(APLPlayerCharacter* CharacterToDestroy)
+{
+	APLGameState_Infection* InfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
+	check(InfectionGameState);
+	InfectionGameState->UnregisterElder(CharacterToDestroy);
+	CharacterToDestroy->Destroy();
+}
+
+void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bIsAlphaZombie, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
+{
+	APLPlayerCharacter* SpawnedCharacter = nullptr;
+	if (!bOverrideDefaultSpawnTransform)
+	{
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SharedGameplayTags::TAG_Character_Affiliation_Zombie);
+	}
+	else
+	{
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
+	}
+	if (bIsAlphaZombie)
+	{
+		PLGameState_Infection->RegisterAlphaZombie(SpawnedCharacter);
+	}
+	else
+	{
+		PLGameState_Infection->RegisterZombie(SpawnedCharacter);
+	}
+}
+
+void APLGameMode_Infection::SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
+{
+	APLPlayerCharacter* SpawnedCharacter = nullptr;
+	if (!bOverrideDefaultSpawnTransform)
+	{
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SharedGameplayTags::TAG_Character_Affiliation_Elder);
+	}
+	else
+	{
+		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
+	}
+	PLGameState_Infection->RegisterElder(SpawnedCharacter);
 }
 
 void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder)
 {
 	APLPlayerController* PLPlayerController = Cast<APLPlayerController>(Elder->GetController());
+	PLGameState_Infection->UnregisterCharacterFromGame(Elder);
 	Elder->Net_ToggleFreezeCharacter(true);
 	Elder->Net_OnPounced();
 	Elder->Multicast_OnPounced();
 	FTransform SpawnTransform = Elder->GetActorTransform();
-	SpawnPLPlayerCharacter(ZombieClasses[0], PLPlayerController, SpawnTransform);
+	SpawnZombie(ZombieClasses[0], PLPlayerController, false, true, SpawnTransform);
 }
+
+void APLGameMode_Infection::PrepareToStartRound()
+{
+	PLGameState_Infection->IncreaseRound();
+
+	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		PLPlayerController->Client_RemoveAllWidgets();
+		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->RoundWidget);
+	}
+	FTimerHandle StartToundTimerHandle;
+	GetWorldTimerManager().SetTimer(StartToundTimerHandle, this, &APLGameMode_Infection::StartRound, PLInfectionGameModeData->PreRoundTime);
+}
+
+void APLGameMode_Infection::StartRound()
+{
+	SpawnPlayers();
+	PLGameState_Infection->StartRound();
+	PLGameState_Infection->RunBrainMeter(GetGameData()->BrainMeterTime * 60.f);
+}
+
+void APLGameMode_Infection::PrepareToEndRound(FGameplayTag WinningTeam)
+{
+	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->RoundEndWidget);
+	}
+}
+
+void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
+{
+	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		APawn* Pawn = PLPlayerController->GetPawn();
+		PLPlayerController->UnPossess();
+		Pawn->Destroy();
+		PLPlayerController->Client_RemoveAllWidgets();
+		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->ScoreWidget);
+	}
+	//TODO: Add Round Done, after round scoring stuff would go here
+	ResetLevel();
+
+	FTimerHandle StartRoundTimer;
+	GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, GetGameData()->PostRoundTime, false);
+}
+
+void APLGameMode_Infection::ResetLevel()
+{
+	//Reset all PLActors in level
+	for (TActorIterator<APLActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+
+	//Reset all PLStaticMeshActors in level
+	for (TActorIterator<APLStaticMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+
+	//Reset PLPlayerStars
+	for (TActorIterator<APLPlayerStart> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+
+	//Reset Game State
+	IPLResetInterface::Execute_PLReset(GetGameState<APLGameState_Infection>());
+}
+

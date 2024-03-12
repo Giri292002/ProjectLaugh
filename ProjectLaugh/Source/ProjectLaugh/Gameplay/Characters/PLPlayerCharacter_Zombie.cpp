@@ -10,8 +10,11 @@
 #include "Net/UnrealNetwork.h" 
 #include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Core/Infection/PLGameMode_Infection.h"
+#include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
+#include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
@@ -169,9 +172,22 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 			return;
 		}
 
+
+		APLPlayerState* PLPlayerState = PLPlayerController->GetPlayerState<APLPlayerState>();
 		APLGameMode_Infection* PLGameMode = Cast<APLGameMode_Infection>(UGameplayStatics::GetGameMode(GetWorld()));
 		checkf(PLGameMode, TEXT("PLGamemode infection is invalid"));
+		APLGameState_Infection* PLGameState = Cast<APLGameState_Infection>(UGameplayStatics::GetGameState(GetWorld()));
+		checkf(PLGameState, TEXT("PLGamestate infection is invalid"));
 		PLGameMode->SpawnConvertedZombie(OtherPlayer);
+
+		bool bIsAlphaZombie = GetGameplayTagComponent()->GetActiveGameplayTags().HasTagExact(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha);
+		PLPlayerState->Server_IncreaseConversion();
+		//Add Score
+		PLPlayerState->GetPLScoreComponent()->Server_AddScoreFromConversionStreak(PLPlayerState->GetConversionsThisRound(), bIsAlphaZombie);
+		if (!bIsAlphaZombie)
+		{
+			PLGameState->GiveAlphaZombieAssist();
+		}
 	}
 	//TODO: Add line back when pouncing animation is setup
 	//PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);

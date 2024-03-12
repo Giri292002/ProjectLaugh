@@ -10,12 +10,14 @@
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/PLGameModeBase.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
+#include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Components/PLActorComponent.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
-#include "ProjectLaugh/Widgets/PLGameplayWidget.h"
-#include "ProjectLaugh/Widgets/PLWaitingForPlayersWidget.h"
+#include "ProjectLaugh/Widgets/Gameplay/PLGameplayWidget.h"
+#include "ProjectLaugh/Widgets/Rounds/PLWaitingForPlayersWidget.h"
 #include "InputMappingContext.h"
 
 void APLPlayerController::BeginPlay()
@@ -36,22 +38,32 @@ void APLPlayerController::Client_DrawWaitingForPlayersWidget_Implementation()
 
 	PlayWaitingCinematicSequence();
 
-	Client_AddPLWidget(PLWaitingForPlayersWidgetClass);
+	PLWaitingForPlayersWidget = Internal_AddWidget<UPLWaitingForPlayersWidget>(PLWaitingForPlayersWidgetClass);
 }
 
 void APLPlayerController::Client_AddComponentWidgets_Implementation()
 {
+	if (!IsValid(GetPawn()))
+	{
+		return;
+	}
 	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
-	TArray<UPLActorComponent*> PLActorComponents;
-	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
+	APLPlayerState* PLPlayerState = Cast<APLPlayerState>(PlayerState);
+	TArray<UPLActorComponent*> PLPlayerCharacterComponents;
+	TArray<UPLActorComponent*> PLPlayerStateComponents;
 
-	//Iterate through all the components, if they have a widget, create, add and send the widget pointer back to the component
-	if (!PLActorComponents.Num())
+	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLPlayerCharacterComponents);
+	PLPlayerState->GetComponents<UPLActorComponent>(PLPlayerStateComponents);
+
+	PLPlayerCharacterComponents.Append(PLPlayerStateComponents);
+
+	if (!PLPlayerCharacterComponents.Num())
 	{
 		return;
 	}
 
-	for (UPLActorComponent* PLActorComp : PLActorComponents)
+	//Iterate through all the components, if they have a widget, create, add and send the widget pointer back to the component
+	for (UPLActorComponent* PLActorComp : PLPlayerCharacterComponents)
 	{
 		if (IsValid(PLActorComp->GetComponentWidgetClass()))
 		{
@@ -79,6 +91,23 @@ void APLPlayerController::Client_RemoveComponentWidgets_Implementation()
 			PLActorComp->GetSpawnedComponentWidget()->RemoveFromParent();
 		}
 	}
+}
+
+void APLPlayerController::Client_RemoveAllWidgets_Implementation()
+{
+	for (UPLWidgetBase* Widget : SpawnedWidgets)
+	{
+		if (IsValid(Widget))
+		{
+			Widget->RemoveFromParent();
+		}
+	}
+	if (IsValid(PLGameplayWidget))
+	{
+		PLGameplayWidget->RemoveFromParent();
+		PLGameplayWidget = nullptr;
+	}
+	SpawnedWidgets.Empty();
 }
 
 void APLPlayerController::Client_AddTimer_Implementation(float InSeconds, const FText& InTimerText, bool InbForward)
@@ -146,16 +175,13 @@ void APLPlayerController::OnNetCleanup(UNetConnection* Connection)
 void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
-	StoPlayingWaitingCinematicSequence();
-
-	//Spawn a gameplay widget if there isn't already one
-	if (!IsValid(PLGameplayWidget))
-	{
-		PLGameplayWidget = CreateWidget<UPLGameplayWidget>(this, PLGameplayWidgetClass);
-		PLGameplayWidget->AddToViewport();
-	}
+	Client_RemoveWaitingForPlayersWidget();
 
 	SetViewTarget(NewPawn);
+
+	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn);
+
+	Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
 
 	if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
 	{
@@ -168,6 +194,7 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}		
 	}
+	Client_DrawGameplayWidget();
 	Client_AddComponentWidgets();
 }
 
@@ -186,6 +213,7 @@ void APLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APLPlayerController, RepPlayerControllerRotation);
+	DOREPLIFETIME(APLPlayerController, CurrentAffilitationTag);
 }
 
 void APLPlayerController::Client_AddPLWidget_Implementation(TSubclassOf<UPLWidgetBase> WidgetClassToAdd)
@@ -203,7 +231,39 @@ void APLPlayerController::Client_AddComponentWidget_Implementation(TSubclassOf<U
 template<typename T>
 inline T* APLPlayerController::Internal_AddWidget(TSubclassOf<T> WidgetClassToAdd)
 {
-	T* CreatedWidget = CreateWidget<T>(GetWorld(), WidgetClassToAdd);
+	T* CreatedWidget = CreateWidget<T>(this, WidgetClassToAdd);
 	CreatedWidget->AddToViewport();
+	SpawnedWidgets.Add(CreatedWidget);
 	return CreatedWidget;
+}
+
+void APLPlayerController::Client_DrawGameplayWidget_Implementation()
+{
+	//Spawn a gameplay widget if there isn't already one
+	if (!IsValid(PLGameplayWidget))
+	{
+		PLGameplayWidget = Internal_AddWidget<UPLGameplayWidget>(PLGameplayWidgetClass);
+	}
+}
+
+void APLPlayerController::Server_SetCurrentAffiliationTag_Implementation(FGameplayTag AffiliationTag)
+{
+	CurrentAffilitationTag = AffiliationTag;
+}
+
+bool APLPlayerController::Server_SetCurrentAffiliationTag_Validate(FGameplayTag AffiliationTag)
+{
+	return true;
+}
+
+void APLPlayerController::ToggleDisableInput_Implementation(bool bDisable)
+{
+	if (bDisable)
+	{
+		DisableInput(this);
+	}
+	else
+	{
+		EnableInput(this);
+	}
 }

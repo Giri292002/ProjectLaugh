@@ -22,4 +22,6 @@ class PROJECTLAUGH_API APLThrowableArm : public APLThrowableBase
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Destroy();
+
+	virtual void PLReset_Implementation() override;
 };
