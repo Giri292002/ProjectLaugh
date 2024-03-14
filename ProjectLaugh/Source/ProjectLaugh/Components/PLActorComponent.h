@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
 #include "PLActorComponent.generated.h"
 
 class UPLComponentWidgetBase;

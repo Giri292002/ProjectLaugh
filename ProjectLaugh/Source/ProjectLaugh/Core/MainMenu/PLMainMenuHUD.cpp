@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
-#include "ProjectLaugh/Widgets/PLMainMenuWidget.h"
+#include "ProjectLaugh/Widgets/MainMenu/PLMainMenuWidget.h"
 
 void APLMainMenuHUD::BeginPlay()
 {

@@ -9,7 +9,7 @@
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Data/PLInhalerData.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
-#include "ProjectLaugh/Widgets/PLInhalerWidget.h"
+#include "ProjectLaugh/Widgets/Components/PLInhalerWidget.h"
 
 // Sets default values for this component's properties
 UPLInhalerComponent::UPLInhalerComponent()
@@ -52,7 +52,6 @@ void UPLInhalerComponent::BeginPlay()
 	if (PLPlayerCharacter->HasAuthority())
 	{
 		Server_SpawnInhalerMesh();
-		Multicast_ToggleMeshVisibility(false);
 	}
 }
 
@@ -182,6 +181,7 @@ void UPLInhalerComponent::Server_SpawnInhalerMesh_Implementation()
 	if (IsValid(MeshComponent))
 	{
 		InhalerMesh->SetMobility(EComponentMobility::Movable);
+		InhalerMesh->GetStaticMeshComponent()->SetVisibility(false);
 		MeshComponent->SetStaticMesh(PLInhalerData->InhalerMesh);
 	}
 }
@@ -203,9 +203,9 @@ bool UPLInhalerComponent::Server_ToggleMeshVisibility_Validate(const bool bVisib
 
 void UPLInhalerComponent::Multicast_ToggleMeshVisibility_Implementation(const bool bVisible)
 {
-	AttachInhalerToCharacter(InhalerMesh);
 	if (IsValid(InhalerMesh))
 	{
+		AttachInhalerToCharacter(InhalerMesh);
 		InhalerMesh->GetStaticMeshComponent()->SetVisibility(bVisible);
 	}
 }
