@@ -24,7 +24,6 @@ void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(APLGameState_Infection, NumberOfElders);
 	DOREPLIFETIME(APLGameState_Infection, NumberOfZombies);
 	DOREPLIFETIME(APLGameState_Infection, InGameCharacters);
-	DOREPLIFETIME(APLGameState_Infection, PlayerScores);
 }
 
 void APLGameState_Infection::RunBrainMeter(float StartingBrainMeter)
@@ -68,9 +67,34 @@ bool APLGameState_Infection::CheckRoundWinCondition()
 
 void APLGameState_Infection::PrepareToEndRound(FGameplayTag InWinningTeam)
 {
-	GEngine->AddOnScreenDebugMessage((uint64)("RoundEnd"), 10.f, FColor::Red, FString::Printf(TEXT("Round End"), CurrentRound));
 	GetWorldTimerManager().ClearTimer(BrainMeterTimer);
 	WinningTeam = InWinningTeam;
+
+	for (APLPlayerCharacter* PLPlayerCharacter : InGameCharacters)
+	{
+		const FGameplayTagContainer TagContainer = PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags();
+		//No need to give scores to beta zombies if the winners are zombies
+		if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Zombie && !(TagContainer.HasTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha)))
+		{
+			continue;
+		}
+
+		if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Elder)
+		{
+			//Register time survived for surviving elders
+			if (TagContainer.HasTag(WinningTeam))
+			{
+				PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromTimeSurvived();
+				PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromPositionSurvived();
+			}
+		}
+
+		if(PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTagExact(InWinningTeam))
+		{
+			PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreForWinningTeam(InWinningTeam);
+		}
+	}
+
 	APLGameMode_Infection* InfectionGameMode = Cast<APLGameMode_Infection>(AuthorityGameMode);
 	InfectionGameMode->PrepareToEndRound(InWinningTeam);
 	FTimerHandle EndRoundTimer;
@@ -141,18 +165,13 @@ void APLGameState_Infection::RegisterCharacterToGame(FGameplayTag AffilitationTa
 	}
 
 	InGameCharacters.Add(NewCharacter);
-
+	NewCharacter->GetPLPlayerController()->GetPlayerState<APLPlayerState>()->Server_SetCharacterUIProfileData(NewCharacter->GetCharacterUIData());
 	OnCharacterAddOrRemoveSignature.Broadcast();
 }
 
 void APLGameState_Infection::OnRep_InGameCharacters()
 {
 	OnCharacterAddOrRemoveSignature.Broadcast();
-}
-
-void APLGameState_Infection::OnRep_Results()
-{
-	OnResultUpdateDelegate.Broadcast(PlayerScores);
 }
 
 void APLGameState_Infection::UnregisterCharacterFromGame(APLPlayerCharacter* NewCharacter)
@@ -203,35 +222,6 @@ void APLGameState_Infection::GiveAlphaZombieAssist()
 			PLPlayerState->GetPLScoreComponent()->Server_AddScoreFromConversionAssist();
 		}
 	}
-}
-
-void APLGameState_Infection::Server_UpdateScoreForPlayer_Implementation(const FString& Name, int Score)
-{
-	FPLScoreStruct ScoreStruct;
-	ScoreStruct.Name = Name;
-	ScoreStruct.Score = Score;
-
-	const int32 Index = PlayerScores.Find(ScoreStruct);
-	if (Index != INDEX_NONE)
-	{
-		PlayerScores[Index] = ScoreStruct;
-	}
-	else
-	{
-		PlayerScores.Add(ScoreStruct);
-	}
-	//Sort the scores
-	PlayerScores.Sort([](const FPLScoreStruct& A, const FPLScoreStruct& B)
-		{
-			return A.Score > B.Score;
-		});
-
-	OnResultUpdateDelegate.Broadcast(PlayerScores);
-}
-
-bool APLGameState_Infection::Server_UpdateScoreForPlayer_Validate(const FString& Name, int Score)
-{
-	return true;
 }
 
 void APLGameState_Infection::BeginPlay()

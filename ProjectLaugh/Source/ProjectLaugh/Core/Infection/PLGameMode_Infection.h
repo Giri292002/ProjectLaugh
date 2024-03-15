@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectLaugh/PLGameModeBase.h"
+#include "ProjectLaugh/Core/System/PLResetInterface.h"
 #include "ProjectLaugh/SharedGameplayTags.h"
 #include "PLGameMode_Infection.generated.h"
 
@@ -80,4 +81,17 @@ protected:
 	void SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
 
 	virtual void ResetLevel() override;
+
+	template<typename T>
+	void ExecutePLReset();
+
 };
+
+template<typename T>
+inline void APLGameMode_Infection::ExecutePLReset()
+{
+	for (TActorIterator<T> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+}
