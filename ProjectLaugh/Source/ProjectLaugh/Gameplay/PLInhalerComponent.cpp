@@ -217,7 +217,7 @@ void UPLInhalerComponent::AttachInhalerToCharacter(AStaticMeshActor* InInhalerMe
 		return;
 	}
 	InhalerMesh->SetMobility(EComponentMobility::Movable);
-	InInhalerMesh->AttachToComponent(PLPlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_r"));
+	InInhalerMesh->AttachToComponent(PLPlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("Inhaler_Socket"));
 }
 
 void UPLInhalerComponent::OnRep_InhalerMesh()
