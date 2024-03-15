@@ -14,6 +14,7 @@ class UTextBlock;
 class UVerticalBox; 
 class UPLScoreSlot;
 class APLGameState_Infection;
+class APlayerState;
 
 UCLASS()
 class PROJECTLAUGH_API UPLScoreWidget : public UPLWidgetBase
@@ -34,7 +35,7 @@ protected:
 	TSubclassOf<UPLScoreSlot> ScoreSlotClass;
 
 	UPROPERTY()
-	TArray<FPLScoreStruct> InResults;
+	TArray<APlayerState*> CurrentPlayers;
 
 	UPROPERTY()
 	int CurrentIndex;

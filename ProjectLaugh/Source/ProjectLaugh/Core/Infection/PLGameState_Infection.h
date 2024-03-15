@@ -14,34 +14,10 @@ class UPLInfectionGameModeData;
 class APLPlayerCharacter;
 class APLPlayerCharacter_Zombie;
 
-USTRUCT(BlueprintType)
-struct FPLScoreStruct
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FString Name;
-
-	UPROPERTY()
-	int Score;
-
-	FPLScoreStruct()
-	{
-		Name = FString("Name");
-		Score = 10;
-	}
-
-	FORCEINLINE bool operator==(const FPLScoreStruct& Other) const
-	{
-		return Name == Other.Name;
-	}
-};
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrainMeterSignature, float, CurrentBrainMeter, float, MaxBrainMeter);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRoundUpdateSignature, int, RoundNumber);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterAddOrRemoveSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAlphaZombieConversionAssistSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FResultsSignature, TArray<FPLScoreStruct>, Results);
 
 UCLASS()
 class PROJECTLAUGH_API APLGameState_Infection : public APLEOSGameState, public IPLResetInterface
@@ -87,9 +63,6 @@ protected:
 	UPROPERTY(Replicated)
 	APLPlayerCharacter_Zombie* AlphaZombie;
 
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_Results)
-	TArray<FPLScoreStruct> PlayerScores;
-
 	UFUNCTION()
 	void ReduceBrainMeter();
 
@@ -118,9 +91,6 @@ protected:
 	UFUNCTION()
 	void OnRep_InGameCharacters();
 
-	UFUNCTION()
-	void OnRep_Results();
-
 public:
 	UPROPERTY()
 	FBrainMeterSignature OnBrainMeterUpdateDelegate;
@@ -136,9 +106,6 @@ public:
 
 	UPROPERTY(Replicated)
 	FGameplayTag WinningTeam;
-
-	UPROPERTY(BlueprintAssignable)
-	FResultsSignature OnResultUpdateDelegate;
 
 	UFUNCTION()
 	void RunBrainMeter(float StartingBrainMeter);
@@ -209,12 +176,6 @@ public:
 
 	UFUNCTION()
 	void GiveAlphaZombieAssist();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_UpdateScoreForPlayer(const FString& Name, int Score);
-
-	UFUNCTION()
-	TArray<FPLScoreStruct> GetPlayerScores() const { return PlayerScores; }
 
 	UFUNCTION()
 

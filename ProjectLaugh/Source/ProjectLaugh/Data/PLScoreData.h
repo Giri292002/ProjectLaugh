@@ -30,4 +30,12 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int ConversionAssistScore = 50;
+
+	//The score that is given to alpha zombie on top of whatever is earned at the end of the round if zombies win
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int ZombieWinningBonus = 500;
+
+	//The score that is given to all elderson top of whatever is earned at the end of the round if elders win
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int ElderWinningBonus = 100;
 };

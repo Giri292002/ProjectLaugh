@@ -30,4 +30,6 @@ protected:
 	UPLInhalerComponent* GetInhalerComponent() const { return PLInhalerComponent; }
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void Server_Destroy_Implementation() override;
 };

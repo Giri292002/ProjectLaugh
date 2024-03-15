@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectLaugh/Components/PLActorComponent.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 #include "ProjectLaugh/Widgets/Scores/PLIngameScoreWidget.h"
 #include "PLScoreComponent.generated.h"
 
@@ -38,6 +39,9 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable)
 	void Server_AddScoreFromConversionAssist();
+
+	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable)
+	void Server_AddScoreForWinningTeam(const FGameplayTag WinningTeam);
 
 	UFUNCTION(Client, Unreliable)
 	void Net_AddScorePopup(const FText& ScoreReason, int32 Score);

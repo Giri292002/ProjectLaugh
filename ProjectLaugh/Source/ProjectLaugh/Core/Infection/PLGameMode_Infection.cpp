@@ -8,9 +8,9 @@
 #include "ProjectLaugh/Core/PLStaticMeshActor.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
-#include "ProjectLaugh/Core/System/PLResetInterface.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
@@ -96,24 +96,58 @@ void APLGameMode_Infection::SpawnPlayers()
 		UE_LOG(LogPLGameMode, Error, TEXT("There isnt enough player classes, check ElderClasses and ZomieClasses."));
 		return;
 	}
-
-	TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
-
-	// Spawn Zombie First
-	const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
-	const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-	SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], CurrentConnectedControllers[ZombiePlayerControllerIndex], true);
-	CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
 	
-	TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
-	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	//Assign elder character classes and zombies randomly in first round
+	if (GetGameState<APLGameState_Infection>()->GetCurrentRound() == 1)
 	{
-		const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
-		const int ElderCharacterClassIndex = FMath::RandRange(0, AvailableElderCharacterClasses.Num() - 1);
-		PLPlayerController->Client_RemoveWaitingForPlayersWidget();
-		SpawnElder(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex]);
-		CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
-		AvailableElderCharacterClasses.RemoveAt(ElderCharacterClassIndex);
+		TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
+		TArray<TSubclassOf<APLPlayerCharacter_Elder>> AvailableElderCharacterClasses = ElderClasses;
+		//Pick a random player as zombie
+		const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+		APLPlayerController* ZombieController = CurrentConnectedControllers[ZombiePlayerControllerIndex];
+		CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
+
+		//Spawn Elders
+		for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+		{
+			const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+			const int ElderCharacterClassIndex = FMath::RandRange(0, AvailableElderCharacterClasses.Num() - 1);
+
+			PLPlayerController->Client_RemoveWaitingForPlayersWidget();
+			SpawnElder(AvailableElderCharacterClasses[ElderCharacterClassIndex], CurrentConnectedControllers[ElderPlayerControllerIndex]);
+			CurrentConnectedControllers[ElderPlayerControllerIndex]->GetPlayerState<APLPlayerState>()->SetElderCharacterClass(AvailableElderCharacterClasses[ElderCharacterClassIndex]);
+			CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
+			AvailableElderCharacterClasses.RemoveAt(ElderCharacterClassIndex);
+		}
+
+		//Spawn remaining controller as zombie	
+		const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
+		SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], ZombieController, true);
+		ZombieController->GetPlayerState<APLPlayerState>()->SetElderCharacterClass(AvailableElderCharacterClasses[0]);
+	}
+	else
+	{
+		TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
+
+		//TODO: Pick player with lowest score
+		const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+		APLPlayerController* ZombieController = CurrentConnectedControllers[ZombiePlayerControllerIndex];
+		CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
+
+		//Spawn Elders
+		for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+		{
+			const int ElderPlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+			TSubclassOf<APLPlayerCharacter> ElderCharacterClass = CurrentConnectedControllers[ElderPlayerControllerIndex]->GetPlayerState<APLPlayerState>()->GetElderCharacterClass();
+
+			PLPlayerController->Client_RemoveWaitingForPlayersWidget();
+			SpawnElder(ElderCharacterClass, CurrentConnectedControllers[ElderPlayerControllerIndex]);
+			CurrentConnectedControllers.RemoveAt(ElderPlayerControllerIndex);
+		}
+
+		//Spawn remaining controller as zombie	
+		const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
+		SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], ZombieController, true);
 	}
 }
 
@@ -199,6 +233,8 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 
 void APLGameMode_Infection::PrepareToStartRound()
 {
+	ResetLevel();
+
 	PLGameState_Infection->IncreaseRound();
 
 	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
@@ -232,14 +268,12 @@ void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
 	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
 	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
 	{
-		APawn* Pawn = PLPlayerController->GetPawn();
+		APLPlayerCharacter* Pawn = Cast<APLPlayerCharacter>(PLPlayerController->GetPawn());
 		PLPlayerController->UnPossess();
-		Pawn->Destroy();
+		Pawn->Server_Destroy();
 		PLPlayerController->Client_RemoveAllWidgets();
 		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->ScoreWidget);
 	}
-	//TODO: Add Round Done, after round scoring stuff would go here
-	ResetLevel();
 
 	FTimerHandle StartRoundTimer;
 	GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, GetGameData()->PostRoundTime, false);
@@ -247,23 +281,10 @@ void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
 
 void APLGameMode_Infection::ResetLevel()
 {
-	//Reset all PLActors in level
-	for (TActorIterator<APLActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
-	{
-		IPLResetInterface::Execute_PLReset(*ActorItr);
-	}
-
-	//Reset all PLStaticMeshActors in level
-	for (TActorIterator<APLStaticMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
-	{
-		IPLResetInterface::Execute_PLReset(*ActorItr);
-	}
-
-	//Reset PLPlayerStars
-	for (TActorIterator<APLPlayerStart> ActorItr(GetWorld()); ActorItr; ++ActorItr)
-	{
-		IPLResetInterface::Execute_PLReset(*ActorItr);
-	}
+	ExecutePLReset<APLActor>();
+	ExecutePLReset<APLStaticMeshActor>();
+	ExecutePLReset<APLPlayerStart>();
+	ExecutePLReset<APLPlayerState>();
 
 	//Reset Game State
 	IPLResetInterface::Execute_PLReset(GetGameState<APLGameState_Infection>());
