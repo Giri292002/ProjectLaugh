@@ -19,6 +19,7 @@
 #include "ProjectLaugh/Widgets/Gameplay/PLGameplayWidget.h"
 #include "ProjectLaugh/Widgets/Rounds/PLWaitingForPlayersWidget.h"
 #include "InputMappingContext.h"
+#include <Kismet/GameplayStatics.h>
 
 void APLPlayerController::BeginPlay()
 {
@@ -140,6 +141,19 @@ void APLPlayerController::StoPlayingWaitingCinematicSequence()
 	{
 		LevelSequencePlayer->Stop();
 	}
+}
+
+void APLPlayerController::Client_PlayResultCinematicSequence_Implementation()
+{
+	FMovieSceneSequencePlaybackSettings PlaybackSettings;
+	PlaybackSettings.bAutoPlay = true;
+	FMovieSceneSequenceLoopCount LoopCount;
+	LoopCount.Value = -1;
+	PlaybackSettings.LoopCount = LoopCount;
+
+	ALevelSequenceActor* OutActor;
+	LevelSequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), ResultSequence, PlaybackSettings, OutActor);
+	LevelSequencePlayer->Play();
 }
 
 void APLPlayerController::Client_RemoveWaitingForPlayersWidget_Implementation()

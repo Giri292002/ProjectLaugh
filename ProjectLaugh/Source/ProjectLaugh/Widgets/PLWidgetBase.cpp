@@ -7,6 +7,7 @@
 
 void UPLWidgetBase::NativeConstruct()
 {
+	Super::NativeConstruct();
 	OnGetGameState.AddDynamic(this, &UPLWidgetBase::OnGetPLGameState);
 	GetWorld()->GetTimerManager().SetTimer(GetGameStateTimerHandle, this, &UPLWidgetBase::GetGameState, 0.5f, true);
 }
