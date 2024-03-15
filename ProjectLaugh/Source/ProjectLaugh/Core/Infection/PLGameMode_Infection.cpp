@@ -4,6 +4,7 @@
 #include "PLGameMode_Infection.h"
 
 #include "EngineUtils.h" 
+#include "Kismet/GameplayStatics.h"
 #include "ProjectLaugh/Core/PLActor.h"
 #include "ProjectLaugh/Core/PLStaticMeshActor.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
@@ -12,10 +13,11 @@
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
-#include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
+#include "ProjectLaugh/Gameplay/Characters/PLResultScreenPawn.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Elder.h"
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
+#include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Widgets/Scores/PLScoreWidget.h"
 
 APLGameMode_Infection::APLGameMode_Infection()
@@ -83,9 +85,13 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 {
 	Super::SetMatchState(NewState);
 
-	if (NewState == FName("InProgress"))
+	if (NewState == MatchState::InProgress)
 	{
 		PrepareToStartRound();
+	}
+	if (NewState == MatchState::WaitingPostMatch)
+	{
+		GetGameInstance<UPLEOSGameInstance>()->DestroySession();
 	}
 }
 
@@ -129,8 +135,14 @@ void APLGameMode_Infection::SpawnPlayers()
 	{
 		TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
 
-		//TODO: Pick player with lowest score
-		const int ZombiePlayerControllerIndex = FMath::RandRange(0, CurrentConnectedControllers.Num() - 1);
+		//Sort Controllers by score
+		CurrentConnectedControllers.Sort([](const APLPlayerController& A, const APLPlayerController& B)
+			{
+				return A.PlayerState->GetScore() < B.PlayerState->GetScore();
+			});
+
+		//After sort, the first player will be the lowest score
+		const int ZombiePlayerControllerIndex = 0;
 		APLPlayerController* ZombieController = CurrentConnectedControllers[ZombiePlayerControllerIndex];
 		CurrentConnectedControllers.RemoveAt(ZombiePlayerControllerIndex);
 
@@ -275,8 +287,56 @@ void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
 		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->ScoreWidget);
 	}
 
-	FTimerHandle StartRoundTimer;
-	GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, GetGameData()->PostRoundTime, false);
+	if (PLGameState_Infection->GetCurrentRound() + 1 > GetGameData()->NumberOfRounds)
+	{
+		//We have played all the rounds, end game
+		EndGame();
+		return;
+	}
+	else
+	{
+		FTimerHandle StartRoundTimer;
+		GetWorldTimerManager().SetTimer(StartRoundTimer, this, &APLGameMode_Infection::PrepareToStartRound, GetGameData()->PostRoundTime, false);
+	}
+}
+
+void APLGameMode_Infection::EndGame()
+{
+	check(ResultsScreenPawnClass);
+
+	AActor* OutActor = UGameplayStatics::GetActorOfClass(GetWorld(), ResultsScreenPawnClass);
+	check(OutActor);
+	APLResultScreenPawn* ResultScreenPawn = Cast<APLResultScreenPawn>(OutActor);
+	check(ResultScreenPawn);
+
+	//Sort Controllers by score
+	TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
+	CurrentConnectedControllers.Sort([](const APLPlayerController& A, const APLPlayerController& B)
+		{
+			return A.PlayerState->GetScore() > B.PlayerState->GetScore();
+		});
+
+	TArray<FGameplayTag> PositionTag = { SharedGameplayTags::TAG_Result_Position_01, SharedGameplayTags::TAG_Result_Position_02, SharedGameplayTags::TAG_Result_Position_03 };
+	//Spawn top 3 players
+	for (int i = 0; i < 3; i++)
+	{
+		APLPlayerStart* PLPlayerStart;
+		if (!GetSuitablePLPlayerStart(PLPlayerStart, PositionTag[i]))
+		{
+			checkf(PLPlayerStart, TEXT("Cannot find suitable player start. Have you created one in level?"));
+		}
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		APLPlayerCharacter* SpawnedCharacter = GetWorld()->SpawnActor<APLPlayerCharacter>(CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetElderCharacterClass(), PLPlayerStart->GetActorTransform(), SpawnParams);
+	}
+
+	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
+	{
+		PLPlayerController->Client_RemoveAllWidgets();
+		PLPlayerController->Client_PlayResultCinematicSequence();
+	}
+	FTimerHandle KickPlayersHandle;
+	GetWorld()->GetTimerManager().SetTimer(KickPlayersHandle, this, &APLGameMode_Infection::EndMatch, 10.f);
 }
 
 void APLGameMode_Infection::ResetLevel()

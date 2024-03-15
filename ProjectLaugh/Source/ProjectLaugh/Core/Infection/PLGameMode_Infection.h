@@ -14,6 +14,7 @@ class APLPlayerCharacter_Zombie;
 class APLPlayerController;
 class UPLInfectionGameModeData;
 class APLGameState_Infection;
+class APLResultScreenPawn;
 
 UCLASS()
 class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
@@ -54,6 +55,9 @@ protected:
 	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>ZombieClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	TSubclassOf<APLResultScreenPawn> ResultsScreenPawnClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	UPLInfectionGameModeData* PLInfectionGameModeData;
 
 	UPROPERTY()
@@ -68,6 +72,9 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetMatchState(FName NewState) override;
+
+	UFUNCTION()
+	void EndGame();
 
 	//Generic spawn pl player character, if you are trying to spawn elder or zombie, use SpawnZombie or SpawnElder instead
 	APLPlayerCharacter* SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FGameplayTag StartAffilitationTag);
@@ -84,7 +91,6 @@ protected:
 
 	template<typename T>
 	void ExecutePLReset();
-
 };
 
 template<typename T>

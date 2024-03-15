@@ -35,7 +35,7 @@ void APLGameState_Infection::RunBrainMeter(float StartingBrainMeter)
 void APLGameState_Infection::IncreaseRound()
 {
 	CurrentRound += 1;
-	GEngine->AddOnScreenDebugMessage((uint64)("Round"), 10.f, FColor::Green, FString::Printf(TEXT("Round: %i"), CurrentRound));
+	//GEngine->AddOnScreenDebugMessage((uint64)("Round"), 10.f, FColor::Green, FString::Printf(TEXT("Round: %i"), CurrentRound));
 	OnRoundUpdateDelegate.Broadcast(CurrentRound);
 }
 

@@ -73,7 +73,7 @@ void UPLNameComponent::OutOfFocus()
 bool UPLNameComponent::HasLineOfSightTo(const FVector& StartLocation,const FVector& EndLocation, TArray<AActor*> ActorsToIgnore)
 {
 	FHitResult OutHit;
-	UKismetSystemLibrary::LineTraceSingle(GetWorld(), StartLocation, EndLocation, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera), false, ActorsToIgnore, EDrawDebugTrace::ForOneFrame, OutHit, true);
+	UKismetSystemLibrary::LineTraceSingle(GetWorld(), StartLocation, EndLocation, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera), false, ActorsToIgnore, EDrawDebugTrace::None, OutHit, true);
 	return OutHit.bBlockingHit;
 }
 
