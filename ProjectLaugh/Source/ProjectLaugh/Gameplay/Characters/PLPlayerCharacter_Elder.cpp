@@ -3,6 +3,7 @@
 
 #include "PLPlayerCharacter_Elder.h"
 #include "EnhancedInputComponent.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Gameplay/PLInhalerComponent.h"
 
 APLPlayerCharacter_Elder::APLPlayerCharacter_Elder(const FObjectInitializer& ObjectInitializer)
@@ -34,4 +35,9 @@ void APLPlayerCharacter_Elder::SetupPlayerInputComponent(UInputComponent* Player
 	{
 		EnhancedInputComponent->BindAction(InhaleAction, ETriggerEvent::Triggered, this, &APLPlayerCharacter_Elder::Inhale);
 	}
+}
+
+void APLPlayerCharacter_Elder::Server_Destroy_Implementation()
+{
+	Super::Server_Destroy_Implementation();
 }

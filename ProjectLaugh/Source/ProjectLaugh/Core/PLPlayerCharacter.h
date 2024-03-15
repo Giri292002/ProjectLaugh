@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/TimelineComponent.h"
+#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
+#include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
@@ -16,7 +18,9 @@ class UPLThrowComponent;
 class UPLSkillCheckComponent;
 class UPLStunData;
 class UPLGameplayTagComponent;
+class UPLNameComponent;
 class UPLAnimationData;
+class UCharacterUIProfileData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -36,6 +40,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data | Animation")
 	UPLAnimationData* PLAnimationData;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Data | UI")
+	UCharacterUIProfileData* CharacterUIProfileData;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Animation")
 	TSubclassOf<UAnimInstance> DefaultAnimationLayer;
 	
@@ -50,6 +57,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLSkillCheckComponent* PLSkillCheckComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLNameComponent* PLNameComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
@@ -89,6 +99,12 @@ protected:
 
 	UFUNCTION()
 	virtual void AppearanceTimelineFinishedCallback();
+
+	UFUNCTION(Server, Unreliable, WithValidation)
+	void Server_UpdateNameWidget(const FString& Name);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_UpdateNameWidget(const FString& Name);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -155,7 +171,7 @@ public:
 	void Multicast_DisappearCharacter();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Destroy();
+	virtual void Server_Destroy();
 
 	//Play a montage animation, optionally jump to a montage section
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -186,6 +202,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UPLAnimationData* GetAnimationData() const { return PLAnimationData; }
 
+	UFUNCTION(BlueprintCallable)
+	UPLPlayerAttributesData* GetPLPlayerAttributesData() const { return PLPlayerAttributesData; }
+
+	UFUNCTION(BlueprintCallable)
+	UCharacterUIProfileData* GetCharacterUIData() const { return CharacterUIProfileData; }
+
+	UFUNCTION(BlueprintCallable)
+	APLPlayerController* GetPLPlayerController() const { return PLPlayerController; }
+
+	UFUNCTION(BlueprintCallable)
+	UPLNameComponent* GetPLNameComponent() const { return PLNameComponent; }
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -194,4 +222,6 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Restart() override;
 	virtual void PossessedBy(AController* Possessor) override;
+	virtual void OnRep_PlayerState() override;
+	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
 };

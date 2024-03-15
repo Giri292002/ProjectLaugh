@@ -3,3 +3,7 @@
 
 #include "PLPlayerStart.h"
 
+void APLPlayerStart::PLReset_Implementation()
+{
+	SetHasBeenUsed(false);
+}

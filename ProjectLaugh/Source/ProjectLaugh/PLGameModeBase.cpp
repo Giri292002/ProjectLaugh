@@ -49,7 +49,7 @@ void APLGameModeBase::InitializePLPlayerStarts()
 	}
 }
 
-bool APLGameModeBase::GetSuitablePLPlayerStart(APLPlayerStart* &OutPLPLayerStart, FName StartTag)
+bool APLGameModeBase::GetSuitablePLPlayerStart(APLPlayerStart* &OutPLPLayerStart, FGameplayTag StartAffilitationTag)
 {
 	if (PLPlayerStarts.Num() <= 0)
 	{
@@ -58,10 +58,11 @@ bool APLGameModeBase::GetSuitablePLPlayerStart(APLPlayerStart* &OutPLPLayerStart
 	}
 	for (APLPlayerStart* PLPlayerStart : PLPlayerStarts)
 	{
-		if (PLPlayerStart->HasBeenUsed() || StartTag != PLPlayerStart->PlayerStartTag)
+		if (PLPlayerStart->HasBeenUsed() || StartAffilitationTag != PLPlayerStart->StartAffiliationTag)
 		{
 			continue;
 		}
+		PLPlayerStart->SetHasBeenUsed(true);
 		OutPLPLayerStart = PLPlayerStart;
 		return true;
 	}

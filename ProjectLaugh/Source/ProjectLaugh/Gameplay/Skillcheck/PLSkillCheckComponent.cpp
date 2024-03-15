@@ -7,7 +7,7 @@
 #include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Data/PLSkillCheckData.h"
 #include "ProjectLaugh/Widgets/PLComponentWidgetBase.h"
-#include "ProjectLaugh/Widgets/PLSkillcheckWidget.h"
+#include "ProjectLaugh/Widgets/Components/PLSkillcheckWidget.h"
 
 void UPLSkillCheckComponent::StartSkillCheck()
 {

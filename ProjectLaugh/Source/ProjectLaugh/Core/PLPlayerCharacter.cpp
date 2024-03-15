@@ -11,14 +11,17 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Curves/CurveFloat.h"
-#include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
+#include "ProjectLaugh/Components/PLScoreComponent.h"
+#include "ProjectLaugh/Components/PLNameComponent.h"
 #include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
-#include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
+#include "Infection/PLGameState_Infection.h"
+#include "Infection/PLGameMode_Infection.h"
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -29,6 +32,8 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLThrowComponent->SetupAttachment(GetMesh(), FName("Weapon_R"));
 	PLGameplayTagComponent = CreateDefaultSubobject<UPLGameplayTagComponent>(FName(TEXT("PL Gameplaytag Component")));
 	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component")));
+	PLNameComponent = CreateDefaultSubobject<UPLNameComponent>(FName(TEXT("PL Name Component")));
+	PLNameComponent->SetupAttachment(GetMesh());
 }
 
 // Called when the game starts or when spawned
@@ -210,6 +215,9 @@ void APLPlayerCharacter::Net_OnPounced_Implementation()
 	PLPlayerController->Client_RemoveComponentWidgets();
 	PLPlayerController->UnPossess();
 	PLPlayerController->SetViewTargetWithBlend(this);
+
+	PLPlayerController->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromTimeSurvived();
+	PLPlayerController->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromPositionSurvived();
 }
 
 void APLPlayerCharacter::Multicast_OnPounced_Implementation()
@@ -239,8 +247,9 @@ void APLPlayerCharacter::Multicast_DisappearCharacter_Implementation()
 
 void APLPlayerCharacter::Server_Destroy_Implementation()
 {
-	GEngine->AddOnScreenDebugMessage((uint64)("Destroy"), 5.0f, FColor::Purple, FString::Printf(TEXT("CALLED DESTROY")));
-	Destroy();
+	APLGameMode_Infection* InfectionGameMode = Cast<APLGameMode_Infection>(GetWorld()->GetAuthGameMode());
+	InfectionGameMode->DestroyPLPlayerCharacter(this);
+
 }
 
 bool APLPlayerCharacter::Server_Destroy_Validate()
@@ -292,6 +301,26 @@ void APLPlayerCharacter::PossessedBy(AController* Possessor)
 	OnClientControlPossess.Broadcast(GetController());
 }
 
+void APLPlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	if (!IsValid(GetPlayerState()))
+	{
+		return;
+	}
+	Server_UpdateNameWidget(GetPlayerState()->GetPlayerName());
+}
+
+void APLPlayerCharacter::OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState)
+{
+	if (!IsValid(NewPlayerState))
+	{
+		return;
+	}
+	Super::OnPlayerStateChanged(NewPlayerState, OldPlayerState);
+	Server_UpdateNameWidget(NewPlayerState->GetPlayerName());
+}
+
 void APLPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -325,6 +354,21 @@ void APLPlayerCharacter::AppearanceTimelineFinishedCallback()
 	{
 		Server_Destroy();
 	}
+}
+
+void APLPlayerCharacter::Server_UpdateNameWidget_Implementation(const FString& Name)
+{
+	Multicast_UpdateNameWidget(Name);
+}
+
+bool APLPlayerCharacter::Server_UpdateNameWidget_Validate(const FString& Name)
+{
+	return true;
+}
+
+void APLPlayerCharacter::Multicast_UpdateNameWidget_Implementation(const FString& Name)
+{
+	PLNameComponent->SetupName(Name);
 }
 
 void APLPlayerCharacter::Server_PlayAnimation_Implementation(UAnimMontage* MontageToPlay, bool bJumpToSection, FName SectionName)
