@@ -320,6 +320,10 @@ void APLGameMode_Infection::EndGame()
 	//Spawn top 3 players
 	for (int i = 0; i < 3; i++)
 	{
+		if (!IsValid(CurrentConnectedControllers[i]))
+		{
+			continue;
+		}
 		APLPlayerStart* PLPlayerStart;
 		if (!GetSuitablePLPlayerStart(PLPlayerStart, PositionTag[i]))
 		{
