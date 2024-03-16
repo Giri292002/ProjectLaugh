@@ -76,3 +76,6 @@ TestBuilds/*
 *.png
 *.tga
 *.wav
+
+#developer folder
+Content/Developers/*
