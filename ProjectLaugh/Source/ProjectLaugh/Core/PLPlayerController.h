@@ -58,6 +58,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetCurrentAffiliationTag() const { return CurrentAffilitationTag; }
 
+	UFUNCTION(Client, Reliable)
+	void Client_PlayResultCinematicSequence();
+
 	UPROPERTY(Replicated)
 	FRotator RepPlayerControllerRotation;
 
@@ -77,6 +80,9 @@ protected:
 	//TODO: Move this to a data table so we have different waiting sequence for different maps
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Cinematics")
 	ULevelSequence* WaitingSequence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Cinematics")
+	ULevelSequence* ResultSequence;
 
 	UPROPERTY(BlueprintReadOnly, Category = "PL | Cinematics")
 	ULevelSequencePlayer* LevelSequencePlayer;
@@ -100,7 +106,6 @@ protected:
 	virtual void OnNetCleanup(UNetConnection* Connection) override;
 	virtual void AcknowledgePossession(class APawn* NewPawn) override;
 	virtual void Tick(float DeltaSeconds) override;
-
 private:
 	template<typename T>
 	T* Internal_AddWidget(TSubclassOf<T> WidgetClassToAdd);

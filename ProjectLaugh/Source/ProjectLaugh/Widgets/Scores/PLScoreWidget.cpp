@@ -4,7 +4,9 @@
 #include "PLScoreWidget.h"
 
 #include "Components/VerticalBox.h"
+#include "GameFramework/PlayerState.h"
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Widgets/Scores/PLScoreSlot.h"
 
 void UPLScoreWidget::PLConstruct()
@@ -36,19 +38,24 @@ void UPLScoreWidget::ReduceTimeRemaining()
 
 void UPLScoreWidget::ShowResults()
 {	
-	InResults = InfectionGameState->GetPlayerScores();
+	CurrentPlayers = InfectionGameState->PlayerArray;
+	//Sort the players
+	CurrentPlayers.Sort([](const APlayerState& A, const APlayerState& B)
+		{
+			return A.GetScore() > B.GetScore();
+		});
 	CurrentIndex = 0;
 	GetWorld()->GetTimerManager().SetTimer(ShowScoreTimerHandle, this, &UPLScoreWidget::AddWidget, 1.f, true);
 }
 
 void UPLScoreWidget::AddWidget()
 {
-	FPLScoreStruct Score = InResults[CurrentIndex];
+	APLPlayerState* PLPlayerState = Cast<APLPlayerState>(CurrentPlayers[CurrentIndex]);
 	UPLScoreSlot* PLScoreSlot = CreateWidget<UPLScoreSlot>(GetWorld(), ScoreSlotClass);
-	PLScoreSlot->Setup(Score.Name, Score.Score);
+	PLScoreSlot->Setup(PLPlayerState->GetPlayerName(), PLPlayerState->GetScore(), PLPlayerState->GetInitialCharacterUIProfileData());
 	ResultsVerticalBox->AddChildToVerticalBox(PLScoreSlot);
 	CurrentIndex++;
-	if (CurrentIndex >= InResults.Num())
+	if (CurrentIndex >= CurrentPlayers.Num())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(ShowScoreTimerHandle);
 	}

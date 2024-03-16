@@ -23,6 +23,8 @@ void UPLTimerWidget::Setup(const float InSeconds, FText InTimerText, bool InbFor
 
 void UPLTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
 	if (!bIsCounting) return;
 
 	if (bIsForward)

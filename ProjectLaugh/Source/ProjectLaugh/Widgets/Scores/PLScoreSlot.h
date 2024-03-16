@@ -7,6 +7,8 @@
 #include "PLScoreSlot.generated.h"
 
 class UTextBlock;
+class UImage;
+class UCharacterUIProfileData;
 
 UCLASS()
 class PROJECTLAUGH_API UPLScoreSlot : public UUserWidget
@@ -23,7 +25,10 @@ protected:
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	UWidgetAnimation* PopInAnimation;
 
+	UPROPERTY(meta = (BindWidget))
+	UImage* ProfileImage;
+
 public:
 	UFUNCTION()
-	void Setup(FString Name, int Score);
+	void Setup(FString Name, int Score, UCharacterUIProfileData* CharacterUIProfileData);
 };

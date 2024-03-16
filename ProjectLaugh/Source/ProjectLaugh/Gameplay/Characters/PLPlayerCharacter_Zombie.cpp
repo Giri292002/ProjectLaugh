@@ -239,7 +239,7 @@ void APLPlayerCharacter_Zombie::Server_DetachArm_Implementation()
 
 void APLPlayerCharacter_Zombie::Multicast_DetachArm_Implementation()
 {
-	GetMesh()->SetSkeletalMesh(ArmlessMesh);
+	GetMesh()->SetSkeletalMesh(ArmlessMesh, false);
 }
 
 void APLPlayerCharacter_Zombie::Server_AttachArm_Implementation(APLThrowableArm* PLThrowableArm)
@@ -255,7 +255,7 @@ bool APLPlayerCharacter_Zombie::Server_AttachArm_Validate(APLThrowableArm* PLThr
 
 void APLPlayerCharacter_Zombie::Multicast_AttachArm_Implementation()
 {
-	GetMesh()->SetSkeletalMesh(ArmedMesh);
+	GetMesh()->SetSkeletalMesh(ArmedMesh, false);
 }
 
 void APLPlayerCharacter_Zombie::OnRep_ThrowableArm()

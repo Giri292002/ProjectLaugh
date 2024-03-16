@@ -20,10 +20,29 @@ void UPLScoreComponent::AddScoreToTotal(const int32 ScoreToAdd, FString Reason)
 	UE_LOG(LogTemp, Log, TEXT("Added Score: %d, Total Score is: %d"), ScoreToAdd, TotalScore);
 	GetPLPlayerState()->SetScore(TotalScore); 
 	Net_AddScorePopup(FText::FromString(Reason), ScoreToAdd);
-	GetInfectionGameState()->Server_UpdateScoreForPlayer(GetPLPlayerState()->GetPlayerName(), TotalScore);
 }
 
+void UPLScoreComponent::Server_AddScoreForWinningTeam_Implementation(const FGameplayTag WinningTeam)
+{
+	if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Zombie)
+	{
+		const int Score = GetScoreData()->ZombieWinningBonus;
+		const FString Reason = FString("Zombies Win Bonus");
+		AddScoreToTotal(Score, Reason);
+	}
+	else if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Elder)
+	{
+		const int Score = GetScoreData()->ElderWinningBonus;
+		const FString Reason = FString("Elder Win Bonus");
+		AddScoreToTotal(Score, Reason);
+	}
 
+}
+
+bool UPLScoreComponent::Server_AddScoreForWinningTeam_Validate(const FGameplayTag WinningTeam)
+{
+	return true;
+}
 
 void UPLScoreComponent::Server_AddScoreFromPositionSurvived_Implementation()
 {

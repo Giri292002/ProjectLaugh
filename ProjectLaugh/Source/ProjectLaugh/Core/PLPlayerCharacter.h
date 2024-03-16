@@ -171,7 +171,7 @@ public:
 	void Multicast_DisappearCharacter();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Destroy();
+	virtual void Server_Destroy();
 
 	//Play a montage animation, optionally jump to a montage section
 	UFUNCTION(Server, Reliable, WithValidation)

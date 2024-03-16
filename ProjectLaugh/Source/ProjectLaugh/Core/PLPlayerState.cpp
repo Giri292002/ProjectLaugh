@@ -9,11 +9,32 @@
 APLPlayerState::APLPlayerState()
 {
 	PLScoreComponent = CreateDefaultSubobject<UPLScoreComponent>(FName(TEXT("PL Score Component")));
+	InitialCharacterUIData = nullptr;
 }
 
 void APLPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void APLPlayerState::PLReset_Implementation()
+{
+	ConversionsThisRound = 0;
+	InitialCharacterUIData = nullptr;
+}
+
+void APLPlayerState::Server_SetCharacterUIProfileData_Implementation(UCharacterUIProfileData* InUIProfileData)
+{
+	CurrentCharacterUIData = InUIProfileData;
+	if (InitialCharacterUIData == nullptr)
+	{
+		InitialCharacterUIData = InUIProfileData;
+	}
+}
+
+bool APLPlayerState::Server_SetCharacterUIProfileData_Validate(UCharacterUIProfileData* InUIProfileData)
+{
+	return true;
 }
 
 void APLPlayerState::Server_IncreaseConversion_Implementation()
@@ -29,5 +50,9 @@ bool APLPlayerState::Server_IncreaseConversion_Validate()
 void APLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(APLPlayerState, ConversionsThisRound);
+	DOREPLIFETIME(APLPlayerState, CurrentCharacterUIData);
+	DOREPLIFETIME(APLPlayerState, InitialCharacterUIData);
+	DOREPLIFETIME(APLPlayerState, ElderCharacterClass);
 }

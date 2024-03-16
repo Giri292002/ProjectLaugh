@@ -22,4 +22,9 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Armless);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Holding);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Holding_Arm);
+
+	//Results
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_01);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_02);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_03);
 }
