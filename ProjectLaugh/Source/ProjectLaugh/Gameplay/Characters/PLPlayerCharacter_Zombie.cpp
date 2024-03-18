@@ -76,6 +76,9 @@ void APLPlayerCharacter_Zombie::AppearanceTimelineFinishedCallback()
 		PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Spawning);
 	}
 	Net_ToggleFreezeCharacter(false);
+
+	//Let game state know to start running brain meter
+	Server_RunBrainMeter();
 }
 
 void APLPlayerCharacter_Zombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -160,7 +163,7 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 	PLPlayerController->Client_AddTimer(PounceCooldownTime, Message, false);
 	GetWorldTimerManager().SetTimer(PounceCooldownTimer, this, &APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished, PounceCooldownTime);
 
-	if (!HitResult.bBlockingHit)
+	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()))
 	{
 		return;
 	}
@@ -171,7 +174,6 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 		{
 			return;
 		}
-
 
 		APLPlayerState* PLPlayerState = PLPlayerController->GetPlayerState<APLPlayerState>();
 		APLGameMode_Infection* PLGameMode = Cast<APLGameMode_Infection>(UGameplayStatics::GetGameMode(GetWorld()));
@@ -257,6 +259,22 @@ bool APLPlayerCharacter_Zombie::Server_AttachArm_Validate(APLThrowableArm* PLThr
 void APLPlayerCharacter_Zombie::Multicast_AttachArm_Implementation()
 {
 	GetMesh()->SetSkeletalMesh(ArmedMesh, false);
+}
+
+void APLPlayerCharacter_Zombie::Server_RunBrainMeter_Implementation()
+{
+	APLGameState_Infection* PLInfectionGameState = GetWorld()->GetGameState<APLGameState_Infection>();
+	if (!IsValid(PLInfectionGameState))
+	{
+		return;
+	}
+
+	PLInfectionGameState->RunBrainMeter();
+}
+
+bool APLPlayerCharacter_Zombie::Server_RunBrainMeter_Validate()
+{
+	return true;
 }
 
 void APLPlayerCharacter_Zombie::OnRep_ThrowableArm()

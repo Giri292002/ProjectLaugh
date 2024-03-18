@@ -53,7 +53,10 @@ protected:
 	TArray<TSubclassOf<APLPlayerCharacter_Elder>>ElderClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
-	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>ZombieClasses;
+	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>AlphaZombieClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	TArray<TSubclassOf<APLPlayerCharacter_Zombie>>BetaZombieClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	TSubclassOf<APLResultScreenPawn> ResultsScreenPawnClass;
@@ -80,6 +83,9 @@ protected:
 	UFUNCTION()
 	APLWorldText* GetWorldText(TArray<APLWorldText*>& WorldTextActors, FGameplayTag Position);
 
+	UFUNCTION()
+	void AddZombieSpawnTimerToEveryone(const float ZombieSpawnTime);
+
 	//Generic spawn pl player character, if you are trying to spawn elder or zombie, use SpawnZombie or SpawnElder instead
 	APLPlayerCharacter* SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FGameplayTag StartAffilitationTag);
 
@@ -87,7 +93,7 @@ protected:
 
 
 	//Handles correctly spawning a zombie and registering it
-	void SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bIsAlphaZombie = false, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
+	void SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
 
 	void SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform = false, FTransform SpawnTransform = FTransform());
 

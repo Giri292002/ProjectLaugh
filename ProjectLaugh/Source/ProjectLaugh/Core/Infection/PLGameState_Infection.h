@@ -86,7 +86,7 @@ protected:
 
 	//Handles adding character information to other players like UI
 	UFUNCTION(BlueprintCallable)
-	void RegisterCharacterToGame(FGameplayTag AffilitationTag, APLPlayerCharacter* NewCharacter);
+	void RegisterCharacterToGame(APLPlayerCharacter* NewCharacter);
 
 	UFUNCTION()
 	void OnRep_InGameCharacters();
@@ -108,7 +108,7 @@ public:
 	FGameplayTag WinningTeam;
 
 	UFUNCTION()
-	void RunBrainMeter(float StartingBrainMeter);
+	void RunBrainMeter(); 
 
 	UFUNCTION()
 	void IncreaseRound();
@@ -140,9 +140,6 @@ public:
 
 	UFUNCTION()
 	void RegisterZombie(APLPlayerCharacter* NewCharacter);
-
-	UFUNCTION()
-	void RegisterAlphaZombie(APLPlayerCharacter* NewCharacter);
 
 	UFUNCTION()
 	void UnregisterElder(APLPlayerCharacter* CharacterToRemove);

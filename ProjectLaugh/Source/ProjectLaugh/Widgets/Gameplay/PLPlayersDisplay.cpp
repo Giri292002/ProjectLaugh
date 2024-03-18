@@ -35,17 +35,28 @@ void UPLPlayersDisplay::RefreshCharacterDisplay()
 
 	for (APLPlayerCharacter* PLPlayerCharacter : InfectionGameState->GetCharactersInGame())
 	{
+		if (!IsValid(PLPlayerCharacter))
+		{
+			continue;
+		}
+
 		UPLPlayerProfileSlot* PlayerProfile = CreateWidget<UPLPlayerProfileSlot>(this, PlayerProfileWidgetClass);
 		if (!IsValid(PlayerProfile))
 		{
-			return;
+			continue;
 		}
+
+		if (!IsValid(PLPlayerCharacter->GetCharacterUIData()))
+		{
+			continue;
+		}
+
 		PlayerProfile->Setup(PLPlayerCharacter->GetCharacterUIData());
-		if (PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag == SharedGameplayTags::TAG_Character_Affiliation_Elder)
+		if (PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Affiliation_Elder))
 		{
 			ElderPlayersDisplay->AddChildToHorizontalBox(PlayerProfile);
 		}
-		else if (PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag == SharedGameplayTags::TAG_Character_Affiliation_Zombie)
+		else if (PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie))
 		{
 			ZombiePlayersDisplay->AddChildToHorizontalBox(PlayerProfile);
 		}

@@ -12,6 +12,7 @@
 #include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
 #include "ProjectLaugh/Core/Infection/PLGameState_Infection.h"
+#include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Gameplay/Characters/PLResultScreenPawn.h"
@@ -101,9 +102,9 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 
 void APLGameMode_Infection::SpawnPlayers()
 {
-	if (ElderClasses.Num() <= 0 || ZombieClasses.Num() <= 0)
+	if (ElderClasses.Num() <= 0 || AlphaZombieClasses.Num() <= 0)
 	{
-		UE_LOG(LogPLGameMode, Error, TEXT("There isnt enough player classes, check ElderClasses and ZomieClasses."));
+		UE_LOG(LogPLGameMode, Error, TEXT("There isnt enough player classes, check ElderClasses and ZombieClasses."));
 		return;
 	}
 	
@@ -131,8 +132,8 @@ void APLGameMode_Infection::SpawnPlayers()
 		}
 
 		//Spawn remaining controller as zombie	
-		const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-		SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], ZombieController, true);
+		const int ZombieCharacterClassIndex = FMath::RandRange(0, AlphaZombieClasses.Num() - 1);
+		SpawnZombie(AlphaZombieClasses[ZombieCharacterClassIndex], ZombieController);
 		ZombieController->GetPlayerState<APLPlayerState>()->SetElderCharacterClass(AvailableElderCharacterClasses[0]);
 	}
 	else
@@ -162,8 +163,8 @@ void APLGameMode_Infection::SpawnPlayers()
 		}
 
 		//Spawn remaining controller as zombie	
-		const int ZombieCharacterClassIndex = FMath::RandRange(0, ZombieClasses.Num() - 1);
-		SpawnZombie(ZombieClasses[ZombieCharacterClassIndex], ZombieController, true);
+		const int ZombieCharacterClassIndex = FMath::RandRange(0, AlphaZombieClasses.Num() - 1);
+		SpawnZombie(AlphaZombieClasses[ZombieCharacterClassIndex], ZombieController);
 	}
 }
 
@@ -201,7 +202,7 @@ void APLGameMode_Infection::DestroyPLPlayerCharacter(APLPlayerCharacter* Charact
 	CharacterToDestroy->Destroy();
 }
 
-void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bIsAlphaZombie, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
+void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
 {
 	APLPlayerCharacter* SpawnedCharacter = nullptr;
 	if (!bOverrideDefaultSpawnTransform)
@@ -212,14 +213,12 @@ void APLGameMode_Infection::SpawnZombie(TSubclassOf<APLPlayerCharacter> Spawning
 	{
 		SpawnedCharacter = SpawnPLPlayerCharacter(SpawningCharacterClass, OwningPlayerController, SpawnTransform);
 	}
-	if (bIsAlphaZombie)
+
+	if (SpawnedCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha))
 	{
-		PLGameState_Infection->RegisterAlphaZombie(SpawnedCharacter);
+		AddZombieSpawnTimerToEveryone(SpawnedCharacter->GetPLPlayerAttributesData()->AppearanceTime);
 	}
-	else
-	{
-		PLGameState_Infection->RegisterZombie(SpawnedCharacter);
-	}
+	PLGameState_Infection->RegisterZombie(SpawnedCharacter);
 }
 
 void APLGameMode_Infection::SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, bool bOverrideDefaultSpawnTransform, FTransform SpawnTransform)
@@ -244,7 +243,7 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 	Elder->Net_OnPounced();
 	Elder->Multicast_OnPounced();
 	FTransform SpawnTransform = Elder->GetActorTransform();
-	SpawnZombie(ZombieClasses[0], PLPlayerController, false, true, SpawnTransform);
+	SpawnZombie(BetaZombieClasses[0], PLPlayerController, true, SpawnTransform);
 }
 
 void APLGameMode_Infection::PrepareToStartRound()
@@ -267,7 +266,6 @@ void APLGameMode_Infection::StartRound()
 {
 	SpawnPlayers();
 	PLGameState_Infection->StartRound();
-	PLGameState_Infection->RunBrainMeter(GetGameData()->BrainMeterTime * 60.f);
 }
 
 void APLGameMode_Infection::PrepareToEndRound(FGameplayTag WinningTeam)
@@ -317,7 +315,7 @@ void APLGameMode_Infection::EndGame()
 	TArray<APLPlayerController*> CurrentConnectedControllers = ConnectedPLPlayerControllers.Array();
 	CurrentConnectedControllers.Sort([](const APLPlayerController& A, const APLPlayerController& B)
 		{
-			return A.PlayerState->GetScore() > B.PlayerState->GetScore();
+			return A.GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore() > B.GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore();
 		});
 
 	TArray<FGameplayTag> PositionTag = { SharedGameplayTags::TAG_Result_Position_01, SharedGameplayTags::TAG_Result_Position_02, SharedGameplayTags::TAG_Result_Position_03 };
@@ -341,7 +339,8 @@ void APLGameMode_Infection::EndGame()
 			checkf(PLPlayerStart, TEXT("Cannot find suitable player start. Have you created one in level?"));
 		}
 
-		GetWorldText(WorldTextActors, PositionTag[i])->Multi_SetText(FText::FromString(FString::Printf(TEXT("%s \n %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetScore())));
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%s %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore()));
+		GetWorldText(WorldTextActors, PositionTag[i])->Multi_SetText(FText::FromString(FString::Printf(TEXT("%s \n %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore())));
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -367,6 +366,14 @@ APLWorldText* APLGameMode_Infection::GetWorldText(TArray<APLWorldText*>& WorldTe
 		}
 	}
 	return nullptr;
+}
+
+void APLGameMode_Infection::AddZombieSpawnTimerToEveryone(const float ZombieSpawnTime)
+{
+	for (APLPlayerController* PLPlayerController : ConnectedPLPlayerControllers)
+	{
+		PLPlayerController->Client_AddTimer(ZombieSpawnTime, FText::FromString("Alpha Zombie Spawning..."), false);
+	}
 }
 
 void APLGameMode_Infection::ResetLevel()
