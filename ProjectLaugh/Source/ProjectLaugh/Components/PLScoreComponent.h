@@ -52,6 +52,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FPopupWidgetSignature AddPopupWidgetDelegate;
 
+	UFUNCTION()
+	int32 GetTotalScore() const { return TotalScore; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Data | Score")
 	UPLScoreData* ScoreData;
