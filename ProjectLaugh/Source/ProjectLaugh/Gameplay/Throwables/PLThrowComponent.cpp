@@ -85,7 +85,7 @@ void UPLThrowComponent::Net_StartThrow_Implementation()
 
 void UPLThrowComponent::Net_Throw_Implementation(APLPlayerController* PLPlayerController)
 {
-	if (!IsValid(CurrentlyHoldingObject))
+	if (!IsValid(CurrentlyHoldingObject) || !IsValid(PLPlayerController))
 	{
 		return;
 	}
@@ -127,6 +127,11 @@ bool UPLThrowComponent::Server_ThrowObject_Validate(AActor* ObjectToThrow, FVect
 
 void UPLThrowComponent::Multicast_Throw_Implementation(AActor* HoldingObject, FVector LaunchVelocity)
 {
+	if (!IsValid(HoldingObject))
+	{
+		return;
+	}
+
 	HoldingObject->SetActorEnableCollision(true);
 	UPLThrowableComponent* Comp = HoldingObject->FindComponentByClass<UPLThrowableComponent>();
 	checkf(Comp, TEXT("Comp is invalid"));
@@ -146,6 +151,11 @@ void UPLThrowComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void UPLThrowComponent::Server_Drop_Implementation(AActor* ObjectToDrop)
 {
+	if (!IsValid(ObjectToDrop))
+	{
+		return;
+	}
+
 	CurrentlyHoldingObject = nullptr;
 	GetOwner()->GetComponentByClass<UPLGameplayTagComponent>()->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding);
 
@@ -162,6 +172,10 @@ bool UPLThrowComponent::Server_Drop_Validate(AActor* ObjectToDrop)
 
 void UPLThrowComponent::Multicast_Drop_Implementation(AActor* ObjectToDrop)
 {
+	if (!IsValid(ObjectToDrop))
+	{
+		return;
+	}
 	ObjectToDrop->SetActorEnableCollision(true);
 	UPLThrowableComponent* Comp = ObjectToDrop->FindComponentByClass<UPLThrowableComponent>();
 	checkf(Comp, TEXT("Comp is invalid"));

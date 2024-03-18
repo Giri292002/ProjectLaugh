@@ -16,6 +16,7 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Elder);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Zombie);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Zombie_Alpha);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Zombie_Beta);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Stunned);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Pouncing);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Status_Spawning);

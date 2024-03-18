@@ -75,6 +75,9 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Net_DetachArm();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_RunBrainMeter();
+
 	UFUNCTION()
 	void OnRep_ThrowableArm();
 

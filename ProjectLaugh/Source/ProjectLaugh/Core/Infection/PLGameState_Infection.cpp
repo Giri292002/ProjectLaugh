@@ -26,8 +26,12 @@ void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(APLGameState_Infection, InGameCharacters);
 }
 
-void APLGameState_Infection::RunBrainMeter(float StartingBrainMeter)
+void APLGameState_Infection::RunBrainMeter()
 {
+	//This is called from the alpha zombie after spawning is done 
+	//Brain meter is in minutes
+	const float StartingBrainMeter = GetGameData()->BrainMeterTime * 60.f;
+
 	CurrentBrainMeter = MaxBrainMeter = StartingBrainMeter;
 	GetWorld()->GetTimerManager().SetTimer(BrainMeterTimer, this, &APLGameState_Infection::ReduceBrainMeter, 1.f, true);
 }
@@ -73,10 +77,13 @@ void APLGameState_Infection::PrepareToEndRound(FGameplayTag InWinningTeam)
 	for (APLPlayerCharacter* PLPlayerCharacter : InGameCharacters)
 	{
 		const FGameplayTagContainer TagContainer = PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags();
-		//No need to give scores to beta zombies if the winners are zombies
-		if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Zombie && !(TagContainer.HasTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha)))
+		if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Zombie)
 		{
-			continue;
+			//No need to give zombie win scores to beta zombies
+			if (TagContainer.HasTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Beta))
+			{
+				continue;
+			}
 		}
 
 		if (WinningTeam == SharedGameplayTags::TAG_Character_Affiliation_Elder)
@@ -89,7 +96,7 @@ void APLGameState_Infection::PrepareToEndRound(FGameplayTag InWinningTeam)
 			}
 		}
 
-		if(PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTagExact(InWinningTeam))
+		if(PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(InWinningTeam))
 		{
 			PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreForWinningTeam(InWinningTeam);
 		}
@@ -121,22 +128,28 @@ void APLGameState_Infection::Server_SetDilation(float NewTimeDilation)
 
 void APLGameState_Infection::RegisterElder(APLPlayerCharacter* NewCharacter)
 {
+	if (!IsValid(NewCharacter))
+	{
+		return;
+	}
+
 	IncreaseElderCount();
-	RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Elder, NewCharacter);
+	RegisterCharacterToGame(NewCharacter);
 }
 
 void APLGameState_Infection::RegisterZombie(APLPlayerCharacter* NewCharacter)
 {
-	IncreaseZombieCount();
-	RegisterCharacterToGame(SharedGameplayTags::TAG_Character_Affiliation_Zombie, NewCharacter);
-}
+	if (!IsValid(NewCharacter))
+	{
+		return;
+	}
 
-void APLGameState_Infection::RegisterAlphaZombie(APLPlayerCharacter* NewCharacter)
-{
-	check(NewCharacter);
-	NewCharacter->GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha);
-	AlphaZombie = Cast<APLPlayerCharacter_Zombie>(NewCharacter);
-	RegisterZombie(NewCharacter);
+	IncreaseZombieCount();
+	RegisterCharacterToGame(NewCharacter);
+	if (NewCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTagExact(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha))
+	{
+		AlphaZombie = Cast<APLPlayerCharacter_Zombie>(NewCharacter);
+	}
 }
 
 void APLGameState_Infection::UnregisterElder(APLPlayerCharacter* CharacterToRemove)
@@ -157,7 +170,7 @@ void APLGameState_Infection::IncreaseZombieCount()
 	CheckRoundWinCondition();
 }
 
-void APLGameState_Infection::RegisterCharacterToGame(FGameplayTag AffilitationTag, APLPlayerCharacter* NewCharacter)
+void APLGameState_Infection::RegisterCharacterToGame(APLPlayerCharacter* NewCharacter)
 {
 	if (!IsValid(NewCharacter))
 	{
