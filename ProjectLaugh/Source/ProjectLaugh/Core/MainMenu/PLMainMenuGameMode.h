@@ -15,5 +15,7 @@ class PROJECTLAUGH_API APLMainMenuGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 	APLMainMenuGameMode();
+
+	virtual void BeginPlay() override;
 	
 };

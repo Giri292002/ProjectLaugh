@@ -61,6 +61,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_PlayResultCinematicSequence();
 
+	UFUNCTION(Client, Reliable)
+	void Client_OpenMainMenu(); 
+
 	UPROPERTY(Replicated)
 	FRotator RepPlayerControllerRotation;
 

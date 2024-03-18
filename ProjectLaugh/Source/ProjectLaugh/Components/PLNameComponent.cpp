@@ -95,6 +95,10 @@ void UPLNameComponent::RunTrace()
 
 	for (APLPlayerCharacter* PLCharacter : GetInfectionGameState()->GetCharactersInGame())
 	{
+		if (!IsValid(PLCharacter))
+		{
+			continue;
+		}
 		//No need to trace against self
 		if (PLCharacter == GetPLOwnerCharacter())
 		{

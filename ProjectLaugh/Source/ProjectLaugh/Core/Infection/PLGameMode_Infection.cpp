@@ -19,6 +19,7 @@
 #include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
 #include "ProjectLaugh/Gameplay/PLPlayerStart.h"
 #include "ProjectLaugh/Widgets/Scores/PLScoreWidget.h"
+#include <ProjectLaugh/PLWorldText.h>
 
 APLGameMode_Infection::APLGameMode_Infection()
 {
@@ -91,7 +92,10 @@ void APLGameMode_Infection::SetMatchState(FName NewState)
 	}
 	if (NewState == MatchState::WaitingPostMatch)
 	{
-		GetGameInstance<UPLEOSGameInstance>()->DestroySession();
+		for (auto PLPlayerController : ConnectedPLPlayerControllers)
+		{
+			PLPlayerController->Client_OpenMainMenu(); 
+		}
 	}
 }
 
@@ -317,10 +321,17 @@ void APLGameMode_Infection::EndGame()
 		});
 
 	TArray<FGameplayTag> PositionTag = { SharedGameplayTags::TAG_Result_Position_01, SharedGameplayTags::TAG_Result_Position_02, SharedGameplayTags::TAG_Result_Position_03 };
+	TArray<APLWorldText*> WorldTextActors;
+
+	for (TActorIterator<APLWorldText> Iterator(GetWorld()); Iterator; ++Iterator)
+	{
+		WorldTextActors.Add(*Iterator);
+	}
+
 	//Spawn top 3 players
 	for (int i = 0; i < 3; i++)
 	{
-		if (!IsValid(CurrentConnectedControllers[i]))
+		if (!CurrentConnectedControllers.IsValidIndex(i))
 		{
 			continue;
 		}
@@ -329,6 +340,9 @@ void APLGameMode_Infection::EndGame()
 		{
 			checkf(PLPlayerStart, TEXT("Cannot find suitable player start. Have you created one in level?"));
 		}
+
+		GetWorldText(WorldTextActors, PositionTag[i])->Multi_SetText(FText::FromString(FString::Printf(TEXT("%s \n %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetScore())));
+
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		APLPlayerCharacter* SpawnedCharacter = GetWorld()->SpawnActor<APLPlayerCharacter>(CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetElderCharacterClass(), PLPlayerStart->GetActorTransform(), SpawnParams);
@@ -341,6 +355,18 @@ void APLGameMode_Infection::EndGame()
 	}
 	FTimerHandle KickPlayersHandle;
 	GetWorld()->GetTimerManager().SetTimer(KickPlayersHandle, this, &APLGameMode_Infection::EndMatch, 10.f);
+}
+
+APLWorldText* APLGameMode_Infection::GetWorldText(TArray<APLWorldText*>& WorldTextActors, FGameplayTag Position)
+{
+	for (auto WorldTextActor : WorldTextActors)
+	{
+		if (WorldTextActor->GetTextTag() == Position)
+		{
+			return WorldTextActor;
+		}
+	}
+	return nullptr;
 }
 
 void APLGameMode_Infection::ResetLevel()

@@ -15,6 +15,7 @@ class APLPlayerController;
 class UPLInfectionGameModeData;
 class APLGameState_Infection;
 class APLResultScreenPawn;
+class APLWorldText;
 
 UCLASS()
 class PROJECTLAUGH_API APLGameMode_Infection : public APLGameModeBase
@@ -75,6 +76,9 @@ protected:
 
 	UFUNCTION()
 	void EndGame();
+
+	UFUNCTION()
+	APLWorldText* GetWorldText(TArray<APLWorldText*>& WorldTextActors, FGameplayTag Position);
 
 	//Generic spawn pl player character, if you are trying to spawn elder or zombie, use SpawnZombie or SpawnElder instead
 	APLPlayerCharacter* SpawnPLPlayerCharacter(TSubclassOf<APLPlayerCharacter> SpawningCharacterClass, APLPlayerController* OwningPlayerController, FGameplayTag StartAffilitationTag);

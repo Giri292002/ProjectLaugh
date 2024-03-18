@@ -101,7 +101,7 @@ void UPLEOSGameInstance::CreateSession(int32 MaxPlayers)
 			SessionSettings->bAllowJoinViaPresence = true;
 			SessionSettings->bUsesPresence = true;
 			SessionSettings->bUseLobbiesIfAvailable = true;
-			SessionSettings->bUseLobbiesVoiceChatIfAvailable = true;
+			SessionSettings->bUseLobbiesVoiceChatIfAvailable = false;
 			FOnlineSessionSetting RoomCodeSessionSetting;
 			RoomCodeSessionSetting.AdvertisementType = EOnlineDataAdvertisementType::ViaOnlineService;
 			RoomCodeSessionSetting.Data = RoomCode;

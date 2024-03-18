@@ -203,6 +203,7 @@ void APLPlayerCharacter_Zombie::Net_DetachArm_Implementation()
 {
 	FGameplayTagContainer BlockedTags;
 	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Character_Status_Spawning);
 
 	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasAny(BlockedTags))
 	{

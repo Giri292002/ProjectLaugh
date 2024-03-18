@@ -281,3 +281,8 @@ void APLPlayerController::ToggleDisableInput_Implementation(bool bDisable)
 		EnableInput(this);
 	}
 }
+
+void APLPlayerController::Client_OpenMainMenu_Implementation()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), FName("MainMenu"));
+}
