@@ -70,15 +70,18 @@ void APLPlayerCharacter_Zombie::Multicast_SpawnZombie_Implementation()
 void APLPlayerCharacter_Zombie::AppearanceTimelineFinishedCallback()
 {
 	Super::AppearanceTimelineFinishedCallback();
-	GEngine->AddOnScreenDebugMessage((uint64)("Zombie"), 10.0f, FColor::Green, TEXT("FINISHED TIMELINE"));
+	//GEngine->AddOnScreenDebugMessage((uint64)("Zombie"), 10.0f, FColor::Green, TEXT("FINISHED TIMELINE"));
 	if (PLGameplayTagComponent)
 	{
 		PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Spawning);
 	}
 	Net_ToggleFreezeCharacter(false);
 
-	//Let game state know to start running brain meter
-	Server_RunBrainMeter();
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie_Alpha))
+	{
+		//Let game state know to start running brain meter
+		Server_RunBrainMeter();
+	}
 }
 
 void APLPlayerCharacter_Zombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

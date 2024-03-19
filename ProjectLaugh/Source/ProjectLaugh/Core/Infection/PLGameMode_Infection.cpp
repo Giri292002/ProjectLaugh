@@ -339,7 +339,7 @@ void APLGameMode_Infection::EndGame()
 			checkf(PLPlayerStart, TEXT("Cannot find suitable player start. Have you created one in level?"));
 		}
 
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%s %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore()));
+		//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%s %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore()));
 		GetWorldText(WorldTextActors, PositionTag[i])->Multi_SetText(FText::FromString(FString::Printf(TEXT("%s \n %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore())));
 
 		FActorSpawnParameters SpawnParams;

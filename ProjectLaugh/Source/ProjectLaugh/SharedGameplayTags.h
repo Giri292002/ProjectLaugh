@@ -11,6 +11,7 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Pounce_Cooldown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Throw_Thrown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Inhale_Inhaling);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Hide_Hiding);
 
 	// Character
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Elder);

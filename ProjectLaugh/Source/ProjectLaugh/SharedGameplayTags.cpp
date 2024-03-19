@@ -9,6 +9,7 @@ namespace SharedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Pounce_Cooldown, "Ability.Pounce.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Throw_Thrown, "Ability.Throw.Thrown");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Inhale_Inhaling, "Ability.Inhale.Inhaling");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Hide_Hiding, "Ability.Hide.Hiding");
 
 	//Character
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Affiliation_Elder, "Character.Affiliation.Elder");
