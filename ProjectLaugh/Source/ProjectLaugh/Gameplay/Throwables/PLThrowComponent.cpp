@@ -79,6 +79,11 @@ void UPLThrowComponent::Multicast_HoldObject_Implementation(AActor* ObjectToHold
 
 void UPLThrowComponent::Net_StartThrow_Implementation()
 {
+	if (!IsValid(CurrentlyHoldingObject))
+	{
+		return;
+	}
+
 	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
 	PLPlayerCharacter->Server_PlayAnimation(PLPlayerCharacter->GetAnimationData()->ThrowMontage, true, FName("HoldEnd"));
 }

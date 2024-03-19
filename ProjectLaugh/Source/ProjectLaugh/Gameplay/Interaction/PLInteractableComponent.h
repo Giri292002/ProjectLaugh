@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 #include "PLInteractionInterface.h"
 #include "PLInteractableComponent.generated.h"
 
@@ -18,7 +19,7 @@ public:
 	UPLInteractableComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
-	uint8 GetSupportedInteractors() const { return SupportedInteractors; }
+	FGameplayTagContainer GetSupportedInteractors() const { return SupportedInteractors; }
 
 	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
 	void Interact(APLPlayerCharacter* Instigator, UPLInteractionComponent* InteractableComponent);
@@ -29,5 +30,5 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Interaction", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
-	uint8 SupportedInteractors;
+	FGameplayTagContainer SupportedInteractors;
 };

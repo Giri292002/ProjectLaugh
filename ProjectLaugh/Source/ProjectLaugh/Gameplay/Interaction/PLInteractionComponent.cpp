@@ -134,6 +134,6 @@ void UPLInteractionComponent::UnassignInteractableComponent()
 
 bool UPLInteractionComponent::IsValidInteractionWith(UPLInteractableComponent* InteractableComponent)
 {
-	return InteractorType & InteractableComponent->GetSupportedInteractors();
+	return InteractableComponent->GetSupportedInteractors().HasAnyExact(InteractorType);
 }
 

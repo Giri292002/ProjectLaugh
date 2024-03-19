@@ -109,7 +109,7 @@ void APLPlayerCharacter_Zombie::Net_ThrowObject()
 		if (PLSkillCheckComponent->SkillCheck())
 		{
 			PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Holding_Arm);
-			PLThrowComponent->Net_Throw(PLPlayerController);
+			PLThrowComponent->Net_StartThrow();
 		}
 		else
 		{
