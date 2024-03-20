@@ -29,4 +29,8 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_01);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_02);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_03);
+
+	//Interactables
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Status_Open);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Status_Close);
 }

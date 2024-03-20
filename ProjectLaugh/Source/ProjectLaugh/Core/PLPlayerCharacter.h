@@ -6,6 +6,7 @@
 #include "Components/TimelineComponent.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
@@ -21,6 +22,7 @@ class UPLGameplayTagComponent;
 class UPLNameComponent;
 class UPLAnimationData;
 class UCharacterUIProfileData;
+class APLHidableActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -186,6 +188,9 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_StopAnimation(UAnimMontage* MontageToStop = nullptr);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StartHiding(APLHidableActor* InHideableActor);
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetInteractionComponent() const { return PLInteractionComponent; };

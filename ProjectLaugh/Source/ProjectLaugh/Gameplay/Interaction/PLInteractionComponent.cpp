@@ -109,6 +109,15 @@ void UPLInteractionComponent::AssignInteractableComponent(UPLInteractableCompone
 	{
 		MeshComponent->SetRenderCustomDepth(true);
 	}
+	//The object might be a skeletal mesh
+	if (!IsValid(MeshComponent))
+	{
+		USkeletalMeshComponent* SkeletalMeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
+		if (IsValid(SkeletalMeshComponent))
+		{
+			SkeletalMeshComponent->SetRenderCustomDepth(true);
+		}
+	}
 }
 
 void UPLInteractionComponent::UnassignInteractableComponent()

@@ -27,4 +27,7 @@ namespace SharedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Result_Position_01, "Result.Position.One");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Result_Position_02, "Result.Position.Two");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Result_Position_03, "Result.Position.Three");
+
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Open, "Interactable.Status.Open");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Close, "Interactable.Status.Close");
 }

@@ -15,11 +15,12 @@
 #include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "ProjectLaugh/Components/PLNameComponent.h"
 #include "ProjectLaugh/Animation/PLAnimationData.h"
-#include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
+#include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
+#include "ProjectLaugh/Gameplay/PLHidableActor.h"
 #include "Infection/PLGameState_Infection.h"
 #include "Infection/PLGameMode_Infection.h"
 
@@ -421,4 +422,22 @@ void APLPlayerCharacter::Multicast_StopAnimation_Implementation(UAnimMontage* Mo
 			AnimInstance->StopAllMontages(0.5f);
 		}
 	}
+}
+
+void APLPlayerCharacter::Server_StartHiding_Implementation(APLHidableActor* InHideableActor)
+{
+	if (!IsValid(InHideableActor))
+	{
+		return;
+	}
+
+	InHideableActor->Server_OpenDoor();
+	//Move character in closet
+	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
+	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
+}
+
+bool APLPlayerCharacter::Server_StartHiding_Validate(APLHidableActor* InHideableActor)
+{
+	return true;
 }
