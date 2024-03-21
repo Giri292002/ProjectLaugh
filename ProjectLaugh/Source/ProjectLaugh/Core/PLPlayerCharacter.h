@@ -189,8 +189,26 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_StopAnimation(UAnimMontage* MontageToStop = nullptr);
 
+	UFUNCTION(Client, Reliable)
+	void Net_StartHiding(APLHidableActor* InHideableActor);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_StartHiding(APLHidableActor* InHideableActor);
+
+	UFUNCTION(Client,Reliable)
+	void Net_SetMovementMode(EMovementMode InMovementMode);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetMovementMode(EMovementMode InMovementMode);
+
+	UFUNCTION(Client, Reliable)
+	void Net_Crouch(const bool bStartCrouch);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Crouch(const bool bStartCrouch = true);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StartHiding(FTransform HidingTransform);
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetInteractionComponent() const { return PLInteractionComponent; };

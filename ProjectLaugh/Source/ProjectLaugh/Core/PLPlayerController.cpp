@@ -193,23 +193,24 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 
 	SetViewTarget(NewPawn);
 
-	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn);
-
-	Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
-
-	if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
+	if (APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn))
 	{
-		return;
-	}
-	if (IsLocalPlayerController())
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
+
+		if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
 		{
+			return;
+		}
+		if (IsLocalPlayerController())
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}		
+			}
+		}
+		Client_DrawGameplayWidget();
+		Client_AddComponentWidgets();
 	}
-	Client_DrawGameplayWidget();
-	Client_AddComponentWidgets();
 }
 
 void APLPlayerController::Tick(float DeltaSeconds)

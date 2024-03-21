@@ -30,4 +30,5 @@ namespace SharedGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Open, "Interactable.Status.Open");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Close, "Interactable.Status.Close");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Hidable_Status_HasOccupant, "Interactable.Hidable.Status.HasOccupant");
 }

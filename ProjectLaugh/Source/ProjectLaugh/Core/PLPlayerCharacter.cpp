@@ -35,6 +35,9 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component")));
 	PLNameComponent = CreateDefaultSubobject<UPLNameComponent>(FName(TEXT("PL Name Component")));
 	PLNameComponent->SetupAttachment(GetMesh());
+
+	GetCharacterMovement()->SetCrouchedHalfHeight(45.f);
+	GetCharacterMovement()->bRunPhysicsWithNoController = true;
 }
 
 // Called when the game starts or when spawned
@@ -424,20 +427,86 @@ void APLPlayerCharacter::Multicast_StopAnimation_Implementation(UAnimMontage* Mo
 	}
 }
 
-void APLPlayerCharacter::Server_StartHiding_Implementation(APLHidableActor* InHideableActor)
+void APLPlayerCharacter::Net_StartHiding_Implementation(APLHidableActor* InHideableActor)
 {
 	if (!IsValid(InHideableActor))
 	{
 		return;
 	}
 
-	InHideableActor->Server_OpenDoor();
+	Net_ToggleFreezeCharacter(true);
 	//Move character in closet
 	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
 	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
+	Net_Crouch(true);
+	Server_StartHiding(InHideableActor);
+}
+
+void APLPlayerCharacter::Server_StartHiding_Implementation(APLHidableActor* InHideableActor)
+{	
+	if (!IsValid(InHideableActor))
+	{
+		return;
+	}
+	InHideableActor->Server_OpenDoor();
+	InHideableActor->SetOccupant(this);
+	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
+	GetPLPlayerController()->SetViewTargetWithBlend(InHideableActor, 1.f);
+	GetPLPlayerController()->Possess(InHideableActor);
 }
 
 bool APLPlayerCharacter::Server_StartHiding_Validate(APLHidableActor* InHideableActor)
+{
+	return true;
+}
+
+
+void APLPlayerCharacter::Multicast_StartHiding_Implementation(FTransform HidingTransform)
+{
+	SetActorTransform(HidingTransform, false, nullptr, ETeleportType::TeleportPhysics);
+}
+
+
+void APLPlayerCharacter::Server_SetMovementMode_Implementation(EMovementMode InMovementMode)
+{
+	GetCharacterMovement()->SetMovementMode(InMovementMode);
+}
+
+bool APLPlayerCharacter::Server_SetMovementMode_Validate(EMovementMode InMovementMode)
+{
+	return true;
+}
+
+void APLPlayerCharacter::Net_SetMovementMode_Implementation(EMovementMode InMovementMode)
+{
+	GetCharacterMovement()->SetMovementMode(InMovementMode);
+	Server_SetMovementMode(InMovementMode);
+}
+
+void APLPlayerCharacter::Net_Crouch_Implementation(const bool bStartCrouch)
+{
+	if (bStartCrouch)
+	{
+		GetCharacterMovement()->Crouch();
+	}
+	else
+	{
+		GetCharacterMovement()->UnCrouch();
+	}
+	Server_Crouch(bStartCrouch);
+}
+
+void APLPlayerCharacter::Server_Crouch_Implementation(const bool bStartCrouch)
+{
+	if (!bStartCrouch)
+	{
+		GetCharacterMovement()->UnCrouch();
+		return;
+	}
+	GetCharacterMovement()->Crouch();
+}
+
+bool APLPlayerCharacter::Server_Crouch_Validate(const bool bStartCrouch)
 {
 	return true;
 }

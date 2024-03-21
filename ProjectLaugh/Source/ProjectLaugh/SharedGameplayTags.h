@@ -33,4 +33,5 @@ namespace SharedGameplayTags
 	//Interactables
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Status_Open);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Status_Close);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Hidable_Status_HasOccupant);
 }
