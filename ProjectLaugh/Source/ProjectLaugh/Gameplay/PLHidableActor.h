@@ -17,6 +17,7 @@ class UBillboardComponent;
 class UInputAction;
 class UInputMappingContext;
 class APLPlayerCharacter;
+class UPLWidgetBase;
 struct FInputActionValue;
 
 UCLASS()
@@ -29,6 +30,9 @@ class PROJECTLAUGH_API APLHidableActor : public APawn, public IPLInteractionInte
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	USceneComponent* RootSceneComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UCameraComponent* CameraComponent;
@@ -46,7 +50,13 @@ protected:
 	USceneComponent* HidingLocationMarker;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	USceneComponent* ExitLocationMarker;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UBillboardComponent* HidingLocationSprite;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	UBillboardComponent* ExitLocationSprite;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Input")
 	UInputMappingContext* DefaultMappingContext;
@@ -55,7 +65,10 @@ protected:
 	UInputAction* LookAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Input")
-	UInputAction* InteractAction;
+	UInputAction* StopHidingAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Input")
+	UInputAction* OpenDoorAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Animation")
 	UAnimMontage* OpenMontage;
@@ -63,17 +76,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Animation")
 	UAnimMontage* CloseMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "PL | UI")
+	TSubclassOf<UPLWidgetBase> PopupWidgetClass;
+
 	UPROPERTY(Replicated)
 	APLPlayerCharacter* OccupantCharacter;
 
-	UPROPERTY()
-	FTransform HidingLocationTransform;
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StartHiding(APLPlayerCharacter* InPLPlayerCharacter);
-
 	UFUNCTION()
 	void HandleOnMontageEnded(UAnimMontage* Montage, bool Interrupted);
+
+	UFUNCTION()
+	void OnControllerChanged(APawn* Pawn, AController* OldController, AController* NewController);
+
+	UFUNCTION()
+	void ToggleDoor();
 
 	//IPLInteractionInterface Implementation Begin
 	void Interact_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent) override;
@@ -106,9 +122,12 @@ public:
 
 	USceneComponent* GetHidingLocationMarker() const { return HidingLocationMarker; }
 
+	USceneComponent* GetExitLocationMarker() const { return ExitLocationMarker; }
+
 protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
+	virtual void NotifyControllerChanged() override;
 };

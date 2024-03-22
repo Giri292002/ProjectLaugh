@@ -69,6 +69,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* ThrowAction; 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Input")
+	UInputMappingContext* DefaultMappingContext;
+
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
 
@@ -195,6 +198,12 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_StartHiding(APLHidableActor* InHideableActor);
 
+	UFUNCTION(Client, Reliable)
+	void Net_StopHiding(APLHidableActor* InHideableActor);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StopHiding(APLHidableActor* InHideableActor);
+
 	UFUNCTION(Client,Reliable)
 	void Net_SetMovementMode(EMovementMode InMovementMode);
 
@@ -206,9 +215,6 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Crouch(const bool bStartCrouch = true);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_StartHiding(FTransform HidingTransform);
 
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetInteractionComponent() const { return PLInteractionComponent; };
@@ -247,4 +253,5 @@ public:
 	virtual void PossessedBy(AController* Possessor) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
+	virtual void NotifyControllerChanged() override;
 };

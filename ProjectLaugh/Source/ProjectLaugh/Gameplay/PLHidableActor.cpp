@@ -11,14 +11,18 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
 #include "Net/UnrealNetwork.h"
+#include "ProjectLaugh/Core/PLPlayerController.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractableComponent.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 
 APLHidableActor::APLHidableActor()
 {
+	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(FName(TEXT("Root")));
+	SetRootComponent(RootSceneComponent);
+
 	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(FName(TEXT("Mesh")));
-	SetRootComponent(SkeletalMeshComponent);
+	SkeletalMeshComponent->SetupAttachment(RootSceneComponent);
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(FName(TEXT("Spring Arm")));
 	SpringArmComponent->SetupAttachment(SkeletalMeshComponent);
@@ -37,6 +41,11 @@ APLHidableActor::APLHidableActor()
 	HidingLocationSprite = CreateDefaultSubobject<UBillboardComponent>(FName(TEXT("Hiding Location Sprite")));
 	HidingLocationSprite->SetupAttachment(HidingLocationMarker);
 
+	ExitLocationMarker = CreateDefaultSubobject<USceneComponent>(FName(TEXT("Exit Location Marker")));
+	ExitLocationMarker->SetupAttachment(SkeletalMeshComponent);
+	ExitLocationSprite = CreateDefaultSubobject<UBillboardComponent>(FName(TEXT("Exit Location Sprite")));
+	ExitLocationSprite->SetupAttachment(ExitLocationMarker);
+
 	AutoPossessAI = EAutoPossessAI::Disabled;
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
 
@@ -51,7 +60,7 @@ void APLHidableActor::Interact_Implementation(APLPlayerCharacter* InInstigator, 
 	}
 	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant))
 	{
-		Server_OpenDoor();
+		ToggleDoor();
 		return;
 	}
 	InInstigator->Net_StartHiding(this);
@@ -64,7 +73,8 @@ void APLHidableActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APLHidableActor::Look);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APLHidableActor::Net_StopHiding);
+		EnhancedInputComponent->BindAction(StopHidingAction, ETriggerEvent::Triggered, this, &APLHidableActor::Net_StopHiding);
+		EnhancedInputComponent->BindAction(OpenDoorAction, ETriggerEvent::Triggered, this, &APLHidableActor::ToggleDoor);
 	}
 }
 
@@ -75,13 +85,13 @@ void APLHidableActor::BeginPlay()
 	check(OpenMontage);
 	check(CloseMontage);
 
-	HidingLocationTransform = HidingLocationMarker->GetComponentTransform();
-
 	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
 	if (IsValid(AnimInstance))
 	{
 		AnimInstance->OnMontageEnded.AddDynamic(this, &APLHidableActor::HandleOnMontageEnded);
 	}
+
+	ReceiveControllerChangedDelegate.AddDynamic(this, &APLHidableActor::OnControllerChanged);
 }
 
 void APLHidableActor::SetOccupant(APLPlayerCharacter* InOccupant)
@@ -106,6 +116,12 @@ void APLHidableActor::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
+	APLPlayerController* PLPlayerController = Cast<APLPlayerController>(NewController);
+	if (IsValid(PLPlayerController))
+	{
+		PLPlayerController->Client_AddPLWidget(PopupWidgetClass);
+	}
+
 	GetGameplayTagComponent()->GetActiveGameplayTags().AddTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant);
 	Server_CloseDoor();
 }
@@ -113,17 +129,26 @@ void APLHidableActor::PossessedBy(AController* NewController)
 void APLHidableActor::UnPossessed()
 {
 	Super::UnPossessed();
+
 	GetGameplayTagComponent()->GetActiveGameplayTags().RemoveTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant);
+	Server_CloseDoor();
 }
 
-void APLHidableActor::Server_StartHiding_Implementation(APLPlayerCharacter* InPLPlayerCharacter)
+void APLHidableActor::NotifyControllerChanged()
 {
+	Super::NotifyControllerChanged();
 
-}
-
-bool APLHidableActor::Server_StartHiding_Validate(APLPlayerCharacter* InPLPlayerCharacter)
-{
-	return true;
+	if (IsValid(GetController()))
+	{
+		if (GetController()->IsLocalPlayerController())
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(GetController())->GetLocalPlayer()))
+			{
+				Subsystem->ClearAllMappings();
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
 }
 
 void APLHidableActor::Net_StopHiding_Implementation()
@@ -137,6 +162,7 @@ void APLHidableActor::Server_StopHiding_Implementation()
 	{
 		Server_OpenDoor();
 	} 
+	OccupantCharacter->Net_StopHiding(this);
 }
 
 bool APLHidableActor::Server_StopHiding_Validate()
@@ -205,5 +231,29 @@ void APLHidableActor::HandleOnMontageEnded(UAnimMontage* Montage, bool Interrupt
 	}
 	if (Montage == CloseMontage)
 	{
+	}
+}
+
+void APLHidableActor::OnControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)
+{
+	APLPlayerController* PLPlayerController = Cast<APLPlayerController>(OldController);
+	if (IsValid(PLPlayerController))
+	{
+		PLPlayerController->Client_RemovePLWidget(PopupWidgetClass);
+	}
+}
+
+void APLHidableActor::ToggleDoor()
+{
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Status_Close))
+	{
+		Server_OpenDoor();
+		return;
+	}
+
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Status_Open))
+	{
+		Server_CloseDoor();
+		return;
 	}
 }

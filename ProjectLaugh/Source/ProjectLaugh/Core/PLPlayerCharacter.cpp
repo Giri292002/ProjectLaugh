@@ -23,6 +23,7 @@
 #include "ProjectLaugh/Gameplay/PLHidableActor.h"
 #include "Infection/PLGameState_Infection.h"
 #include "Infection/PLGameMode_Infection.h"
+#include <EnhancedInputSubsystems.h>
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -302,7 +303,25 @@ void APLPlayerCharacter::PossessedBy(AController* Possessor)
 {
 	Super::PossessedBy(Possessor);
 	PLPlayerController = Cast<APLPlayerController>(Possessor);
+	GetPLPlayerController()->bAutoManageActiveCameraTarget = true;
 	OnClientControlPossess.Broadcast(GetController());
+}
+
+void APLPlayerCharacter::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+
+	if (IsValid(GetController()))
+	{
+		if (GetController()->IsLocalPlayerController())
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(GetController())->GetLocalPlayer()))
+			{
+				Subsystem->ClearAllMappings();
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
 }
 
 void APLPlayerCharacter::OnRep_PlayerState()
@@ -438,6 +457,7 @@ void APLPlayerCharacter::Net_StartHiding_Implementation(APLHidableActor* InHidea
 	//Move character in closet
 	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
 	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
+	GetPLPlayerController()->SetControlRotation(InHideableActor->GetActorRotation());
 	Net_Crouch(true);
 	Server_StartHiding(InHideableActor);
 }
@@ -452,6 +472,8 @@ void APLPlayerCharacter::Server_StartHiding_Implementation(APLHidableActor* InHi
 	InHideableActor->SetOccupant(this);
 	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
 	GetPLPlayerController()->SetViewTargetWithBlend(InHideableActor, 1.f);
+	GetPLPlayerController()->bAutoManageActiveCameraTarget = false;
+	GetPLPlayerController()->SetControlRotation(InHideableActor->GetActorRotation());
 	GetPLPlayerController()->Possess(InHideableActor);
 }
 
@@ -460,12 +482,36 @@ bool APLPlayerCharacter::Server_StartHiding_Validate(APLHidableActor* InHideable
 	return true;
 }
 
-
-void APLPlayerCharacter::Multicast_StartHiding_Implementation(FTransform HidingTransform)
+void APLPlayerCharacter::Net_StopHiding_Implementation(APLHidableActor* InHideableActor)
 {
-	SetActorTransform(HidingTransform, false, nullptr, ETeleportType::TeleportPhysics);
+	if (!IsValid(InHideableActor))
+	{
+		return;
+	}
+	//Move character in closet
+	SetActorLocation(InHideableActor->GetExitLocationMarker()->GetComponentLocation());
+	Net_Crouch(false);
+	GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
+	Net_ToggleFreezeCharacter(false);
+	Server_StopHiding(InHideableActor);
 }
 
+void APLPlayerCharacter::Server_StopHiding_Implementation(APLHidableActor* InHideableActor)
+{
+	if (!IsValid(InHideableActor))
+	{
+		return;
+	}
+
+	InHideableActor->SetOccupant(nullptr);
+	SetActorLocation(InHideableActor->GetExitLocationMarker()->GetComponentLocation());
+	GetPLPlayerController()->Possess(this);
+}
+
+bool APLPlayerCharacter::Server_StopHiding_Validate(APLHidableActor* InHideableActor)
+{
+	return true;
+}
 
 void APLPlayerCharacter::Server_SetMovementMode_Implementation(EMovementMode InMovementMode)
 {

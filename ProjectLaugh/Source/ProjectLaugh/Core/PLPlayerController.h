@@ -38,6 +38,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_AddPLWidget(TSubclassOf<UPLWidgetBase> WidgetClassToAdd);
 
+	UFUNCTION(Client, Reliable) 
+	void Client_RemovePLWidget(TSubclassOf<UPLWidgetBase> WidgetClassToRemove);
+
 	//Spawns a widget and also calls setup component from here
 	UFUNCTION(Client, Reliable)
 	void Client_AddComponentWidget(TSubclassOf<UPLComponentWidgetBase> WidgetClassToAdd, UPLActorComponent* InComp);
@@ -90,14 +93,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "PL | Cinematics")
 	ULevelSequencePlayer* LevelSequencePlayer;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Input")
-	UInputMappingContext* DefaultMappingContext;
-
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "PL | Affiliation")
 	FGameplayTag CurrentAffilitationTag;
 
 	UPROPERTY()
-	TArray<UPLWidgetBase*> SpawnedWidgets;
+	TSet<UPLWidgetBase*> SpawnedWidgets;
 
 	UFUNCTION()
 	void PlayWaitingCinematicSequence();
