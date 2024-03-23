@@ -76,9 +76,8 @@ void APLPlayerController::Client_AddComponentWidgets_Implementation()
 
 void APLPlayerController::Client_RemoveComponentWidgets_Implementation()
 {
-	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
 	TArray<UPLActorComponent*> PLActorComponents;
-	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
+	ControllingPLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
 
 	if (!PLActorComponents.Num())
 	{
@@ -193,23 +192,13 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 
 	SetViewTarget(NewPawn);
 
-	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn);
-
-	Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
-
-	if (!ensureAlwaysMsgf(DefaultMappingContext, TEXT("DefaultMappingContext is invalid")))
+	if (APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn))
 	{
-		return;
+		ControllingPLPlayerCharacter = PLPlayerCharacter;
+		Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
+		Client_DrawGameplayWidget();
+		Client_AddComponentWidgets();
 	}
-	if (IsLocalPlayerController())
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-		{
-				Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}		
-	}
-	Client_DrawGameplayWidget();
-	Client_AddComponentWidgets();
 }
 
 void APLPlayerController::Tick(float DeltaSeconds)
@@ -228,11 +217,31 @@ void APLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(APLPlayerController, RepPlayerControllerRotation);
 	DOREPLIFETIME(APLPlayerController, CurrentAffilitationTag);
+	DOREPLIFETIME(APLPlayerController, ControllingPLPlayerCharacter);
 }
 
 void APLPlayerController::Client_AddPLWidget_Implementation(TSubclassOf<UPLWidgetBase> WidgetClassToAdd)
 {
 	Internal_AddWidget<UPLWidgetBase>(WidgetClassToAdd);
+}
+
+void APLPlayerController::Client_RemovePLWidget_Implementation(TSubclassOf<UPLWidgetBase> WidgetClassToRemove)
+{
+	if (!SpawnedWidgets.Num())
+	{
+		return;
+	}
+
+	for (UPLWidgetBase* PLWidget : SpawnedWidgets)
+	{
+		if (PLWidget->GetClass() == WidgetClassToRemove)
+		{
+			UPLWidgetBase* CandidateWidget = PLWidget;
+			SpawnedWidgets.Remove(CandidateWidget);
+			CandidateWidget->RemoveFromParent();
+			break;
+		}
+	}
 }
 
 void APLPlayerController::Client_AddComponentWidget_Implementation(TSubclassOf<UPLComponentWidgetBase> WidgetClassToAdd, UPLActorComponent* InComp)

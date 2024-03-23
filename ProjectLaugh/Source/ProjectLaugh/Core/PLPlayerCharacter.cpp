@@ -14,14 +14,17 @@
 #include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "ProjectLaugh/Components/PLNameComponent.h"
+#include "ProjectLaugh/Components/PLHideComponent.h"
 #include "ProjectLaugh/Animation/PLAnimationData.h"
-#include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
+#include "ProjectLaugh/Gameplay/Skillcheck/PLSkillCheckComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "ProjectLaugh/Gameplay/Throwables/PLThrowComponent.h"
+#include "ProjectLaugh/Gameplay/PLHidableActor.h"
 #include "Infection/PLGameState_Infection.h"
 #include "Infection/PLGameMode_Infection.h"
+#include <EnhancedInputSubsystems.h>
 
 // Sets default values
 APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -34,6 +37,10 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component")));
 	PLNameComponent = CreateDefaultSubobject<UPLNameComponent>(FName(TEXT("PL Name Component")));
 	PLNameComponent->SetupAttachment(GetMesh());
+	PLHideComponent = CreateDefaultSubobject<UPLHideComponent>(FName(TEXT("Hide Component")));
+
+	GetCharacterMovement()->SetCrouchedHalfHeight(45.f);
+	GetCharacterMovement()->bRunPhysicsWithNoController = true;
 }
 
 // Called when the game starts or when spawned
@@ -298,7 +305,25 @@ void APLPlayerCharacter::PossessedBy(AController* Possessor)
 {
 	Super::PossessedBy(Possessor);
 	PLPlayerController = Cast<APLPlayerController>(Possessor);
+	GetPLPlayerController()->bAutoManageActiveCameraTarget = true;
 	OnClientControlPossess.Broadcast(GetController());
+}
+
+void APLPlayerCharacter::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+
+	if (IsValid(GetController()))
+	{
+		if (GetController()->IsLocalPlayerController())
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(GetController())->GetLocalPlayer()))
+			{
+				Subsystem->ClearAllMappings();
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
 }
 
 void APLPlayerCharacter::OnRep_PlayerState()
@@ -421,4 +446,48 @@ void APLPlayerCharacter::Multicast_StopAnimation_Implementation(UAnimMontage* Mo
 			AnimInstance->StopAllMontages(0.5f);
 		}
 	}
+}
+
+void APLPlayerCharacter::Server_SetMovementMode_Implementation(EMovementMode InMovementMode)
+{
+	GetCharacterMovement()->SetMovementMode(InMovementMode);
+}
+
+bool APLPlayerCharacter::Server_SetMovementMode_Validate(EMovementMode InMovementMode)
+{
+	return true;
+}
+
+void APLPlayerCharacter::Net_SetMovementMode_Implementation(EMovementMode InMovementMode)
+{
+	GetCharacterMovement()->SetMovementMode(InMovementMode);
+	Server_SetMovementMode(InMovementMode);
+}
+
+void APLPlayerCharacter::Net_Crouch_Implementation(const bool bStartCrouch)
+{
+	if (bStartCrouch)
+	{
+		GetCharacterMovement()->Crouch();
+	}
+	else
+	{
+		GetCharacterMovement()->UnCrouch();
+	}
+	Server_Crouch(bStartCrouch);
+}
+
+void APLPlayerCharacter::Server_Crouch_Implementation(const bool bStartCrouch)
+{
+	if (!bStartCrouch)
+	{
+		GetCharacterMovement()->UnCrouch();
+		return;
+	}
+	GetCharacterMovement()->Crouch();
+}
+
+bool APLPlayerCharacter::Server_Crouch_Validate(const bool bStartCrouch)
+{
+	return true;
 }

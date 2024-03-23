@@ -6,6 +6,7 @@
 #include "Components/TimelineComponent.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/ProjectLaughCharacter.h"
 #include "PLPlayerCharacter.generated.h"
 
@@ -21,6 +22,8 @@ class UPLGameplayTagComponent;
 class UPLNameComponent;
 class UPLAnimationData;
 class UCharacterUIProfileData;
+class APLHidableActor;
+class UPLHideComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -61,11 +64,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLNameComponent* PLNameComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLHideComponent* PLHideComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* ThrowAction; 
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Input")
+	UInputMappingContext* DefaultMappingContext;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	APLPlayerController* PLPlayerController; 
@@ -187,6 +196,18 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_StopAnimation(UAnimMontage* MontageToStop = nullptr);
 
+	UFUNCTION(Client,Reliable)
+	void Net_SetMovementMode(EMovementMode InMovementMode);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetMovementMode(EMovementMode InMovementMode);
+
+	UFUNCTION(Client, Reliable)
+	void Net_Crouch(const bool bStartCrouch);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Crouch(const bool bStartCrouch = true);
+
 	UFUNCTION(BlueprintCallable)
 	UPLInteractionComponent* GetInteractionComponent() const { return PLInteractionComponent; };
 
@@ -214,6 +235,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UPLNameComponent* GetPLNameComponent() const { return PLNameComponent; }
 
+	UFUNCTION(BlueprintCallable)
+	UPLHideComponent* GetPLHideComponent() const { return PLHideComponent; }
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -224,4 +248,5 @@ public:
 	virtual void PossessedBy(AController* Possessor) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
+	virtual void NotifyControllerChanged() override;
 };

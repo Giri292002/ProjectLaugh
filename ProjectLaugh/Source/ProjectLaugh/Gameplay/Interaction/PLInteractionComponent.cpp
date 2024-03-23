@@ -62,11 +62,11 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel10, QueryParams);
 
-	//DrawDebugLine(GetWorld(),
-	//	HitResult.TraceStart,
-	//	HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd,
-	//	HitResult.bBlockingHit ? FColor::Green : FColor::Red,
-	//	true);
+	/*DrawDebugLine(GetWorld(),
+		HitResult.TraceStart,
+		HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd,
+		HitResult.bBlockingHit ? FColor::Green : FColor::Red,
+		true);*/
 
 	//If we cant interact
 	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()) || !UKismetSystemLibrary::DoesImplementInterface(HitResult.GetActor(), UPLInteractionInterface::StaticClass()))
@@ -109,6 +109,15 @@ void UPLInteractionComponent::AssignInteractableComponent(UPLInteractableCompone
 	{
 		MeshComponent->SetRenderCustomDepth(true);
 	}
+	//The object might be a skeletal mesh
+	if (!IsValid(MeshComponent))
+	{
+		USkeletalMeshComponent* SkeletalMeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
+		if (IsValid(SkeletalMeshComponent))
+		{
+			SkeletalMeshComponent->SetRenderCustomDepth(true);
+		}
+	}
 }
 
 void UPLInteractionComponent::UnassignInteractableComponent()
@@ -134,6 +143,6 @@ void UPLInteractionComponent::UnassignInteractableComponent()
 
 bool UPLInteractionComponent::IsValidInteractionWith(UPLInteractableComponent* InteractableComponent)
 {
-	return InteractorType & InteractableComponent->GetSupportedInteractors();
+	return InteractableComponent->GetSupportedInteractors().HasAnyExact(InteractorType);
 }
 

@@ -9,7 +9,7 @@
 
 void UPLThrowNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(MeshComp->GetOwner());
+	const APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(MeshComp->GetOwner());
 	if (!IsValid(PLPlayerCharacter))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PL Player Character is invalid"));

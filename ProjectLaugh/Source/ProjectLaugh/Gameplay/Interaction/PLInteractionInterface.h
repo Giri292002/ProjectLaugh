@@ -8,17 +8,6 @@
 
 class APLPlayerCharacter;
 
-
-//Enum to determine who can control an object
-UENUM(BlueprintType, meta = (Bitflags))
-	enum class EInteractorSupport : uint8
-{
-	None = 0 UMETA(Hidden),
-	Elder = 1,
-	Zombie = 2
-};
-
-
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UPLInteractionInterface : public UInterface

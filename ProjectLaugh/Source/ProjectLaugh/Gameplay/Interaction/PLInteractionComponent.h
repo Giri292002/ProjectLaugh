@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectLaugh/Components/PLActorComponent.h"
+#include "ProjectLaugh/SharedGameplayTags.h"
 #include "PLInteractionInterface.h"
 #include "PLInteractionComponent.generated.h"
 
@@ -37,7 +38,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
-	uint8 InteractorType;
+	FGameplayTagContainer InteractorType;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Project Laugh | Defaults")
 	float TraceRange;	

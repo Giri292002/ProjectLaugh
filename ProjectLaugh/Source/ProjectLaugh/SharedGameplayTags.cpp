@@ -9,6 +9,7 @@ namespace SharedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Pounce_Cooldown, "Ability.Pounce.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Throw_Thrown, "Ability.Throw.Thrown");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Inhale_Inhaling, "Ability.Inhale.Inhaling");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Hide_Hiding, "Ability.Hide.Hiding");
 
 	//Character
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Character_Affiliation_Elder, "Character.Affiliation.Elder");
@@ -26,4 +27,10 @@ namespace SharedGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Result_Position_01, "Result.Position.One");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Result_Position_02, "Result.Position.Two");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Result_Position_03, "Result.Position.Three");
+
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Open, "Interactable.Status.Open");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Close, "Interactable.Status.Close");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Opening, "Interactable.Status.Opening");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Status_Closing, "Interactable.Status.Closing");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Interactable_Hidable_Status_HasOccupant, "Interactable.Hidable.Status.HasOccupant");
 }

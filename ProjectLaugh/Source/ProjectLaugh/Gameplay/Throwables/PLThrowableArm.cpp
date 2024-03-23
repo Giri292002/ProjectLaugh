@@ -54,7 +54,7 @@ bool APLThrowableArm::CanInteract_Implementation(APLPlayerCharacter* InInstigato
 	ActiveTagContainer.AddTag(SharedGameplayTags::TAG_Character_Affiliation_Zombie);
 	ActiveTagContainer.AddTag(SharedGameplayTags::TAG_Character_Status_Armless);
 
-	return InInstigator->GetGameplayTagComponent()->GetActiveGameplayTags().HasAllExact(ActiveTagContainer);
+	return InInstigator->GetGameplayTagComponent()->GetActiveGameplayTags().HasAll(ActiveTagContainer);
 }
 
 void APLThrowableArm::PLReset_Implementation()

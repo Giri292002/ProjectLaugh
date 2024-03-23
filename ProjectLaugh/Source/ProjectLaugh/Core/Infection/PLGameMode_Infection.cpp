@@ -5,6 +5,9 @@
 
 #include "EngineUtils.h" 
 #include "Kismet/GameplayStatics.h"
+#include "Logging/LogMacros.h"
+#include "NavigationSystem.h"
+#include "NavigationData.h"
 #include "ProjectLaugh/Core/PLActor.h"
 #include "ProjectLaugh/Core/PLStaticMeshActor.h"
 #include "ProjectLaugh/Core/PLEOSGameInstance.h"
@@ -237,12 +240,31 @@ void APLGameMode_Infection::SpawnElder(TSubclassOf<APLPlayerCharacter> SpawningC
 
 void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder)
 {
-	APLPlayerController* PLPlayerController = Cast<APLPlayerController>(Elder->GetController());
+	APLPlayerController* PLPlayerController = Cast<APLPlayerController>(Elder->GetPLPlayerController());
 	PLGameState_Infection->UnregisterCharacterFromGame(Elder);
 	Elder->Net_ToggleFreezeCharacter(true);
 	Elder->Net_OnPounced();
 	Elder->Multicast_OnPounced();
+
 	FTransform SpawnTransform = Elder->GetActorTransform();
+
+	//Actor transform could be off mesh, try to move in mesh
+	FNavLocation NavLocation;
+	const FVector QueryingExtent = FVector(250.f, 250.f, 250.f);
+	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (IsValid(NavSystem))
+	{
+		ANavigationData* NavData = NavSystem->GetDefaultNavDataInstance();
+		const bool bProjectionResult = NavData->ProjectPoint(SpawnTransform.GetLocation(), NavLocation, QueryingExtent);
+		if (bProjectionResult)
+		{
+			//Offset Z to accomodate capsule
+			NavLocation.Location.Z += 130.f;
+			SpawnTransform.SetLocation(NavLocation.Location);
+			DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 12, FColor::Green);
+		}
+	}
+
 	SpawnZombie(BetaZombieClasses[0], PLPlayerController, true, SpawnTransform);
 }
 
@@ -339,7 +361,7 @@ void APLGameMode_Infection::EndGame()
 			checkf(PLPlayerStart, TEXT("Cannot find suitable player start. Have you created one in level?"));
 		}
 
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%s %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore()));
+		//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%s %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore()));
 		GetWorldText(WorldTextActors, PositionTag[i])->Multi_SetText(FText::FromString(FString::Printf(TEXT("%s \n %i"), *CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPlayerName(), CurrentConnectedControllers[i]->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->GetTotalScore())));
 
 		FActorSpawnParameters SpawnParams;

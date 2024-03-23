@@ -11,6 +11,7 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Pounce_Cooldown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Throw_Thrown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Inhale_Inhaling);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Hide_Hiding);
 
 	// Character
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Character_Affiliation_Elder);
@@ -28,4 +29,11 @@ namespace SharedGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_01);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_02);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Result_Position_03);
+
+	//Interactables
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Status_Open);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Status_Close);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Hidable_Status_HasOccupant);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Hidable_Door_Opening);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Interactable_Hidable_Door_Closing);
 }

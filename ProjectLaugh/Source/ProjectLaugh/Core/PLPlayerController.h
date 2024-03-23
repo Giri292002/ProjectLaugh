@@ -13,6 +13,7 @@ class ULevelSequencePlayer;
 class UInputMappingContext;
 class UPLGameplayWidget;
 class UPLWidgetBase;
+class APLPlayerCharacter;
 
 UCLASS()
 class PROJECTLAUGH_API APLPlayerController : public APlayerController
@@ -37,6 +38,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Client_AddPLWidget(TSubclassOf<UPLWidgetBase> WidgetClassToAdd);
+
+	UFUNCTION(Client, Reliable) 
+	void Client_RemovePLWidget(TSubclassOf<UPLWidgetBase> WidgetClassToRemove);
 
 	//Spawns a widget and also calls setup component from here
 	UFUNCTION(Client, Reliable)
@@ -90,14 +94,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "PL | Cinematics")
 	ULevelSequencePlayer* LevelSequencePlayer;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PL | Input")
-	UInputMappingContext* DefaultMappingContext;
-
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "PL | Affiliation")
 	FGameplayTag CurrentAffilitationTag;
 
 	UPROPERTY()
-	TArray<UPLWidgetBase*> SpawnedWidgets;
+	TSet<UPLWidgetBase*> SpawnedWidgets;
+
+	UPROPERTY(Replicated)
+	APLPlayerCharacter* ControllingPLPlayerCharacter;
 
 	UFUNCTION()
 	void PlayWaitingCinematicSequence();
