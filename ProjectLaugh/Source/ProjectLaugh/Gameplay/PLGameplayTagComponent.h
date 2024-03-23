@@ -42,10 +42,10 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable, Category = "PL | Tags")
 	void Server_HasOrAddTag(const FGameplayTag TagToAdd);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	FGameplayTagContainer& GetActiveGameplayTags() { return ActiveGameplayTags; }
 
 protected:
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "PL | Tags")
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "PL | Tags")
 	FGameplayTagContainer ActiveGameplayTags;
 };

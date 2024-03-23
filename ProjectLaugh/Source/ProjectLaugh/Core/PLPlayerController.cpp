@@ -76,9 +76,8 @@ void APLPlayerController::Client_AddComponentWidgets_Implementation()
 
 void APLPlayerController::Client_RemoveComponentWidgets_Implementation()
 {
-	APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(GetPawn());
 	TArray<UPLActorComponent*> PLActorComponents;
-	PLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
+	ControllingPLPlayerCharacter->GetComponents<UPLActorComponent>(PLActorComponents);
 
 	if (!PLActorComponents.Num())
 	{
@@ -195,6 +194,7 @@ void APLPlayerController::AcknowledgePossession(APawn* NewPawn)
 
 	if (APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(NewPawn))
 	{
+		ControllingPLPlayerCharacter = PLPlayerCharacter;
 		Server_SetCurrentAffiliationTag(PLPlayerCharacter->GetPLPlayerAttributesData()->AffiliationTag);
 		Client_DrawGameplayWidget();
 		Client_AddComponentWidgets();
@@ -217,6 +217,7 @@ void APLPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(APLPlayerController, RepPlayerControllerRotation);
 	DOREPLIFETIME(APLPlayerController, CurrentAffilitationTag);
+	DOREPLIFETIME(APLPlayerController, ControllingPLPlayerCharacter);
 }
 
 void APLPlayerController::Client_AddPLWidget_Implementation(TSubclassOf<UPLWidgetBase> WidgetClassToAdd)

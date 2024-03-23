@@ -23,6 +23,7 @@ class UPLNameComponent;
 class UPLAnimationData;
 class UCharacterUIProfileData;
 class APLHidableActor;
+class UPLHideComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FClientControllerPossesSignature, AController*, NewController);
 
@@ -62,6 +63,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UPLNameComponent* PLNameComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UPLHideComponent* PLHideComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PL | Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
@@ -192,18 +196,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_StopAnimation(UAnimMontage* MontageToStop = nullptr);
 
-	UFUNCTION(Client, Reliable)
-	void Net_StartHiding(APLHidableActor* InHideableActor);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StartHiding(APLHidableActor* InHideableActor);
-
-	UFUNCTION(Client, Reliable)
-	void Net_StopHiding(APLHidableActor* InHideableActor);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StopHiding(APLHidableActor* InHideableActor);
-
 	UFUNCTION(Client,Reliable)
 	void Net_SetMovementMode(EMovementMode InMovementMode);
 
@@ -242,6 +234,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UPLNameComponent* GetPLNameComponent() const { return PLNameComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UPLHideComponent* GetPLHideComponent() const { return PLHideComponent; }
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

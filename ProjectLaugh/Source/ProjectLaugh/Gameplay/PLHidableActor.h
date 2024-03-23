@@ -18,6 +18,7 @@ class UInputAction;
 class UInputMappingContext;
 class APLPlayerCharacter;
 class UPLWidgetBase;
+class UPLStunData;
 struct FInputActionValue;
 
 UCLASS()
@@ -70,14 +71,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Input")
 	UInputAction* OpenDoorAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "PL | Animation")
-	UAnimMontage* OpenMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "PL | Animation")
-	UAnimMontage* CloseMontage;
-
 	UPROPERTY(EditDefaultsOnly, Category = "PL | UI")
 	TSubclassOf<UPLWidgetBase> PopupWidgetClass;
+
+	//We are going to be using the physics asset to register hit. This array has the bones we need to be registering hits for
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Gameplay")
+	TArray<FName> AcceptedCollisionBoneNames;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Gameplay")
+	UPLStunData* PLStunData;
 
 	UPROPERTY(Replicated)
 	APLPlayerCharacter* OccupantCharacter;
@@ -88,8 +90,7 @@ protected:
 	UFUNCTION()
 	void OnControllerChanged(APawn* Pawn, AController* OldController, AController* NewController);
 
-	UFUNCTION()
-	void ToggleDoor();
+
 
 	//IPLInteractionInterface Implementation Begin
 	void Interact_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent) override;
@@ -109,6 +110,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayMontage(UAnimMontage* InMontage);
 
+	UFUNCTION()
+	void ToggleDoor();
+
 	UFUNCTION(Client, Reliable)
 	void Net_StopHiding();
 
@@ -117,6 +121,9 @@ public:
 
 	UFUNCTION()
 	void SetOccupant(APLPlayerCharacter* InOccupant);
+
+	UFUNCTION()
+	void OnSkeletalMeshComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UPLGameplayTagComponent* GetGameplayTagComponent() const { return PLGameplayTagComponent; }
 

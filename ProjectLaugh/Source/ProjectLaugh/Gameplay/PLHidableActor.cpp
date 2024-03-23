@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/Core/PLPlayerController.h"
+#include "ProjectLaugh/Components/PLHideComponent.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractableComponent.h"
 #include "ProjectLaugh/Gameplay/PLGameplayTagComponent.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
@@ -49,6 +50,8 @@ APLHidableActor::APLHidableActor()
 	AutoPossessAI = EAutoPossessAI::Disabled;
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
 
+	SkeletalMeshComponent->OnComponentHit.AddDynamic(this, &APLHidableActor::OnSkeletalMeshComponentHit);
+
 	SetReplicates(true);
 }
 
@@ -60,16 +63,16 @@ void APLHidableActor::Interact_Implementation(APLPlayerCharacter* InInstigator, 
 	}
 	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant))
 	{
-		ToggleDoor();
+		InInstigator->GetPLHideComponent()->Server_ToggleDoor(this);
 		return;
 	}
-	InInstigator->Net_StartHiding(this);
+	InInstigator->GetPLHideComponent()->Net_StartHiding(this);
 }
 
 void APLHidableActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) 
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APLHidableActor::Look);
@@ -81,9 +84,6 @@ void APLHidableActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 void APLHidableActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	check(OpenMontage);
-	check(CloseMontage);
 
 	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
 	if (IsValid(AnimInstance))
@@ -97,6 +97,30 @@ void APLHidableActor::BeginPlay()
 void APLHidableActor::SetOccupant(APLPlayerCharacter* InOccupant)
 {
 	OccupantCharacter = InOccupant;
+}
+
+void APLHidableActor::OnSkeletalMeshComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (!GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant))
+	{
+		return;
+	}
+
+	int OutIndex;
+	AcceptedCollisionBoneNames.Find(Hit.MyBoneName, OutIndex);
+	if (OutIndex != INDEX_NONE)
+	{
+		if (APLPlayerCharacter* PLPlayerCharacter = Cast<APLPlayerCharacter>(OtherActor))
+		{
+			//Dont stun self
+			if (PLPlayerCharacter == OccupantCharacter)
+			{
+				return;
+			}
+			check(PLStunData);
+			PLPlayerCharacter->Server_StunCharacter(PLStunData);
+		}
+	}
 }
 
 void APLHidableActor::Look(const FInputActionValue& Value)
@@ -123,7 +147,6 @@ void APLHidableActor::PossessedBy(AController* NewController)
 	}
 
 	GetGameplayTagComponent()->GetActiveGameplayTags().AddTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant);
-	Server_CloseDoor();
 }
 
 void APLHidableActor::UnPossessed()
@@ -131,7 +154,7 @@ void APLHidableActor::UnPossessed()
 	Super::UnPossessed();
 
 	GetGameplayTagComponent()->GetActiveGameplayTags().RemoveTag(SharedGameplayTags::TAG_Interactable_Hidable_Status_HasOccupant);
-	Server_CloseDoor();
+	SetOccupant(nullptr);
 }
 
 void APLHidableActor::NotifyControllerChanged()
@@ -162,7 +185,7 @@ void APLHidableActor::Server_StopHiding_Implementation()
 	{
 		Server_OpenDoor();
 	} 
-	OccupantCharacter->Net_StopHiding(this);
+	OccupantCharacter->GetPLHideComponent()->Net_StopHiding(this);
 }
 
 bool APLHidableActor::Server_StopHiding_Validate()
@@ -174,9 +197,15 @@ bool APLHidableActor::Server_StopHiding_Validate()
 void APLHidableActor::Server_OpenDoor_Implementation()
 {
 	//Open Doors
+
+	//If door is already open ignore
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Status_Open))
+	{
+		return;
+	}
+
 	PLGameplayTagComponent->GetActiveGameplayTags().RemoveTag(SharedGameplayTags::TAG_Interactable_Status_Close);
 	PLGameplayTagComponent->GetActiveGameplayTags().AddTag(SharedGameplayTags::TAG_Interactable_Status_Open);
-	Multicast_PlayMontage(OpenMontage);
 }
 
 bool APLHidableActor::Server_OpenDoor_Validate()
@@ -187,9 +216,14 @@ bool APLHidableActor::Server_OpenDoor_Validate()
 void APLHidableActor::Server_CloseDoor_Implementation()
 {
 	//Close Doors
+	// 
+	//If door is already closed ignore
+	if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Interactable_Status_Close))
+	{
+		return;
+	}
 	PLGameplayTagComponent->GetActiveGameplayTags().RemoveTag(SharedGameplayTags::TAG_Interactable_Status_Open);
 	PLGameplayTagComponent->GetActiveGameplayTags().AddTag(SharedGameplayTags::TAG_Interactable_Status_Close);
-	Multicast_PlayMontage(CloseMontage);
 }
 
 bool APLHidableActor::Server_CloseDoor_Validate()
@@ -224,13 +258,6 @@ void APLHidableActor::HandleOnMontageEnded(UAnimMontage* Montage, bool Interrupt
 	if (Interrupted)
 	{
 		return;
-	}
-
-	if (Montage == OpenMontage)
-	{
-	}
-	if (Montage == CloseMontage)
-	{
 	}
 }
 

@@ -13,6 +13,7 @@ class ULevelSequencePlayer;
 class UInputMappingContext;
 class UPLGameplayWidget;
 class UPLWidgetBase;
+class APLPlayerCharacter;
 
 UCLASS()
 class PROJECTLAUGH_API APLPlayerController : public APlayerController
@@ -98,6 +99,9 @@ protected:
 
 	UPROPERTY()
 	TSet<UPLWidgetBase*> SpawnedWidgets;
+
+	UPROPERTY(Replicated)
+	APLPlayerCharacter* ControllingPLPlayerCharacter;
 
 	UFUNCTION()
 	void PlayWaitingCinematicSequence();

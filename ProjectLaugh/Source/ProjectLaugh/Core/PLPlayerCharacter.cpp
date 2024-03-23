@@ -14,6 +14,7 @@
 #include "ProjectLaugh/Core/PLPlayerState.h"
 #include "ProjectLaugh/Components/PLScoreComponent.h"
 #include "ProjectLaugh/Components/PLNameComponent.h"
+#include "ProjectLaugh/Components/PLHideComponent.h"
 #include "ProjectLaugh/Animation/PLAnimationData.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
 #include "ProjectLaugh/Data/PLStunData.h"
@@ -36,6 +37,7 @@ APLPlayerCharacter::APLPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	PLSkillCheckComponent = CreateDefaultSubobject<UPLSkillCheckComponent>(FName(TEXT("PL SkillCheck Component")));
 	PLNameComponent = CreateDefaultSubobject<UPLNameComponent>(FName(TEXT("PL Name Component")));
 	PLNameComponent->SetupAttachment(GetMesh());
+	PLHideComponent = CreateDefaultSubobject<UPLHideComponent>(FName(TEXT("Hide Component")));
 
 	GetCharacterMovement()->SetCrouchedHalfHeight(45.f);
 	GetCharacterMovement()->bRunPhysicsWithNoController = true;
@@ -444,73 +446,6 @@ void APLPlayerCharacter::Multicast_StopAnimation_Implementation(UAnimMontage* Mo
 			AnimInstance->StopAllMontages(0.5f);
 		}
 	}
-}
-
-void APLPlayerCharacter::Net_StartHiding_Implementation(APLHidableActor* InHideableActor)
-{
-	if (!IsValid(InHideableActor))
-	{
-		return;
-	}
-
-	Net_ToggleFreezeCharacter(true);
-	//Move character in closet
-	GetGameplayTagComponent()->Server_AddTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
-	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
-	GetPLPlayerController()->SetControlRotation(InHideableActor->GetActorRotation());
-	Net_Crouch(true);
-	Server_StartHiding(InHideableActor);
-}
-
-void APLPlayerCharacter::Server_StartHiding_Implementation(APLHidableActor* InHideableActor)
-{	
-	if (!IsValid(InHideableActor))
-	{
-		return;
-	}
-	InHideableActor->Server_OpenDoor();
-	InHideableActor->SetOccupant(this);
-	SetActorTransform(InHideableActor->GetHidingLocationMarker()->GetComponentTransform());
-	GetPLPlayerController()->SetViewTargetWithBlend(InHideableActor, 1.f);
-	GetPLPlayerController()->bAutoManageActiveCameraTarget = false;
-	GetPLPlayerController()->SetControlRotation(InHideableActor->GetActorRotation());
-	GetPLPlayerController()->Possess(InHideableActor);
-}
-
-bool APLPlayerCharacter::Server_StartHiding_Validate(APLHidableActor* InHideableActor)
-{
-	return true;
-}
-
-void APLPlayerCharacter::Net_StopHiding_Implementation(APLHidableActor* InHideableActor)
-{
-	if (!IsValid(InHideableActor))
-	{
-		return;
-	}
-	//Move character in closet
-	SetActorLocation(InHideableActor->GetExitLocationMarker()->GetComponentLocation());
-	Net_Crouch(false);
-	GetGameplayTagComponent()->Server_RemoveTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
-	Net_ToggleFreezeCharacter(false);
-	Server_StopHiding(InHideableActor);
-}
-
-void APLPlayerCharacter::Server_StopHiding_Implementation(APLHidableActor* InHideableActor)
-{
-	if (!IsValid(InHideableActor))
-	{
-		return;
-	}
-
-	InHideableActor->SetOccupant(nullptr);
-	SetActorLocation(InHideableActor->GetExitLocationMarker()->GetComponentLocation());
-	GetPLPlayerController()->Possess(this);
-}
-
-bool APLPlayerCharacter::Server_StopHiding_Validate(APLHidableActor* InHideableActor)
-{
-	return true;
 }
 
 void APLPlayerCharacter::Server_SetMovementMode_Implementation(EMovementMode InMovementMode)
