@@ -106,6 +106,9 @@ private:
 	float PreviousWalkSpeed = 0.f;
 
 	UPROPERTY()
+	float PreviousPushSpeed = 100.f;
+
+	UPROPERTY()
 	APLPlayerCharacter* PLPlayerCharacter;
 
 	UPROPERTY(Replicated)

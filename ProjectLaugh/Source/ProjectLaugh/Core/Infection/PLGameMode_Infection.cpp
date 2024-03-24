@@ -250,7 +250,7 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 
 	//Actor transform could be off mesh, try to move in mesh
 	FNavLocation NavLocation;
-	const FVector QueryingExtent = FVector(250.f, 250.f, 250.f);
+	const FVector QueryingExtent = FVector(500.f, 500.f, 25.f);
 	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (IsValid(NavSystem))
 	{

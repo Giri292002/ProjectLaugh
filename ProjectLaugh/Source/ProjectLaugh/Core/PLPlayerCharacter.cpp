@@ -186,6 +186,15 @@ bool APLPlayerCharacter::Server_TryInteract_Validate()
 
 void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
+	//If command is to remove freeze and character is stunned ignore it
+	if (!bFreeze)
+	{
+		if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Stunned))
+		{
+			return;
+		}
+	}
+
 	if (IsValid(GetController()))
 	{
 		GetController()->ResetIgnoreMoveInput();

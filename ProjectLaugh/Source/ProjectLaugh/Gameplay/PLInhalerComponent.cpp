@@ -5,6 +5,7 @@
 
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Data/PLInhalerData.h"
@@ -101,6 +102,8 @@ void UPLInhalerComponent::Net_StartRunning_Implementation()
 	if (bStopRunningDone)
 	{
 		Net_SetbStopRunningDone(false);
+		PreviousPushSpeed = PLPlayerCharacter->GetCharacterMovement()->InitialPushForceFactor;
+		PLPlayerCharacter->Net_SetPushForce(PreviousPushSpeed * 2.f);
 		PLPlayerCharacter->Net_SetMaxWalkSpeed(PLPlayerCharacter->GetMaxWalkSpeed() * PLInhalerData->MaxWalkSpeedMultiplier);
 	}
 }
@@ -110,6 +113,7 @@ void UPLInhalerComponent::Net_StopRunning_Implementation()
 	if (!bStopRunningDone)
 	{
 		Net_SetbStopRunningDone(true);
+		PLPlayerCharacter->Net_SetPushForce(PreviousPushSpeed);
 		PLPlayerCharacter->Net_SetMaxWalkSpeed(PLPlayerCharacter->GetMaxWalkSpeed() / PLInhalerData->MaxWalkSpeedMultiplier);
 	}
 }
