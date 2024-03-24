@@ -31,6 +31,27 @@ void UPLInteractionComponent::BeginPlay()
 	PLPlayerCharacter = Cast<APLPlayerCharacter>(GetOwner());
 }
 
+bool UPLInteractionComponent::GetCanRunInteract()
+{
+	bCanRunInteract = false;
+	if (!IsValid(PLPlayerCharacter))
+	{
+		return bCanRunInteract;
+	}
+
+	//Add blocked tags here
+	FGameplayTagContainer BlockedTags;
+	BlockedTags.AddTag(SharedGameplayTags::TAG_Ability_Hide_Hiding);
+
+	//If none of the blocked tags exist, we can interact
+	if (!PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasAnyExact(BlockedTags))
+	{
+		bCanRunInteract = true;
+	}
+
+	return bCanRunInteract;
+}
+
 bool UPLInteractionComponent::TryInteract()
 {
 	if (!IsValid(LastInteractedComponent))
@@ -51,7 +72,7 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 	if (!GetCanRunInteract() || !IsValid(PLPlayerController))
 	{
 		UnassignInteractableComponent();
-		OnCanInteract.Broadcast(false);
+		OnCanInteract.Broadcast(false, FInteractionInformation());
 		return false;
 	}
 
@@ -72,7 +93,7 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()) || !UKismetSystemLibrary::DoesImplementInterface(HitResult.GetActor(), UPLInteractionInterface::StaticClass()))
 	{
 		UnassignInteractableComponent();
-		OnCanInteract.Broadcast(false);
+		OnCanInteract.Broadcast(false, FInteractionInformation());
 		return false;
 	}
 
@@ -92,11 +113,11 @@ bool UPLInteractionComponent::RunInteractTrace(APLPlayerController* PLPlayerCont
 
 	if (IsValidInteractionWith(LastInteractedComponent) && LastInteractedComponent->CanInteract(PLPlayerCharacter, this))
 	{
-		OnCanInteract.Broadcast(true);
+		OnCanInteract.Broadcast(true, LastInteractedComponent->GetInteractionInformation());
 		return true;
 	}	
 	UnassignInteractableComponent();
-	OnCanInteract.Broadcast(false);
+	OnCanInteract.Broadcast(false, FInteractionInformation());
 	return false;
 }
 
@@ -139,7 +160,7 @@ void UPLInteractionComponent::UnassignInteractableComponent()
 	USkeletalMeshComponent* SkeletalMeshComponent = LastInteractedComponent->GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
 	if (IsValid(SkeletalMeshComponent))
 	{
-		SkeletalMeshComponent->SetRenderCustomDepth(true);
+		SkeletalMeshComponent->SetRenderCustomDepth(false);
 	}
 	LastInteractedComponent = nullptr;	
 }

@@ -5,21 +5,24 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "ProjectLaugh/SharedGameplayTags.h"
+#include "ProjectLaugh/Gameplay/Interaction/PLInteractionComponent.h"
 #include "PLInteractionInterface.h"
 #include "PLInteractableComponent.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PROJECTLAUGH_API UPLInteractableComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UPLInteractableComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
 	FGameplayTagContainer GetSupportedInteractors() const { return SupportedInteractors; }
+
+	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
+	FInteractionInformation GetInteractionInformation() const { return InteractionInformation; }
 
 	UFUNCTION(BlueprintCallable, Category = "PL | Interaction")
 	void Interact(APLPlayerCharacter* Instigator, UPLInteractionComponent* InteractableComponent);
@@ -29,6 +32,9 @@ public:
 	bool CanInteract(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "PL | Interaction", meta = (BitMask, BitmaskEnum = "EInteractorSupport"))
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Interaction")
 	FGameplayTagContainer SupportedInteractors;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Interaction")
+	FInteractionInformation InteractionInformation;
 };

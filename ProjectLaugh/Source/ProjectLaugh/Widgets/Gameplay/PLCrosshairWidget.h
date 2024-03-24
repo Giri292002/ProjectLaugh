@@ -9,6 +9,7 @@
 
 class UPLInteractionComponent;
 class UPLActorComponent;
+struct FInteractionInformation;
 
 UCLASS()
 class PROJECTLAUGH_API UPLCrosshairWidget : public UPLComponentWidgetBase
@@ -23,6 +24,6 @@ protected:
 	UPLInteractionComponent* PLInteractionComponent; 
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnCanInteract(const bool bCanInteract);
+	void OnCanInteract(const bool bCanInteract, FInteractionInformation InteractionInformation);
 	
 };

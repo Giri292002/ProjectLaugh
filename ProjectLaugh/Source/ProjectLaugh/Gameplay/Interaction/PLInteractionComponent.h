@@ -8,9 +8,25 @@
 #include "PLInteractionInterface.h"
 #include "PLInteractionComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCanInteractSignature, const bool, bCanInteract);
+USTRUCT(BlueprintType)
+struct FInteractionInformation
+{
+	GENERATED_BODY()
+
+	// {Key} to {Interaction Prompt}
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText InteractionPrompt = FText::FromString(TEXT("INTERACT"));
+
+	//This is used to set color, 0 is default, 1 is yellow etc.
+	//TODO: Need to implement color change based on priority
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int InteractionPriority = 0;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCanInteractSignature, const bool, bCanInteract, FInteractionInformation, InteractionInformation);
 
 class UPLInteractableComponent;
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTLAUGH_API UPLInteractionComponent : public UPLActorComponent, public IPLInteractionInterface
@@ -27,7 +43,7 @@ public:
 
 	//Get if the player can run the interaction trace
 	UFUNCTION(BlueprintCallable)
-	bool GetCanRunInteract() const { return bCanRunInteract; }
+	bool GetCanRunInteract();
 
 	//Try calling interact interface on a component
 	UFUNCTION(BlueprintCallable)
