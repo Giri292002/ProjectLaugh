@@ -24,9 +24,16 @@ void UPLGameplayTagComponent::BeginPlay()
 	
 }
 
+
 void UPLGameplayTagComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	DOREPLIFETIME(UPLGameplayTagComponent, ActiveGameplayTags);
+}
+
+void UPLGameplayTagComponent::Net_AddTag_Implementation(const FGameplayTag TagToAdd)
+{
+	ActiveGameplayTags.AddTag(TagToAdd);
+	Server_AddTag(TagToAdd);
 }
 
 void UPLGameplayTagComponent::Server_AddTag_Implementation(const FGameplayTag TagToAdd)
@@ -37,6 +44,13 @@ void UPLGameplayTagComponent::Server_AddTag_Implementation(const FGameplayTag Ta
 bool UPLGameplayTagComponent::Server_AddTag_Validate(const FGameplayTag TagToAdd)
 {
 	return true;
+}
+
+
+void UPLGameplayTagComponent::Net_RemoveTag_Implementation(const FGameplayTag TagToRemove)
+{
+	ActiveGameplayTags.RemoveTag(TagToRemove);
+	Server_RemoveTag(TagToRemove);
 }
 
 void UPLGameplayTagComponent::Server_RemoveTag_Implementation(const FGameplayTag TagToRemove)

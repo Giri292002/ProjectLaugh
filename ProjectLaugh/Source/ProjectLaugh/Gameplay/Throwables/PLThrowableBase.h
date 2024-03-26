@@ -56,4 +56,8 @@ protected:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Interact_Implementation(APLPlayerCharacter* InInstigator, UPLInteractionComponent* OtherInteractableComponent) override;
+
+	// --- IPLResetInterface begin ---
+	virtual void PLReset_Implementation() override;
+	// --- IPLResetInterface end ---
 };

@@ -98,7 +98,11 @@ void APLPlayerCharacter_Zombie::SetupPlayerInputComponent(UInputComponent* Playe
 void APLPlayerCharacter_Zombie::Restart()
 {
 	Super::Restart();
-	Net_ToggleFreezeCharacter(true);
+	//Only freeze character if we are spawning
+	if (PLGameplayTagComponent->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Spawning))
+	{
+		Net_ToggleFreezeCharacter(true);
+	}
 }
 
 void APLPlayerCharacter_Zombie::Net_ThrowObject()
@@ -153,10 +157,27 @@ void APLPlayerCharacter_Zombie::Net_Pounce_Implementation()
 	
 	SetActorRotation(NewActorRotation);
 
-	Server_Pounce(NewActorRotation, HitResult);
+	//Check LoS
+	bool bHasLoS = false;
+	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()))
+	{
+		bHasLoS = false;
+	}
+	else
+	{
+		FHitResult LoSHit;
+		ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel4);
+		const FVector LoSTraceEnd = HitResult.GetActor()->GetActorLocation();
+		FCollisionQueryParams CollisionQueryParams;
+		CollisionQueryParams.AddIgnoredActor(this);
+		GetWorld()->LineTraceSingleByChannel(LoSHit, StartLocation, LoSTraceEnd, ECollisionChannel::ECC_GameTraceChannel4, CollisionQueryParams);
+		bHasLoS = !LoSHit.bBlockingHit;
+	}
+	Server_Pounce(NewActorRotation, HitResult, bHasLoS);
+
 }
 
-void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotation, FHitResult HitResult)
+void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotation, FHitResult HitResult, const bool bHasLOS)
 {
 	SetActorRotation(NewRotation);
 
@@ -166,7 +187,7 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 	PLPlayerController->Client_AddTimer(PounceCooldownTime, Message, false);
 	GetWorldTimerManager().SetTimer(PounceCooldownTimer, this, &APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished, PounceCooldownTime);
 
-	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()))
+	if (!HitResult.bBlockingHit || !IsValid(HitResult.GetActor()) || !bHasLOS)
 	{
 		return;
 	}
@@ -194,10 +215,13 @@ void APLPlayerCharacter_Zombie::Server_Pounce_Implementation(FRotator NewRotatio
 			PLGameState->GiveAlphaZombieAssist();
 		}
 	}
-	//TODO: Add line back when pouncing animation is setup
-	//PLGameplayTagComponent->Server_AddTag(SharedGameplayTags::TAG_Character_Status_Pouncing);
-
 }
+
+bool APLPlayerCharacter_Zombie::Server_Pounce_Validate(FRotator NewRotation, FHitResult HitResult, const bool bHasLOS)
+{
+	return true;
+}
+
 
 void APLPlayerCharacter_Zombie::Server_OnPounceCooldownFinished()
 {
@@ -292,12 +316,6 @@ bool APLPlayerCharacter_Zombie::Server_DetachArm_Validate()
 {
 	return true;
 }
-
-bool APLPlayerCharacter_Zombie::Server_Pounce_Validate(FRotator NewRotation, FHitResult HitResult)
-{
-	return true;
-}
-
 void APLPlayerCharacter_Zombie::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

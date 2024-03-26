@@ -123,6 +123,13 @@ void APLHidableActor::OnSkeletalMeshComponentHit(UPrimitiveComponent* HitCompone
 	}
 }
 
+void APLHidableActor::PLReset_Implementation()
+{
+	Server_CloseDoor();
+	SetOccupant(nullptr);
+	SkeletalMeshComponent->SetRenderCustomDepth(false);
+}
+
 void APLHidableActor::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D

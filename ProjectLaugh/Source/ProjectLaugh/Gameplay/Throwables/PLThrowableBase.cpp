@@ -87,3 +87,15 @@ void APLThrowableBase::Interact_Implementation(APLPlayerCharacter* InInstigator,
 	}
 	ThrowComponent->Net_HoldObject(this);
 }
+
+void APLThrowableBase::PLReset_Implementation()
+{
+	Super::PLReset_Implementation();
+
+	SetActorEnableCollision(true);
+	GetStaticMeshComponent()->MoveIgnoreActors.Add(GetOwner());
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	ThrowableComponent->SetUpdatedComponent(GetStaticMeshComponent());
+	ThrowableComponent->Activate(true);
+
+}

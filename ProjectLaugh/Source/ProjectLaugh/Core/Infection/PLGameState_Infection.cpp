@@ -6,11 +6,18 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "PLGameMode_Infection.h"
-#include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Core/Infection/PLInfectionGameModeData.h"
+#include "ProjectLaugh/Core/PLActor.h"
+#include "ProjectLaugh/Core/PLPlayerCharacter.h"
 #include "ProjectLaugh/Core/PLPlayerState.h"
-#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
+#include "ProjectLaugh/Core/PLPlayerState.h"
+#include "ProjectLaugh/Core/PLStaticMeshActor.h"
+#include "ProjectLaugh/Core/PLActor.h"
 #include "ProjectLaugh/Data/PLPlayerAttributesData.h"
+#include "ProjectLaugh/Gameplay/Characters/PLPlayerCharacter_Zombie.h"
+#include "ProjectLaugh/Gameplay/PLHidableActor.h"
+#include "ProjectLaugh/Gameplay/PLPlayerStart.h"
+#include "ProjectLaugh/Gameplay/Throwables/PLThrowableBase.h"
 
 void APLGameState_Infection::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -91,14 +98,14 @@ void APLGameState_Infection::PrepareToEndRound(FGameplayTag InWinningTeam)
 			//Register time survived for surviving elders
 			if (TagContainer.HasTag(WinningTeam))
 			{
-				PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromTimeSurvived();
-				PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromPositionSurvived();
+				PLPlayerCharacter->GetPLPlayerController()->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromTimeSurvived();
+				PLPlayerCharacter->GetPLPlayerController()->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreFromPositionSurvived();
 			}
 		}
 
 		if(PLPlayerCharacter->GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(InWinningTeam))
 		{
-			PLPlayerCharacter->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreForWinningTeam(InWinningTeam);
+			PLPlayerCharacter->GetPLPlayerController()->GetPlayerState<APLPlayerState>()->GetPLScoreComponent()->Server_AddScoreForWinningTeam(InWinningTeam);
 		}
 	}
 
@@ -235,6 +242,18 @@ void APLGameState_Infection::GiveAlphaZombieAssist()
 			PLPlayerState->GetPLScoreComponent()->Server_AddScoreFromConversionAssist();
 		}
 	}
+}
+
+void APLGameState_Infection::PLResetLevel_Implementation()
+{
+	ExecutePLReset<APLActor>();
+	ExecutePLReset<APLStaticMeshActor>();
+	ExecutePLReset<APLPlayerStart>();
+	ExecutePLReset<APLPlayerState>();
+	ExecutePLReset<APLHidableActor>();
+
+	//Reset Game State
+	IPLResetInterface::Execute_PLReset(this);
 }
 
 void APLGameState_Infection::BeginPlay()

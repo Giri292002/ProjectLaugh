@@ -33,6 +33,12 @@ public:
 	UFUNCTION(Server,Reliable, WithValidation, BlueprintCallable, Category = "PL | Tags")
 	void Server_RemoveTag(const FGameplayTag TagToRemove);
 
+	UFUNCTION(Client, Reliable, BlueprintCallable,Category = "PL | Tags")
+	void Net_AddTag(const FGameplayTag TagToAdd);
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "PL | Tags")
+	void Net_RemoveTag(const FGameplayTag TagToRemove);
+
 	/**
 	* Tries to find a tag, if tag doesn't exist add one
 	* @return bool Returns if it found a tag or not

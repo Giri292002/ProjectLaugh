@@ -156,7 +156,7 @@ void APLPlayerCharacter::Multicast_StunCharacter_Implementation(UPLStunData* Stu
 void APLPlayerCharacter::Server_StopStunCharacter_Implementation()
 {
 	GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
-	PLGameplayTagComponent->Server_RemoveTag(SharedGameplayTags::TAG_Character_Status_Stunned);
+	PLGameplayTagComponent->Net_RemoveTag(SharedGameplayTags::TAG_Character_Status_Stunned);
 	Net_ToggleFreezeCharacter(false);
 }
 
@@ -208,6 +208,14 @@ void APLPlayerCharacter::Net_ToggleFreezeCharacter_Implementation(const bool bFr
 
 void APLPlayerCharacter::Server_ToggleFreezeCharacter_Implementation(const bool bFreeze)
 {
+	if (!bFreeze)
+	{
+		if (GetGameplayTagComponent()->GetActiveGameplayTags().HasTag(SharedGameplayTags::TAG_Character_Status_Stunned))
+		{
+			return;
+		}
+	}
+
 	if (IsValid(GetController()))
 	{
 		GetController()->ResetIgnoreMoveInput();

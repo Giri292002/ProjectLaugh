@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EngineUtils.h"
 #include "ProjectLaugh/Core/PLEOSGameState.h"
 #include "ProjectLaugh/Core/System/PLResetInterface.h"
 #include "ProjectLaugh/SharedGameplayTags.h"
@@ -174,10 +175,23 @@ public:
 	UFUNCTION()
 	void GiveAlphaZombieAssist();
 
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
+	void PLResetLevel();
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void PLReset_Implementation() override;
+
+	template<typename T>
+	void ExecutePLReset();
 };
+
+template<typename T>
+inline void APLGameState_Infection::ExecutePLReset()
+{
+	for (TActorIterator<T> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		IPLResetInterface::Execute_PLReset(*ActorItr);
+	}
+}

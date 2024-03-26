@@ -270,7 +270,7 @@ void APLGameMode_Infection::SpawnConvertedZombie(APLPlayerCharacter_Elder* Elder
 
 void APLGameMode_Infection::PrepareToStartRound()
 {
-	ResetLevel();
+	PLGameState_Infection->PLResetLevel();
 
 	PLGameState_Infection->IncreaseRound();
 
@@ -304,9 +304,19 @@ void APLGameMode_Infection::EndRound(FGameplayTag WinningTeam)
 	auto CurrentConnectedControllers = ConnectedPLPlayerControllers;
 	for (APLPlayerController* PLPlayerController : CurrentConnectedControllers)
 	{
-		APLPlayerCharacter* Pawn = Cast<APLPlayerCharacter>(PLPlayerController->GetPawn());
+		APLPlayerCharacter* PLPlayerPawn = Cast<APLPlayerCharacter>(PLPlayerController->GetPawn());
 		PLPlayerController->UnPossess();
-		Pawn->Server_Destroy();
+		
+		if (IsValid(PLPlayerPawn))
+		{
+			PLPlayerPawn->Server_Destroy();
+		}
+
+		if (IsValid(PLPlayerController->GetControllingPLPlayerCharacter()))
+		{
+			PLPlayerController->GetControllingPLPlayerCharacter()->Destroy();
+		}
+
 		PLPlayerController->Client_RemoveAllWidgets();
 		PLPlayerController->Client_AddPLWidget(PLInfectionGameModeData->ScoreWidget);
 	}
@@ -400,12 +410,6 @@ void APLGameMode_Infection::AddZombieSpawnTimerToEveryone(const float ZombieSpaw
 
 void APLGameMode_Infection::ResetLevel()
 {
-	ExecutePLReset<APLActor>();
-	ExecutePLReset<APLStaticMeshActor>();
-	ExecutePLReset<APLPlayerStart>();
-	ExecutePLReset<APLPlayerState>();
-
-	//Reset Game State
-	IPLResetInterface::Execute_PLReset(GetGameState<APLGameState_Infection>());
+	Super::ResetLevel();
 }
 

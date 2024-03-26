@@ -68,6 +68,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_OpenMainMenu(); 
 
+	UFUNCTION()
+	APLPlayerCharacter* GetControllingPLPlayerCharacter() const { return ControllingPLPlayerCharacter; }
+
 	UPROPERTY(Replicated)
 	FRotator RepPlayerControllerRotation;
 

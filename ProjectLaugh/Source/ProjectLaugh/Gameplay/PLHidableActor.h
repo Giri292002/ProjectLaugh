@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "ProjectLaugh/Gameplay/Interaction/PLInteractionInterface.h"
+#include "ProjectLaugh/Core/System/PLResetInterface.h"
 #include "PLHidableActor.generated.h"
 
 class USpringArmComponent;
@@ -22,7 +23,7 @@ class UPLStunData;
 struct FInputActionValue;
 
 UCLASS()
-class PROJECTLAUGH_API APLHidableActor : public APawn, public IPLInteractionInterface
+class PROJECTLAUGH_API APLHidableActor : public APawn, public IPLInteractionInterface, public IPLResetInterface
 {
 	GENERATED_BODY()
 
@@ -130,6 +131,10 @@ public:
 	USceneComponent* GetHidingLocationMarker() const { return HidingLocationMarker; }
 
 	USceneComponent* GetExitLocationMarker() const { return ExitLocationMarker; }
+
+	// --- PLResetInterface Implementation begin ---
+	virtual void PLReset_Implementation() override;
+	// --- PLResetInterface Implementation End ---
 
 protected:
 	/** Called for looking input */

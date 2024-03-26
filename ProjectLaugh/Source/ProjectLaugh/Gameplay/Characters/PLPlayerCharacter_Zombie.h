@@ -55,7 +55,7 @@ protected:
 	void Net_Pounce();
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
-	void Server_Pounce(FRotator NewRotation, FHitResult HitResult);
+	void Server_Pounce(FRotator NewRotation, FHitResult HitResult, const bool bHasLOS);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SpawnZombie();	
