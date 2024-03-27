@@ -64,6 +64,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
 	UPLInfectionGameModeData* PLInfectionGameModeData;
 
+	UPROPERTY(EditDefaultsOnly, Category = "PL | Infection")
+	float SpawnQueryExtent = 1000.f;
+
 	UPROPERTY()
 	APLGameState_Infection* PLGameState_Infection;
 
